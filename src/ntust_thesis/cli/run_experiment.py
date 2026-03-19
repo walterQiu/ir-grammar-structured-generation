@@ -7,6 +7,7 @@ import json
 import sys
 from pathlib import Path
 
+from ntust_thesis.core.bootstrap import register_builtin_components
 from ntust_thesis.core.config import load_experiment_config
 from ntust_thesis.core.pipeline import ExperimentPipeline
 
@@ -25,8 +26,9 @@ def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
 
-    _ = load_experiment_config(args.config)
-    pipeline = ExperimentPipeline()
+    config = load_experiment_config(args.config)
+    register_builtin_components()
+    pipeline = ExperimentPipeline(config=config)
     result = pipeline.run()
 
     payload = {"rows": len(result.rows), "metrics": result.metrics}
