@@ -5,3 +5,77 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = []
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.5.1",
+    "ruff==0.15.6",
+]
+
+[tool.ruff]
+exclude = [".venv", ".git", ".vscode"]
+line-length = 88
+target-version = "py313"
+
+[tool.ruff.lint]
+ignore = [
+  "D100",
+  "D104",
+  "D106",
+  "E501",
+  "TRY003",
+  "COM812",
+  "S101",
+  "TD003",
+]
+select = [
+  "E",    # pycodestyle - Error
+  "F",    # Pyflakes
+  "W",    # pycodestyle - Warning
+  "C901", # McCabe complex-structure
+  "I",    # isort
+  "B",    # bugbear
+  "N",    # pep8-naming
+  "D",    # pydocstyle
+  "UP",   # pyupgrade
+  "ANN",  # flake8-annotations
+  "S",    # flake8-bandit
+  "A",    # flake8-builtins
+  "COM",  # flake8-commas
+  "C4",   # flake8-comprehensions
+  "T10",  # flake8-debugger
+  "LOG",  # flake8-logging
+  "G",    # flake8-logging-format
+  "INP",  # flake8-no-pep420
+  "PIE",  # flake8-pie
+  "T20",  # flake8-print
+  "RSE",  # flake8-raise
+  "RET",  # flake8-return
+  "SIM",  # flake8-simplify
+  "TID",  # flake8-tidy-imports
+  "TC",   # flake8-type-checking
+  "INT",  # flake8-gettext
+  "ARG",  # flake8-unused-arguments
+  "PTH",  # flake8-use-pathlib
+  "TD",   # flake8-todo
+  "PL",   # pylint
+  "TRY",  # tryceratops
+  "PERF", # Perflint
+  "RUF",  # ruff
+]
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.isort]
+detect-same-package = true
+section-order = [
+  "future",
+  "standard-library",
+  "third-party",
+  "first-party",
+  "local-folder",
+]
