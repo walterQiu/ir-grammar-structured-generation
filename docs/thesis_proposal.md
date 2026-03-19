@@ -29,7 +29,7 @@ We will support multiple datasets under a unified interface:
 ### 1. EAE (Event Argument Extraction)
 - Input: text
 - Output: event type + arguments
-- Dataset examples: ACE, RAMS
+- Dataset examples: RAMS
 
 ### 2. Tool Calling
 - Input: instruction
