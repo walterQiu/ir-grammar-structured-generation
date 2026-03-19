@@ -1,0 +1,11 @@
+experiment_name: eae_baseline
+
+dataset:
+  name: rams
+
+model:
+  name: baseline
+
+evaluation:
+  validators: [strict]
+  metrics: [strict_rates]

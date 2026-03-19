@@ -1,0 +1,11 @@
+experiment_name: eae_ir
+
+dataset:
+  name: rams
+
+model:
+  name: ir_pipeline
+
+evaluation:
+  validators: [strict]
+  metrics: [strict_rates]
