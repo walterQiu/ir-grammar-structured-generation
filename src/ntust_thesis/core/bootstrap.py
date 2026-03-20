@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from ntust_thesis.datasets.stub import register as register_datasets
+from ntust_thesis.datasets.rams import register as register_datasets
 from ntust_thesis.evaluation.metrics import register as register_metrics
 from ntust_thesis.evaluation.validator import register as register_validators
 from ntust_thesis.models.baseline import register as register_baseline

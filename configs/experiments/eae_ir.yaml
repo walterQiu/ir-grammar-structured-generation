@@ -2,6 +2,9 @@ experiment_name: eae_ir
 
 dataset:
   name: rams
+  data_dir: datasets/RAMS/data
+  split: train
+  max_samples: 100
 
 model:
   name: ir_pipeline
