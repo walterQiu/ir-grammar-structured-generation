@@ -33,11 +33,12 @@ class ExperimentPipeline:
         dataset_key = self._config["dataset"]["name"]
         dataset_config = self._config["dataset"]
         model_key = self._config["model"]["name"]
+        model_config = self._config["model"]
         validator_keys = self._config["evaluation"].get("validators", ["strict"])
         metric_keys = self._config["evaluation"].get("metrics", ["strict_rates"])
 
         dataset = DATASET_REGISTRY.create(dataset_key, config=dataset_config)
-        model = MODEL_REGISTRY.create(model_key)
+        model = MODEL_REGISTRY.create(model_key, config=model_config)
         validators = [VALIDATOR_REGISTRY.create(key) for key in validator_keys]
         metrics = [METRIC_REGISTRY.create(key) for key in metric_keys]
 

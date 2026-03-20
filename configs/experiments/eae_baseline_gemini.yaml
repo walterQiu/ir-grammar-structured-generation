@@ -1,18 +1,19 @@
-experiment_name: eae_baseline
+experiment_name: eae_baseline_gemini
 
 dataset:
   name: rams
   data_dir: datasets/RAMS/data
-  split: train
-  max_samples: 100
+  split: dev
+  max_samples: 20
 
 model:
   name: baseline
-  backend: mock
+  backend: gemini
   llm_name_env: GEMINI_MODEL
   api_key_env: GEMINI_API_KEY
   dotenv_path: dotenv/.env
   temperature: 0.0
+  timeout_seconds: 60
 
 evaluation:
   validators: [strict]
