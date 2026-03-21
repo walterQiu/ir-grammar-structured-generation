@@ -10,7 +10,7 @@ For each RAMS sample, the model should receive:
    - Trigger span is wrapped with double asterisks like markdown bold
    - Prompt instruction example: `The trigger word(s) of the event is marked with **trigger word**.`
 3. `event_type`
-   - Taken from RAMS `TriggerTypeScore` string (e.g., `life.die.deathcausedbyviolentevents`)
+   - Taken from RAMS `evt_triggers` (e.g., `life.die.deathcausedbyviolentevents`)
 4. `legal role candidates (ontology)`
    - Role candidates are constrained by `event_type`
    - Source ontology: `datasets/RAMS/scorer/event_role_multiplicities.txt`
