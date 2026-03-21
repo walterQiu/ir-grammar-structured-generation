@@ -45,7 +45,15 @@ class ExperimentPipeline:
         rows: list[dict[str, Any]] = []
         for sample in dataset.load():
             prediction = model.predict(sample)
-            row: dict[str, Any] = {"sample_id": sample.sample_id}
+            row: dict[str, Any] = {
+                "sample_id": sample.sample_id,
+                "input_text": sample.input_text,
+                "raw_output": prediction.raw_output,
+                "parsed_output": prediction.parsed_output,
+                "gold": sample.gold,
+                "prediction_metadata": prediction.metadata,
+                "sample_metadata": sample.metadata,
+            }
             for validator in validators:
                 row.update(validator.validate(prediction, sample))
             rows.append(row)
