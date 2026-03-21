@@ -24,8 +24,9 @@ class GeminiClient(LLMClient):
         self._model_name = model_name
         self._timeout_seconds = timeout_seconds
 
-    def generate(self, prompt: str, temperature: float = 0.0) -> str:
+    def generate(self, prompt: str, **kwargs: object) -> str:
         """Generate text from Gemini."""
+        temperature = _coerce_temperature(kwargs.get("temperature", 0.0))
         payload = {
             "contents": [
                 {
@@ -83,3 +84,13 @@ def _extract_text(parsed: dict[str, Any]) -> str:
         msg = f"Gemini response contains empty text: {parsed}"
         raise RuntimeError(msg)
     return merged
+
+
+def _coerce_temperature(value: object) -> float:
+    """Convert temperature config to float with explicit type narrowing."""
+    if isinstance(value, (int, float)):
+        return float(value)
+    if isinstance(value, str):
+        return float(value)
+    msg = f"Unsupported temperature type: {type(value).__name__}"
+    raise TypeError(msg)

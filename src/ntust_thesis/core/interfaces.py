@@ -6,8 +6,6 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
-
     from ntust_thesis.core.types import JSONDict, Prediction, Sample
 
 
@@ -67,5 +65,5 @@ class LLMClient(ABC):
     """Interface for interchangeable LLM backends."""
 
     @abstractmethod
-    def generate(self, prompt: str, **kwargs: Mapping[str, object]) -> str:
+    def generate(self, prompt: str, **kwargs: object) -> str:
         """Generate text from prompt."""
