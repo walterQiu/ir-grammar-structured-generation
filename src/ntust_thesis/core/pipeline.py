@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ntust_thesis.core.registry import (
     DATASET_REGISTRY,
@@ -11,6 +11,9 @@ from ntust_thesis.core.registry import (
     MODEL_REGISTRY,
     VALIDATOR_REGISTRY,
 )
+
+if TYPE_CHECKING:
+    from ntust_thesis.core.config_models import ExperimentConfig
 
 
 @dataclass(slots=True)
@@ -24,18 +27,18 @@ class PipelineResult:
 class ExperimentPipeline:
     """Coordinates dataset -> model -> validation -> metrics."""
 
-    def __init__(self, config: dict[str, Any]) -> None:
+    def __init__(self, config: ExperimentConfig) -> None:
         """Initialize pipeline with resolved experiment config."""
         self._config = config
 
     def run(self) -> PipelineResult:
         """Execute dataset -> model -> validator -> metric flow."""
-        dataset_key = self._config["dataset"]["name"]
-        dataset_config = self._config["dataset"]
-        model_key = self._config["model"]["name"]
-        model_config = self._config["model"]
-        validator_keys = self._config["evaluation"].get("validators", ["strict"])
-        metric_keys = self._config["evaluation"].get("metrics", ["strict_rates"])
+        dataset_key = self._config.dataset.name
+        dataset_config = self._config.dataset.model_dump()
+        model_key = self._config.model.name
+        model_config = self._config.model.model_dump()
+        validator_keys = self._config.evaluation.validators
+        metric_keys = self._config.evaluation.metrics
 
         dataset = DATASET_REGISTRY.create(dataset_key, config=dataset_config)
         model = MODEL_REGISTRY.create(model_key, config=model_config)

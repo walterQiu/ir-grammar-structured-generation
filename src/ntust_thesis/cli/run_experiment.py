@@ -39,14 +39,14 @@ def main() -> None:
     pipeline = ExperimentPipeline(config=config)
     result = pipeline.run()
 
-    experiment_name = str(config.get("experiment_name", "unnamed_experiment"))
+    experiment_name = config.experiment_name
     timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
     run_id = f"{timestamp}_{experiment_name}"
     run_dir = args.output_root / run_id
 
     write_jsonl(run_dir / "predictions.jsonl", result.rows)
     write_json(run_dir / "metrics.json", result.metrics)
-    write_yaml(run_dir / "config_snapshot.yaml", config)
+    write_yaml(run_dir / "config_snapshot.yaml", config.model_dump())
 
     payload = {"rows": len(result.rows), "metrics": result.metrics}
     sys.stdout.write(f"{json.dumps(payload, ensure_ascii=False)}\n")
