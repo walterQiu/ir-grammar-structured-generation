@@ -10,7 +10,7 @@ from ntust_thesis.core.interfaces import Model
 from ntust_thesis.core.registry import MODEL_REGISTRY
 from ntust_thesis.core.types import Prediction, Sample
 from ntust_thesis.models.llm.gemini_client import GeminiClient
-from ntust_thesis.utils.env import get_env_with_default, get_required_env
+from ntust_thesis.utils.env import get_required_env
 from ntust_thesis.utils.json_parser import parse_json_object
 
 
@@ -26,17 +26,9 @@ class BaselineModel(Model):
 
         if self._backend == "gemini":
             api_key_env = str(cfg.get("api_key_env", "GEMINI_API_KEY"))
-            model_env = str(cfg.get("llm_name_env", "GEMINI_MODEL"))
             dotenv_path = Path(str(cfg.get("dotenv_path", "dotenv/.env")))
             api_key = get_required_env(api_key_env, fallback_paths=[dotenv_path])
-            model_name = str(
-                cfg.get("llm_name")
-                or get_env_with_default(
-                    model_env,
-                    default="gemini-2.5-flash-lite",
-                    fallback_paths=[dotenv_path],
-                )
-            )
+            model_name = str(cfg.get("llm_name", "gemini-2.5-flash-lite"))
             timeout = int(cfg.get("timeout_seconds", 60))
             self._llm = GeminiClient(
                 api_key=api_key, model_name=model_name, timeout_seconds=timeout

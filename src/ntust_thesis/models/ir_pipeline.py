@@ -21,7 +21,7 @@ from ntust_thesis.models.components.ir_generator import (
     MockIRGenerator,
 )
 from ntust_thesis.models.llm.gemini_client import GeminiClient
-from ntust_thesis.utils.env import get_env_with_default, get_required_env
+from ntust_thesis.utils.env import get_required_env
 
 
 class IRPipelineModel(Model):
@@ -30,9 +30,19 @@ class IRPipelineModel(Model):
     def __init__(self, config: dict[str, Any] | None = None) -> None:
         """Initialize IR pipeline with model config."""
         cfg = config or {}
-        self._backend = str(cfg.get("backend", "mock"))
-        self._temperature = float(cfg.get("temperature", 0.0))
-        self._extractor, self._ir_generator = self._build_stages(cfg)
+        extraction_cfg = cfg.get("extraction_model", {})
+        ir_cfg = cfg.get("ir_model", {})
+        if not isinstance(extraction_cfg, dict):
+            msg = "model.extraction_model must be a mapping."
+            raise TypeError(msg)
+        if not isinstance(ir_cfg, dict):
+            msg = "model.ir_model must be a mapping."
+            raise TypeError(msg)
+
+        self._extraction_backend = str(extraction_cfg.get("backend", "mock"))
+        self._ir_backend = str(ir_cfg.get("backend", "mock"))
+        self._extractor = self._build_extractor(extraction_cfg)
+        self._ir_generator = self._build_ir_generator(ir_cfg)
         self._compiler = DeterministicIRCompiler()
 
     def name(self) -> str:
@@ -64,41 +74,50 @@ class IRPipelineModel(Model):
             parsed_output=parsed_output,
             metadata={
                 "model": self.name(),
-                "backend": self._backend,
+                "extraction_backend": self._extraction_backend,
+                "ir_backend": self._ir_backend,
                 "extraction_text": extraction_text,
                 "ir_text": ir_text,
                 "compile_error": error_message,
             },
         )
 
-    def _build_stages(self, cfg: dict[str, Any]) -> tuple[Extractor, IRGenerator]:
-        """Create extractor and IR generator according to backend config."""
-        if self._backend == "mock":
-            return MockExtractor(), MockIRGenerator()
+    def _build_extractor(self, cfg: dict[str, Any]) -> Extractor:
+        """Create extraction stage from extraction model config."""
+        backend = str(cfg.get("backend", "mock"))
+        if backend == "mock":
+            return MockExtractor()
+        if backend == "gemini":
+            temperature = float(cfg.get("temperature", 0.0))
+            llm = self._build_gemini_client(cfg)
+            return GeminiExtractor(llm=llm, temperature=temperature)
+        msg = f"Unsupported extraction backend: {backend}"
+        raise ValueError(msg)
 
-        if self._backend != "gemini":
-            msg = f"Unsupported IR backend: {self._backend}"
-            raise ValueError(msg)
+    def _build_ir_generator(self, cfg: dict[str, Any]) -> IRGenerator:
+        """Create IR generation stage from ir model config."""
+        backend = str(cfg.get("backend", "mock"))
+        if backend == "mock":
+            return MockIRGenerator()
+        if backend == "gemini":
+            temperature = float(cfg.get("temperature", 0.0))
+            llm = self._build_gemini_client(cfg)
+            return GeminiIRGenerator(llm=llm, temperature=temperature)
+        msg = f"Unsupported IR backend: {backend}"
+        raise ValueError(msg)
 
+    @staticmethod
+    def _build_gemini_client(cfg: dict[str, Any]) -> GeminiClient:
+        """Create Gemini client from stage-specific config."""
         api_key_env = str(cfg.get("api_key_env", "GEMINI_API_KEY"))
-        model_env = str(cfg.get("llm_name_env", "GEMINI_MODEL"))
         dotenv_path = Path(str(cfg.get("dotenv_path", "dotenv/.env")))
         api_key = get_required_env(api_key_env, fallback_paths=[dotenv_path])
-        model_name = str(
-            cfg.get("llm_name")
-            or get_env_with_default(
-                model_env,
-                default="gemini-2.5-flash-lite",
-                fallback_paths=[dotenv_path],
-            )
-        )
+        model_name = str(cfg.get("llm_name", "gemini-2.5-flash-lite"))
         timeout = int(cfg.get("timeout_seconds", 60))
-        llm = GeminiClient(
-            api_key=api_key, model_name=model_name, timeout_seconds=timeout
-        )
-        return (
-            GeminiExtractor(llm=llm, temperature=self._temperature),
-            GeminiIRGenerator(llm=llm, temperature=self._temperature),
+        return GeminiClient(
+            api_key=api_key,
+            model_name=model_name,
+            timeout_seconds=timeout,
         )
 
 

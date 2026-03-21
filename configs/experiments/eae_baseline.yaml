@@ -9,7 +9,7 @@ dataset:
 model:
   name: baseline
   backend: mock
-  llm_name_env: GEMINI_MODEL
+  llm_name: gemini-2.5-flash-lite
   api_key_env: GEMINI_API_KEY
   dotenv_path: dotenv/.env
   temperature: 0.0

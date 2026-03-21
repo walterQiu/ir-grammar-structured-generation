@@ -8,11 +8,12 @@ dataset:
 
 model:
   name: ir_pipeline
-  backend: mock
-  llm_name_env: GEMINI_MODEL
-  api_key_env: GEMINI_API_KEY
-  dotenv_path: dotenv/.env
-  temperature: 0.0
+  extraction_model:
+    backend: mock
+    temperature: 0.0
+  ir_model:
+    backend: mock
+    temperature: 0.0
 
 evaluation:
   validators: [strict]

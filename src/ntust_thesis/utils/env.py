@@ -44,25 +44,6 @@ def get_required_env(key: str, fallback_paths: Iterable[Path] | None = None) -> 
     raise RuntimeError(msg)
 
 
-def get_env_with_default(
-    key: str,
-    default: str,
-    fallback_paths: Iterable[Path] | None = None,
-) -> str:
-    """Return env var value or fallback default after dotenv loading."""
-    value = os.getenv(key)
-    if value:
-        return value
-
-    for path in fallback_paths or []:
-        load_dotenv_file(path)
-
-    value = os.getenv(key)
-    if value:
-        return value
-    return default
-
-
 def _strip_quotes(value: str) -> str:
     """Strip one layer of surrounding single/double quotes."""
     if (
