@@ -41,6 +41,7 @@ class GeminiExtractor(Extractor):
 
     def extract(self, input_text: str) -> str:
         """Ask Gemini to produce extraction notes."""
+        # TODO: optimize prompt
         prompt = (
             "Extract event information from the text. "
             "Return concise plain text with two sections:\n"

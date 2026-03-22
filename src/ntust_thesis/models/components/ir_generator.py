@@ -40,6 +40,7 @@ class GeminiIRGenerator(IRGenerator):
 
     def generate(self, extraction_text: str) -> str:
         """Generate strict dot-notation IR lines."""
+        # TODO: optimize prompt
         prompt = (
             "Convert extraction notes to dot-notation IR. "
             "Output only lines in this format:\n"

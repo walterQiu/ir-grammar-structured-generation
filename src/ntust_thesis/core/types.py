@@ -33,11 +33,6 @@ class OutputSchema(BaseModel):
 
     type: Literal["object"] = "object"
     required: tuple[str, ...] = ("event_type", "arguments")
-    additional_properties: bool = Field(
-        default=False,
-        alias="additionalProperties",
-        serialization_alias="additionalProperties",
-    )
 
 
 class SampleMetadata(BaseModel):
@@ -52,12 +47,18 @@ class PredictionMetadata(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     model: str
+    backend: str | None = None
+    extraction_backend: str | None = None
+    ir_backend: str | None = None
+    extraction_text: str | None = None
+    ir_text: str | None = None
+    compile_error: str | None = None
 
 
 class Sample(BaseModel):
     """Single benchmark sample."""
 
-    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    model_config = ConfigDict(extra="forbid")
 
     sample_id: str
     input_text: str
