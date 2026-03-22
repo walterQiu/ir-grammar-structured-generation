@@ -76,3 +76,20 @@ class Prediction(BaseModel):
     raw_output: str
     parsed_output: EventOutput | None
     metadata: PredictionMetadata
+
+
+class EvaluationRow(BaseModel):
+    """Row-level record used for metrics and artifact export."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    sample_id: str
+    input_text: str
+    raw_output: str
+    parsed_output: EventOutput | None
+    gold: EventOutput
+    prediction_metadata: PredictionMetadata
+    sample_metadata: SampleMetadata
+    json_valid: bool
+    schema_valid: bool
+    exact_match: bool

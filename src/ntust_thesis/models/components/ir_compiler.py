@@ -5,9 +5,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from ntust_thesis.core.interfaces import Compiler
+from ntust_thesis.core.types import EventOutput
 
 if TYPE_CHECKING:
-    from ntust_thesis.core.types import JSONDict
+    from ntust_thesis.core.types import OutputSchema
 
 _PAIR_SIZE = 2
 
@@ -15,9 +16,9 @@ _PAIR_SIZE = 2
 class DeterministicIRCompiler(Compiler):
     """Compile dot-notation IR into final JSON object."""
 
-    def compile(self, ir_text: str, schema: JSONDict) -> JSONDict:
+    def compile(self, ir_text: str, output_schema: OutputSchema) -> EventOutput:
         """Compile IR text under strict schema constraints."""
-        _ = schema
+        _ = output_schema
         event_type = "unknown.event"
         args_by_idx: dict[int, dict[str, Any]] = {}
 
@@ -63,7 +64,9 @@ class DeterministicIRCompiler(Compiler):
                 }
             )
 
-        return {"event_type": event_type, "arguments": arguments}
+        return EventOutput.model_validate(
+            {"event_type": event_type, "arguments": arguments}
+        )
 
 
 def _parse_span(text: str) -> list[int]:

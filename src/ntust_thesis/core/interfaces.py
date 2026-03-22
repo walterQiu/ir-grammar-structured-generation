@@ -6,7 +6,13 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ntust_thesis.core.types import JSONDict, Prediction, Sample
+    from ntust_thesis.core.types import (
+        EvaluationRow,
+        EventOutput,
+        OutputSchema,
+        Prediction,
+        Sample,
+    )
 
 
 class Dataset(ABC):
@@ -37,7 +43,7 @@ class Validator(ABC):
     """Interface for strict validators."""
 
     @abstractmethod
-    def validate(self, prediction: Prediction, sample: Sample) -> JSONDict:
+    def validate(self, prediction: Prediction, sample: Sample) -> dict[str, object]:
         """Return validation flags/details for one sample."""
 
 
@@ -49,7 +55,7 @@ class Metric(ABC):
         """Return metric identifier."""
 
     @abstractmethod
-    def compute(self, rows: list[JSONDict]) -> JSONDict:
+    def compute(self, rows: list[EvaluationRow]) -> dict[str, object]:
         """Aggregate row-level outputs into metric values."""
 
 
@@ -57,7 +63,7 @@ class Compiler(ABC):
     """Optional interface for IR compiler components."""
 
     @abstractmethod
-    def compile(self, ir_text: str, schema: JSONDict) -> JSONDict:
+    def compile(self, ir_text: str, output_schema: OutputSchema) -> EventOutput:
         """Compile IR text into JSON output."""
 
 

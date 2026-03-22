@@ -8,7 +8,7 @@ from ntust_thesis.core.interfaces import Metric
 from ntust_thesis.core.registry import METRIC_REGISTRY
 
 if TYPE_CHECKING:
-    from ntust_thesis.core.types import JSONDict
+    from ntust_thesis.core.types import EvaluationRow
 
 
 class StrictRatesMetric(Metric):
@@ -18,7 +18,7 @@ class StrictRatesMetric(Metric):
         """Return metric key."""
         return "strict_rates"
 
-    def compute(self, rows: list[JSONDict]) -> JSONDict:
+    def compute(self, rows: list[EvaluationRow]) -> dict[str, float]:
         """Compute json/schema/exact-match rates."""
         total = len(rows)
         if total == 0:
@@ -28,9 +28,9 @@ class StrictRatesMetric(Metric):
                 "exact_match_rate": 0.0,
             }
 
-        json_valid = sum(1 for row in rows if row.get("json_valid", False))
-        schema_valid = sum(1 for row in rows if row.get("schema_valid", False))
-        exact = sum(1 for row in rows if row.get("exact_match", False))
+        json_valid = sum(1 for row in rows if row.json_valid)
+        schema_valid = sum(1 for row in rows if row.schema_valid)
+        exact = sum(1 for row in rows if row.exact_match)
         return {
             "json_valid_rate": json_valid / total,
             "schema_valid_rate": schema_valid / total,

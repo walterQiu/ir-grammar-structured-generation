@@ -15,6 +15,8 @@ from ntust_thesis.core.registry import (
 if TYPE_CHECKING:
     from ntust_thesis.core.config_models import ExperimentConfig
 
+from ntust_thesis.core.types import EvaluationRow
+
 
 @dataclass(slots=True)
 class PipelineResult:
@@ -45,10 +47,11 @@ class ExperimentPipeline:
         validators = [VALIDATOR_REGISTRY.create(key) for key in validator_keys]
         metrics = [METRIC_REGISTRY.create(key) for key in metric_keys]
 
+        metric_rows: list[EvaluationRow] = []
         rows: list[dict[str, Any]] = []
         for sample in dataset.load():
             prediction = model.predict(sample)
-            row: dict[str, Any] = {
+            row_data: dict[str, Any] = {
                 "sample_id": sample.sample_id,
                 "input_text": sample.input_text,
                 "raw_output": prediction.raw_output,
@@ -58,10 +61,12 @@ class ExperimentPipeline:
                 "sample_metadata": sample.metadata,
             }
             for validator in validators:
-                row.update(validator.validate(prediction, sample))
-            rows.append(row)
+                row_data.update(validator.validate(prediction, sample))
+            row_model = EvaluationRow.model_validate(row_data)
+            metric_rows.append(row_model)
+            rows.append(row_model.model_dump())
 
         aggregated: dict[str, Any] = {}
         for metric in metrics:
-            aggregated.update(metric.compute(rows))
+            aggregated.update(metric.compute(metric_rows))
         return PipelineResult(rows=rows, metrics=aggregated)

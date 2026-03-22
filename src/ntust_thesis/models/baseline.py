@@ -57,6 +57,7 @@ class BaselineModel(Model):
 
     def _generate_gemini(self, input_text: str) -> str:
         """Generate strict JSON with Gemini."""
+        # optimize prompt
         prompt = (
             "Extract event information from the text. "
             "Return only a JSON object with keys: "
