@@ -16,6 +16,7 @@ from ntust_thesis.core.types import (
     Sample,
 )
 from ntust_thesis.models.llm.gemini_client import GeminiClient
+from ntust_thesis.prompts import build_baseline_event_extraction_prompt
 from ntust_thesis.utils.env import get_required_env
 from ntust_thesis.utils.json_parser import parse_json_object
 
@@ -57,14 +58,7 @@ class BaselineModel(Model):
 
     def _generate_gemini(self, input_text: str) -> str:
         """Generate strict JSON with Gemini."""
-        # optimize prompt
-        prompt = (
-            "Extract event information from the text. "
-            "Return only a JSON object with keys: "
-            '"event_type" (string), "arguments" (array of objects). '
-            'Each argument object has keys: "role", "text", "span".\n'
-            f"Text: {input_text}"
-        )
+        prompt = build_baseline_event_extraction_prompt(input_text)
         return self._llm.generate(prompt, temperature=self._temperature)
 
 

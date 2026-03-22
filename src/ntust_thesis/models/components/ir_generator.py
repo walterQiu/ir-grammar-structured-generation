@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from ntust_thesis.prompts import build_ir_generation_prompt
+
 if TYPE_CHECKING:
     from ntust_thesis.core.interfaces import LLMClient
 
@@ -26,16 +28,5 @@ class GeminiIRGenerator(IRGenerator):
 
     def generate(self, extraction_text: str) -> str:
         """Generate strict dot-notation IR lines."""
-        # TODO: optimize prompt
-        prompt = (
-            "Convert extraction notes to dot-notation IR. "
-            "Output only lines in this format:\n"
-            "event.type = <event type>\n"
-            "event.arguments.<index>.role = <role>\n"
-            "event.arguments.<index>.text = <text>\n"
-            "event.arguments.<index>.span = <start>,<end>\n"
-            "If span is unknown, use 0,0.\n"
-            "No markdown, no extra commentary.\n"
-            f"Extraction notes:\n{extraction_text}"
-        )
+        prompt = build_ir_generation_prompt(extraction_text)
         return self._llm.generate(prompt, temperature=self._temperature)

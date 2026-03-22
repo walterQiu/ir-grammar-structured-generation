@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from ntust_thesis.prompts import build_ir_extraction_prompt
+
 if TYPE_CHECKING:
     from ntust_thesis.core.interfaces import LLMClient
 
@@ -26,13 +28,5 @@ class GeminiExtractor(Extractor):
 
     def extract(self, input_text: str) -> str:
         """Ask Gemini to produce extraction notes."""
-        # TODO: optimize prompt
-        prompt = (
-            "Extract event information from the text. "
-            "Return concise plain text with two sections:\n"
-            "1) event_type: <event type>\n"
-            "2) arguments: one argument per line as '<role>: <text>' or 'none'.\n"
-            "Do not return JSON.\n"
-            f"Text: {input_text}"
-        )
+        prompt = build_ir_extraction_prompt(input_text)
         return self._llm.generate(prompt, temperature=self._temperature)
