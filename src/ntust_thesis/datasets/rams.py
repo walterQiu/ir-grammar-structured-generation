@@ -106,7 +106,7 @@ class RAMSDataset(Dataset):
             f"Event type: {event_type}\n"
             f"Legal roles: {legal_roles}"
         )
-        metadata = SampleMetadata()
+        metadata = SampleMetadata(sentence_text=" ".join(tokens))
         return Sample(
             sample_id=row.doc_key,
             input_text=input_text,

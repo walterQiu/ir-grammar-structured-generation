@@ -14,6 +14,7 @@ def build_baseline_event_extraction_prompt(input_text: str) -> str:
     )
 
 
+# need to be optimized
 def build_ir_extraction_prompt(input_text: str) -> str:
     """Build prompt for IR extraction stage."""
     return (
@@ -26,6 +27,7 @@ def build_ir_extraction_prompt(input_text: str) -> str:
     )
 
 
+# need to be optimized
 def build_ir_generation_prompt(extraction_text: str) -> str:
     """Build prompt for converting extraction text to dot-notation IR."""
     return (
@@ -34,8 +36,6 @@ def build_ir_generation_prompt(extraction_text: str) -> str:
         "event.type = <event type>\n"
         "event.arguments.<index>.role = <role>\n"
         "event.arguments.<index>.text = <text>\n"
-        "event.arguments.<index>.span = <start>,<end>\n"
-        "If span is unknown, use 0,0.\n"
         "No markdown, no extra commentary.\n"
         f"Extraction notes:\n{extraction_text}"
     )

@@ -39,6 +39,7 @@ class SampleMetadata(BaseModel):
     """Metadata for one dataset sample."""
 
     model_config = ConfigDict(extra="allow")
+    sentence_text: str | None = None
 
 
 class PredictionMetadata(BaseModel):

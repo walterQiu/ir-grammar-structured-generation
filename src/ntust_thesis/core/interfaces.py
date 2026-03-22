@@ -63,7 +63,12 @@ class Compiler(ABC):
     """Optional interface for IR compiler components."""
 
     @abstractmethod
-    def compile(self, ir_text: str, output_schema: OutputSchema) -> EventOutput:
+    def compile(
+        self,
+        ir_text: str,
+        output_schema: OutputSchema,
+        source_sentence: str,
+    ) -> EventOutput:
         """Compile IR text into JSON output."""
 
 
