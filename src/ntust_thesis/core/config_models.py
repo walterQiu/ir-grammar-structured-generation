@@ -23,7 +23,7 @@ class StageModelConfig(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    backend: Literal["mock", "gemini"] = "mock"
+    backend: Literal["gemini"] = "gemini"
     llm_name: str = "gemini-2.5-flash-lite"
     api_key_env: str = "GEMINI_API_KEY"
     dotenv_path: str = "dotenv/.env"

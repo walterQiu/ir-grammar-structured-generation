@@ -12,13 +12,11 @@ from ntust_thesis.core.types import EventOutput, Prediction, PredictionMetadata,
 from ntust_thesis.models.components.extractor import (
     Extractor,
     GeminiExtractor,
-    MockExtractor,
 )
 from ntust_thesis.models.components.ir_compiler import DeterministicIRCompiler
 from ntust_thesis.models.components.ir_generator import (
     GeminiIRGenerator,
     IRGenerator,
-    MockIRGenerator,
 )
 from ntust_thesis.models.llm.gemini_client import GeminiClient
 from ntust_thesis.utils.env import get_required_env
@@ -77,8 +75,6 @@ class IRPipelineModel(Model):
     def _build_extractor(self, cfg: StageModelConfig) -> Extractor:
         """Create extraction stage from extraction model config."""
         backend = cfg.backend
-        if backend == "mock":
-            return MockExtractor()
         if backend == "gemini":
             temperature = cfg.temperature
             llm = self._build_gemini_client(cfg)
@@ -89,8 +85,6 @@ class IRPipelineModel(Model):
     def _build_ir_generator(self, cfg: StageModelConfig) -> IRGenerator:
         """Create IR generation stage from ir model config."""
         backend = cfg.backend
-        if backend == "mock":
-            return MockIRGenerator()
         if backend == "gemini":
             temperature = cfg.temperature
             llm = self._build_gemini_client(cfg)

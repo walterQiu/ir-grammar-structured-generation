@@ -16,20 +16,6 @@ class IRGenerator:
         raise NotImplementedError
 
 
-class MockIRGenerator(IRGenerator):
-    """Deterministic mock IR generator."""
-
-    def generate(self, extraction_text: str) -> str:
-        """Convert 'event_type: X' to minimal IR."""
-        event_type = "unknown.event"
-        for line in extraction_text.splitlines():
-            stripped = line.strip()
-            if stripped.startswith("event_type:"):
-                event_type = stripped.split(":", 1)[1].strip()
-                break
-        return f"event.type = {event_type}"
-
-
 class GeminiIRGenerator(IRGenerator):
     """Gemini-based IR generation stage."""
 

@@ -16,21 +16,6 @@ class Extractor:
         raise NotImplementedError
 
 
-class MockExtractor(Extractor):
-    """Deterministic mock extractor for local tests."""
-
-    def extract(self, input_text: str) -> str:
-        """Create simple extraction text from keywords."""
-        lower = input_text.lower()
-        if "attack" in lower or "attacked" in lower:
-            event_type = "conflict.attack.selfdirectedbattle"
-        elif "killed" in lower or "death" in lower or "die" in lower:
-            event_type = "life.die.deathcausedbyviolentevents"
-        else:
-            event_type = "unknown.event"
-        return f"event_type: {event_type}\narguments: none"
-
-
 class GeminiExtractor(Extractor):
     """Gemini-based extraction stage."""
 
