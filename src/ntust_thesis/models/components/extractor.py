@@ -13,7 +13,12 @@ if TYPE_CHECKING:
 class Extractor:
     """Produce extraction text from raw input text."""
 
-    def extract(self, input_text: str) -> str:
+    def extract(
+        self,
+        sentence: str,
+        event_type: str | None = None,
+        legal_roles: list[str] | None = None,
+    ) -> str:
         """Return extraction stage output text."""
         raise NotImplementedError
 
@@ -26,7 +31,16 @@ class GeminiExtractor(Extractor):
         self._llm = llm
         self._temperature = temperature
 
-    def extract(self, input_text: str) -> str:
+    def extract(
+        self,
+        sentence: str,
+        event_type: str | None = None,
+        legal_roles: list[str] | None = None,
+    ) -> str:
         """Ask Gemini to produce extraction notes."""
-        prompt = build_ir_extraction_prompt(input_text)
+        prompt = build_ir_extraction_prompt(
+            sentence=sentence,
+            event_type=event_type,
+            legal_roles=legal_roles,
+        )
         return self._llm.generate(prompt, temperature=self._temperature)

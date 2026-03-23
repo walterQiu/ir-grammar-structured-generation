@@ -45,7 +45,11 @@ class BaselineModel(Model):
 
     def predict(self, sample: Sample) -> Prediction:
         """Generate text output then parse it as JSON."""
-        raw_output = self._generate_gemini(sample.input_text)
+        raw_output = self._generate_gemini(
+            sentence=sample.input_text,
+            event_type=sample.metadata.event_type,
+            legal_roles=sample.metadata.legal_roles,
+        )
         parsed_output = _parse_event_output(raw_output)
         return Prediction(
             sample_id=sample.sample_id,
@@ -56,9 +60,18 @@ class BaselineModel(Model):
             ),
         )
 
-    def _generate_gemini(self, input_text: str) -> str:
+    def _generate_gemini(
+        self,
+        sentence: str,
+        event_type: str | None,
+        legal_roles: list[str] | None,
+    ) -> str:
         """Generate strict JSON with Gemini."""
-        prompt = build_baseline_event_extraction_prompt(input_text)
+        prompt = build_baseline_event_extraction_prompt(
+            sentence=sentence,
+            event_type=event_type,
+            legal_roles=legal_roles,
+        )
         return self._llm.generate(prompt, temperature=self._temperature)
 
 

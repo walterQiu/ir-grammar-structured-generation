@@ -41,7 +41,11 @@ class IRPipelineModel(Model):
 
     def predict(self, sample: Sample) -> Prediction:
         """Run extraction -> IR -> compile and return final prediction."""
-        extraction_text = self._extractor.extract(sample.input_text)
+        extraction_text = self._extractor.extract(
+            sentence=sample.input_text,
+            event_type=sample.metadata.event_type,
+            legal_roles=sample.metadata.legal_roles,
+        )
         ir_text = self._ir_generator.generate(extraction_text)
 
         error_message: str | None = None
