@@ -53,7 +53,8 @@ class ExperimentPipeline:
             prediction = model.predict(sample)
             row_data: dict[str, Any] = {
                 "sample_id": sample.sample_id,
-                "input_text": sample.input_text,
+                "raw_sentence": sample.raw_sentence,
+                "model_input": prediction.metadata.model_input,
                 "raw_output": prediction.raw_output,
                 "parsed_output": prediction.parsed_output,
                 "gold": sample.gold,

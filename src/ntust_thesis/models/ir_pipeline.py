@@ -19,6 +19,7 @@ from ntust_thesis.models.components.ir_generator import (
     IRGenerator,
 )
 from ntust_thesis.models.llm.gemini_client import GeminiClient
+from ntust_thesis.prompts import build_ir_extraction_prompt, build_ir_generation_prompt
 from ntust_thesis.utils.env import get_required_env
 
 
@@ -41,16 +42,22 @@ class IRPipelineModel(Model):
 
     def predict(self, sample: Sample) -> Prediction:
         """Run extraction -> IR -> compile and return final prediction."""
-        extraction_text = self._extractor.extract(
-            sentence=sample.input_text,
+        extraction_prompt = build_ir_extraction_prompt(
+            sentence=sample.raw_sentence,
             event_type=sample.metadata.event_type,
             legal_roles=sample.metadata.legal_roles,
         )
+        extraction_text = self._extractor.extract(
+            sentence=sample.raw_sentence,
+            event_type=sample.metadata.event_type,
+            legal_roles=sample.metadata.legal_roles,
+        )
+        ir_prompt = build_ir_generation_prompt(extraction_text)
         ir_text = self._ir_generator.generate(extraction_text)
 
         error_message: str | None = None
         compiled: EventOutput | None = None
-        source_sentence = sample.metadata.sentence_text or sample.input_text
+        source_sentence = sample.metadata.sentence_text or sample.raw_sentence
         try:
             compiled = self._compiler.compile(
                 ir_text=ir_text,
@@ -78,6 +85,10 @@ class IRPipelineModel(Model):
                 extraction_text=extraction_text,
                 ir_text=ir_text,
                 compile_error=error_message,
+                model_input={
+                    "extraction_prompt": extraction_prompt,
+                    "ir_prompt": ir_prompt,
+                },
             ),
         )
 

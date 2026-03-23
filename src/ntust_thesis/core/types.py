@@ -57,6 +57,7 @@ class PredictionMetadata(BaseModel):
     extraction_text: str | None = None
     ir_text: str | None = None
     compile_error: str | None = None
+    model_input: str | dict[str, str] | None = None
 
 
 class Sample(BaseModel):
@@ -65,7 +66,7 @@ class Sample(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     sample_id: str
-    input_text: str
+    raw_sentence: str
     output_schema: OutputSchema
     gold: EventOutput
     metadata: SampleMetadata
@@ -88,7 +89,8 @@ class EvaluationRow(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     sample_id: str
-    input_text: str
+    raw_sentence: str
+    model_input: str | dict[str, str] | None
     raw_output: str
     parsed_output: EventOutput | None
     gold: EventOutput
