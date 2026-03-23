@@ -89,8 +89,6 @@ class EvaluationRow(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     sample_id: str
-    raw_sentence: str
-    model_input: str | dict[str, str] | None
     raw_output: str
     parsed_output: EventOutput | None
     gold: EventOutput
