@@ -29,14 +29,14 @@ def build_ir_extraction_prompt(
     legal_roles: list[str] | None = None,
 ) -> str:
     """Build prompt for IR extraction stage."""
-    event_line = f"Event type: {event_type}\n" if event_type else ""
+    event_line = f"Event type (reference): {event_type}\n" if event_type else ""
     roles_line = f"Legal roles: {', '.join(legal_roles)}\n" if legal_roles else ""
     return (
         "Extract event information from the sentence. "
         "The trigger word(s) of the event is marked with **trigger word**.\n"
-        "Return concise plain text with two sections:\n"
-        "1) event_type: <event type>\n"
-        "2) arguments: one argument per line as '<role>: <text>' or 'none'.\n"
+        "Return only argument lines in this format:\n"
+        "<role>: <text>\n"
+        "If no argument is found, return exactly: none\n"
         "Do not return JSON.\n"
         f"Sentence: {sentence}\n"
         f"{event_line}"
@@ -49,7 +49,6 @@ def build_ir_generation_prompt(extraction_text: str) -> str:
     return (
         "Convert extraction notes to dot-notation IR. "
         "Output only lines in this format:\n"
-        "event.type = <event type>\n"
         "event.arguments.<index>.role = <role>\n"
         "event.arguments.<index>.text = <text>\n"
         "No markdown, no extra commentary.\n"

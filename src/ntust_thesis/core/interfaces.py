@@ -68,6 +68,7 @@ class Compiler(ABC):
         ir_text: str,
         output_schema: OutputSchema,
         source_sentence: str,
+        event_type: str,
     ) -> EventOutput:
         """Compile IR text into JSON output."""
 

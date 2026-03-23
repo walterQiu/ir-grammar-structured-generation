@@ -23,11 +23,11 @@ class DeterministicIRCompiler(Compiler):
         ir_text: str,
         output_schema: OutputSchema,
         source_sentence: str,
+        event_type: str,
     ) -> EventOutput:
         """Compile IR text under strict schema constraints."""
         _ = output_schema
         tokens = source_sentence.split()
-        event_type = "unknown.event"
         args_by_idx: dict[int, dict[str, Any]] = {}
 
         for raw_line in ir_text.splitlines():
@@ -37,10 +37,6 @@ class DeterministicIRCompiler(Compiler):
             left, right = line.split("=", 1)
             key = left.strip()
             value = right.strip()
-
-            if key == "event.type":
-                event_type = value
-                continue
 
             prefix = "event.arguments."
             if not key.startswith(prefix):
