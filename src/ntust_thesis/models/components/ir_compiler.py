@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import re
-from typing import Any
 
 from ntust_thesis.core.interfaces import Compiler
 from ntust_thesis.core.schemas import EventOutput
 
-_PAIR_SIZE = 2
 _WORD_PATTERN = re.compile(r"[a-z0-9]+")
+_ARGUMENT_PREFIX = "arguments."
+_APPEND_OPERATOR = "+="
 
 
 class DeterministicIRCompiler(Compiler):
@@ -23,42 +23,35 @@ class DeterministicIRCompiler(Compiler):
     ) -> EventOutput:
         """Compile IR text under strict schema constraints."""
         tokens = source_sentence.split()
-        args_by_idx: dict[int, dict[str, Any]] = {}
+        role_mentions: list[tuple[str, str]] = []
 
         for raw_line in ir_text.splitlines():
             line = raw_line.strip()
-            if not line or "=" not in line:
+            if (
+                not line
+                or _APPEND_OPERATOR not in line
+                or not line.startswith(_ARGUMENT_PREFIX)
+            ):
                 continue
-            left, right = line.split("=", 1)
+
+            left, right = line.split(_APPEND_OPERATOR, 1)
             key = left.strip()
-            value = right.strip()
-
-            prefix = "event.arguments."
-            if not key.startswith(prefix):
+            mention_text = right.strip()
+            if not mention_text:
                 continue
 
-            tail = key[len(prefix) :]
-            parts = tail.split(".")
-            if len(parts) != _PAIR_SIZE:
+            role = key[len(_ARGUMENT_PREFIX) :].strip()
+            if not role:
                 continue
-            idx_text, field = parts
-            if not idx_text.isdigit():
-                continue
-
-            idx = int(idx_text)
-            bucket = args_by_idx.setdefault(idx, {})
-            if field in {"role", "text"}:
-                bucket[field] = value  # dict is mutable, so this updates args_by_idx
+            role_mentions.append((role, mention_text))
 
         arguments = []
-        for idx in sorted(args_by_idx):
-            row = args_by_idx[idx]
-            arg_text = str(row.get("text", ""))
-            span = _find_span_by_text(tokens, arg_text)
+        for role, mention_text in role_mentions:
+            span = _find_span_by_text(tokens, mention_text)
             arguments.append(
                 {
-                    "role": str(row.get("role", "unknown.role")),
-                    "text": arg_text,
+                    "role": role,
+                    "text": mention_text,
                     "span": span,
                 }
             )

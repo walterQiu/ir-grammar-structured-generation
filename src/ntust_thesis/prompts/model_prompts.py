@@ -49,8 +49,9 @@ def build_ir_generation_prompt(extraction_text: str) -> str:
     return (
         "Convert extraction notes to dot-notation IR. "
         "Output only lines in this format:\n"
-        "event.arguments.<index>.role = <role>\n"
-        "event.arguments.<index>.text = <text>\n"
+        "arguments.<role> += <text>\n"
+        "Use one line per extracted mention.\n"
+        "Do not output event type.\n"
         "No markdown, no extra commentary.\n"
         f"Extraction notes:\n{extraction_text}"
     )
