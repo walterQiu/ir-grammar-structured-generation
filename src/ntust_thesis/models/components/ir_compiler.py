@@ -3,13 +3,10 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from ntust_thesis.core.interfaces import Compiler
 from ntust_thesis.core.schemas import EventOutput
-
-if TYPE_CHECKING:
-    from ntust_thesis.core.schemas import OutputSchema
 
 _PAIR_SIZE = 2
 _WORD_PATTERN = re.compile(r"[a-z0-9]+")
@@ -21,12 +18,10 @@ class DeterministicIRCompiler(Compiler):
     def compile(
         self,
         ir_text: str,
-        output_schema: OutputSchema,
         source_sentence: str,
         event_type: str,
     ) -> EventOutput:
         """Compile IR text under strict schema constraints."""
-        _ = output_schema
         tokens = source_sentence.split()
         args_by_idx: dict[int, dict[str, Any]] = {}
 

@@ -66,7 +66,6 @@ class IRPipelineModel(Model):
         try:
             compiled = self._compiler.compile(
                 ir_text=ir_text,
-                output_schema=sample.output_schema,
                 source_sentence=source_sentence,
                 event_type=sample.metadata.event_type or "unknown.event",
             )

@@ -9,7 +9,6 @@ if TYPE_CHECKING:
     from ntust_thesis.core.schemas import (
         EvaluationRow,
         EventOutput,
-        OutputSchema,
         Prediction,
         Sample,
     )
@@ -66,7 +65,6 @@ class Compiler(ABC):
     def compile(
         self,
         ir_text: str,
-        output_schema: OutputSchema,
         source_sentence: str,
         event_type: str,
     ) -> EventOutput:
