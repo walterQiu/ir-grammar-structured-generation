@@ -10,7 +10,7 @@ from pydantic import ValidationError
 
 from ntust_thesis.core.interfaces import Dataset
 from ntust_thesis.core.registry import DATASET_REGISTRY
-from ntust_thesis.core.types import EventOutput, OutputSchema, Sample, SampleMetadata
+from ntust_thesis.core.schemas import EventOutput, OutputSchema, Sample, SampleMetadata
 from ntust_thesis.datasets.rams_models import (
     OntologyEventRoles,
     RAMSDatasetConfig,

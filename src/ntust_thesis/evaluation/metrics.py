@@ -8,7 +8,7 @@ from ntust_thesis.core.interfaces import Metric
 from ntust_thesis.core.registry import METRIC_REGISTRY
 
 if TYPE_CHECKING:
-    from ntust_thesis.core.types import EvaluationRow
+    from ntust_thesis.core.schemas import EvaluationRow
 
 
 class StrictRatesMetric(Metric):

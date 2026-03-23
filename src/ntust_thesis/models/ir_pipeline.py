@@ -8,7 +8,12 @@ from pathlib import Path
 from ntust_thesis.core.config_models import IRPipelineModelConfig, StageModelConfig
 from ntust_thesis.core.interfaces import Model
 from ntust_thesis.core.registry import MODEL_REGISTRY
-from ntust_thesis.core.types import EventOutput, Prediction, PredictionMetadata, Sample
+from ntust_thesis.core.schemas import (
+    EventOutput,
+    Prediction,
+    PredictionMetadata,
+    Sample,
+)
 from ntust_thesis.models.components.extractor import (
     Extractor,
     GeminiExtractor,

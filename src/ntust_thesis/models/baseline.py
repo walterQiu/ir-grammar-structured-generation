@@ -9,7 +9,7 @@ from pydantic import ValidationError
 from ntust_thesis.core.config_models import BaselineModelConfig
 from ntust_thesis.core.interfaces import Model
 from ntust_thesis.core.registry import MODEL_REGISTRY
-from ntust_thesis.core.types import (
+from ntust_thesis.core.schemas import (
     EventOutput,
     Prediction,
     PredictionMetadata,

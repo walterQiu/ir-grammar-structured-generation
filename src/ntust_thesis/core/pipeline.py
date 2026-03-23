@@ -15,7 +15,7 @@ from ntust_thesis.core.registry import (
 if TYPE_CHECKING:
     from ntust_thesis.core.config_models import ExperimentConfig
 
-from ntust_thesis.core.types import EvaluationRow
+from ntust_thesis.core.schemas import EvaluationRow
 
 
 @dataclass(slots=True)

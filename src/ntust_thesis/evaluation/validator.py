@@ -9,7 +9,7 @@ from ntust_thesis.core.interfaces import Validator
 from ntust_thesis.core.registry import VALIDATOR_REGISTRY
 
 if TYPE_CHECKING:
-    from ntust_thesis.core.types import EventOutput, OutputSchema, Prediction, Sample
+    from ntust_thesis.core.schemas import EventOutput, OutputSchema, Prediction, Sample
 
 
 def is_valid_json(output_str: str) -> bool:

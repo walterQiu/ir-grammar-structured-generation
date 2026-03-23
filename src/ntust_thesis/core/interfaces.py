@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ntust_thesis.core.types import (
+    from ntust_thesis.core.schemas import (
         EvaluationRow,
         EventOutput,
         OutputSchema,

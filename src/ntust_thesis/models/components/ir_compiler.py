@@ -6,10 +6,10 @@ import re
 from typing import TYPE_CHECKING, Any
 
 from ntust_thesis.core.interfaces import Compiler
-from ntust_thesis.core.types import EventOutput
+from ntust_thesis.core.schemas import EventOutput
 
 if TYPE_CHECKING:
-    from ntust_thesis.core.types import OutputSchema
+    from ntust_thesis.core.schemas import OutputSchema
 
 _PAIR_SIZE = 2
 _WORD_PATTERN = re.compile(r"[a-z0-9]+")
