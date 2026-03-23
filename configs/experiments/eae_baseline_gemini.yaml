@@ -17,4 +17,4 @@ model:
 
 evaluation:
   validators: [strict]
-  metrics: [strict_rates]
+  metrics: [strict_rates, arg_i_f1, arg_c_f1]
