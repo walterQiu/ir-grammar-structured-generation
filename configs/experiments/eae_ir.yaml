@@ -1,0 +1,20 @@
+experiment_name: eae_ir
+
+dataset:
+  name: rams
+  data_dir: datasets/RAMS/data
+  split: train
+  max_samples: 100
+
+model:
+  name: ir_pipeline
+  extraction_model:
+    backend: mock
+    temperature: 0.0
+  ir_model:
+    backend: mock
+    temperature: 0.0
+
+evaluation:
+  validators: [strict]
+  metrics: [strict_rates]
