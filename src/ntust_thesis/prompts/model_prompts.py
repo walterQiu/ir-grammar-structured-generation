@@ -7,19 +7,33 @@ def build_baseline_event_extraction_prompt(
     sentence: str,
     event_type: str | None = None,
     legal_roles: list[str] | None = None,
+    role_multiplicities: dict[str, int] | None = None,
 ) -> str:
     """Build prompt for baseline direct JSON generation."""
-    event_line = f"Event type: {event_type}\n" if event_type else ""
+    event_line = f"Event type (reference): {event_type}\n" if event_type else ""
     roles_line = f"Legal roles: {', '.join(legal_roles)}\n" if legal_roles else ""
+    multiplicity_line = ""
+    if role_multiplicities:
+        pairs = ", ".join(
+            f"{role}={count}" for role, count in role_multiplicities.items()
+        )
+        multiplicity_line = f"Role multiplicities: {pairs}\n"
     return (
-        "Extract event information from the sentence. "
+        "Extract event arguments from the sentence. "
         "The trigger word(s) of the event is marked with **trigger word**.\n"
-        "Return only a JSON object with keys: "
-        '"event_type" (string), "arguments" (array of objects). '
-        'Each argument object has keys: "role", "text", "span".\n'
+        "Return only a JSON object with this structure:\n"
+        '{"arguments":[{"role":"<role>","text":"<text>"}]}\n'
+        "Do not output event type.\n"
+        "Do not output span positions.\n"
+        "Respect role multiplicities strictly.\n"
+        "Do NOT split a single text span into multiple mentions.\n"
+        "Do NOT decompose coordinated phrases (e.g., 'A, B, and C').\n"
+        "Keep the original text span exactly as in the sentence.\n"
+        "No markdown, no extra commentary.\n"
         f"Sentence: {sentence}\n"
         f"{event_line}"
         f"{roles_line}"
+        f"{multiplicity_line}"
     )
 
 
