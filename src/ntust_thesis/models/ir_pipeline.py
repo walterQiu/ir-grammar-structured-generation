@@ -51,14 +51,22 @@ class IRPipelineModel(Model):
             sentence=sample.raw_sentence,
             event_type=sample.metadata.event_type,
             legal_roles=sample.metadata.legal_roles,
+            role_multiplicities=sample.metadata.role_multiplicities,
         )
         extraction_text = self._extractor.extract(
             sentence=sample.raw_sentence,
             event_type=sample.metadata.event_type,
             legal_roles=sample.metadata.legal_roles,
+            role_multiplicities=sample.metadata.role_multiplicities,
         )
-        ir_prompt = build_ir_generation_prompt(extraction_text)
-        ir_text = self._ir_generator.generate(extraction_text)
+        ir_prompt = build_ir_generation_prompt(
+            extraction_text=extraction_text,
+            role_multiplicities=sample.metadata.role_multiplicities,
+        )
+        ir_text = self._ir_generator.generate(
+            extraction_text=extraction_text,
+            role_multiplicities=sample.metadata.role_multiplicities,
+        )
 
         error_message: str | None = None
         compiled: EventOutput | None = None
