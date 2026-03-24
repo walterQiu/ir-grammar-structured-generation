@@ -4,24 +4,17 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
-
-from pydantic import ValidationError
 
 from ntust_thesis.core.config_models import BaselineModelConfig
 from ntust_thesis.core.interfaces import Model
 from ntust_thesis.core.registry import MODEL_REGISTRY
-from ntust_thesis.core.schemas import (
-    EventOutput,
-    Prediction,
-    PredictionMetadata,
-    Sample,
+from ntust_thesis.core.schemas import Prediction, PredictionMetadata, Sample
+from ntust_thesis.models.components.event_output_parser import (
+    parse_event_output_from_arguments_json,
 )
-from ntust_thesis.models.components.span_matcher import find_span_by_text
 from ntust_thesis.models.llm.gemini_client import GeminiClient
 from ntust_thesis.prompts import build_baseline_event_extraction_prompt
 from ntust_thesis.utils.env import get_required_env
-from ntust_thesis.utils.json_parser import parse_json_object
 
 
 class BaselineModel(Model):
@@ -56,7 +49,7 @@ class BaselineModel(Model):
         )
         raw_model_text = self._llm.generate(prompt, temperature=self._temperature)
         source_sentence = sample.metadata.sentence_text or sample.raw_sentence
-        parsed_output = _parse_baseline_output(
+        parsed_output = parse_event_output_from_arguments_json(
             raw_output=raw_model_text,
             source_sentence=source_sentence,
             event_type=sample.metadata.event_type or "unknown.event",
@@ -77,48 +70,6 @@ class BaselineModel(Model):
                 model_input=prompt,
             ),
         )
-
-
-def _parse_baseline_output(
-    raw_output: str,
-    source_sentence: str,
-    event_type: str,
-) -> EventOutput | None:
-    """Parse baseline JSON and build canonical EventOutput."""
-    parsed = parse_json_object(raw_output)
-    if parsed is None:
-        return None
-    raw_args = parsed.get("arguments")
-    if not isinstance(raw_args, list):
-        return None
-
-    tokens = source_sentence.split()
-    arguments: list[dict[str, Any]] = []
-    for raw_arg in raw_args:
-        if not isinstance(raw_arg, dict):
-            continue
-        role = raw_arg.get("role")
-        text = raw_arg.get("text")
-        if not isinstance(role, str) or not isinstance(text, str):
-            continue
-        mention_text = text.strip()
-        if not mention_text:
-            continue
-        span = find_span_by_text(tokens, mention_text)
-        arguments.append(
-            {
-                "role": role.strip(),
-                "text": mention_text,
-                "span": span,
-            }
-        )
-
-    try:
-        return EventOutput.model_validate(
-            {"event_type": event_type, "arguments": arguments}
-        )
-    except ValidationError:
-        return None
 
 
 def register() -> None:
