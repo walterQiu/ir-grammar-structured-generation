@@ -4,7 +4,7 @@ dataset:
   name: rams
   data_dir: datasets/RAMS/data
   split: dev
-  max_samples: 20
+  max_samples: 3
 
 model:
   name: baseline
@@ -17,4 +17,4 @@ model:
 
 evaluation:
   validators: [strict]
-  metrics: [strict_rates, arg_i_f1, arg_c_f1]
+  metrics: [strict_rates, arg_i_f1, arg_c_f1, content_similarity_sbert]
