@@ -4,7 +4,7 @@ dataset:
   name: rams
   data_dir: datasets/RAMS/data
   split: dev
-  max_samples: 3
+  max_samples: 100
 
 model:
   name: baseline
@@ -13,7 +13,7 @@ model:
   api_key_env: GEMINI_API_KEY
   dotenv_path: dotenv/.env
   temperature: 0.0
-  timeout_seconds: 60
+  timeout_seconds: 300
 
 evaluation:
   validators: [strict]

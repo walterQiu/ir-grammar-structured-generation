@@ -1,10 +1,10 @@
-experiment_name: rams_ir_pipeline_gemini_2_5_flash_lite
+experiment_name: development_used
 
 dataset:
   name: rams
   data_dir: datasets/RAMS/data
   split: dev
-  max_samples: 100
+  max_samples: 3
 
 model:
   name: ir_pipeline
@@ -14,14 +14,14 @@ model:
     api_key_env: GEMINI_API_KEY
     dotenv_path: dotenv/.env
     temperature: 0.0
-    timeout_seconds: 300
+    timeout_seconds: 60
   ir_model:
     backend: gemini
     llm_name: gemini-2.5-flash-lite
     api_key_env: GEMINI_API_KEY
     dotenv_path: dotenv/.env
     temperature: 0.0
-    timeout_seconds: 300
+    timeout_seconds: 60
 
 evaluation:
   validators: [strict]

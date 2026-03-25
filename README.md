@@ -7,4 +7,4 @@ uv sync
 install pre-commit hook: uv run pre-commit install
 
  
-UV_CACHE_DIR=/tmp/.uv-cache PYTHONPATH=src uv run python run.py --config configs/experiments/eae_ir_gemini.yaml
+UV_CACHE_DIR=/tmp/.uv-cache PYTHONPATH=src uv run python run.py --config configs/experiments/rams_baseline_gemini_2_5_flash_lite.yaml
