@@ -40,4 +40,8 @@ class GeminiIRGenerator(IRGenerator):
             extraction_text=extraction_text,
             role_multiplicities=role_multiplicities,
         )
-        return self._llm.generate(prompt, temperature=self._temperature)
+        return self._llm.generate(
+            prompt,
+            temperature=self._temperature,
+            allow_empty=True,
+        )

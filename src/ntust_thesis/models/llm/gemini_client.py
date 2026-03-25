@@ -27,6 +27,7 @@ class GeminiClient(LLMClient):
     def generate(self, prompt: str, **kwargs: object) -> str:
         """Generate text from Gemini."""
         temperature = _coerce_temperature(kwargs.get("temperature", 0.0))
+        allow_empty = bool(kwargs.get("allow_empty", False))
         payload = {
             "contents": [
                 {
@@ -66,10 +67,10 @@ class GeminiClient(LLMClient):
             raise RuntimeError(msg) from exc
 
         parsed = json.loads(body)
-        return _extract_text(parsed)
+        return _extract_text(parsed, allow_empty=allow_empty)
 
 
-def _extract_text(parsed: dict[str, Any]) -> str:
+def _extract_text(parsed: dict[str, Any], allow_empty: bool = False) -> str:
     """Extract text from Gemini response JSON."""
     candidates = parsed.get("candidates", [])
     if not candidates:
@@ -80,6 +81,8 @@ def _extract_text(parsed: dict[str, Any]) -> str:
     parts = content.get("parts", [])
     texts = [part.get("text", "") for part in parts if isinstance(part, dict)]
     merged = "".join(texts).strip()
+    if not merged and allow_empty:
+        return ""
     if not merged:
         msg = f"Gemini response contains empty text: {parsed}"
         raise RuntimeError(msg)
