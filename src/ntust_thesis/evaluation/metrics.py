@@ -164,7 +164,7 @@ class ContentSimilaritySBERTMetric(Metric):
 
     def __init__(self) -> None:
         """Initialize lazy SBERT resources."""
-        self._model_name = os.getenv("SBERT_MODEL_NAME", "all-MiniLM-L6-v2")
+        self._model_name = os.getenv("SBERT_MODEL_NAME", "all-mpnet-base-v2")
         self._model: _SBERTEncoder | None = None
         self._util: _SBERTUtil | None = None
         self._embedding_cache: dict[str, object] = {}
