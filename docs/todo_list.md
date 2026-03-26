@@ -1,4 +1,5 @@
 Current Works
+- env 加一下 spacy model (en_core_web_sm)
 - find span position function 可以拿掉? (可以)
     - _find_span_by_text()
     - 教授如果覺得我的 RAMS dataset 使用方式是OK的就行
