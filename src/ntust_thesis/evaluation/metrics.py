@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 from collections import Counter
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from importlib import import_module
 from typing import TYPE_CHECKING, Protocol, cast
 
@@ -46,6 +46,36 @@ class _SBERTEncoder(Protocol):
 
 
 _SBERTFactory = Callable[[str], _SBERTEncoder]
+
+
+class _SpacyToken(Protocol):
+    """Minimal spaCy token protocol."""
+
+    text: str
+    lower_: str
+    lemma_: str
+    dep_: str
+    pos_: str
+    is_punct: bool
+
+
+class _SpacyDoc(Protocol):
+    """Minimal spaCy doc protocol."""
+
+    def __iter__(self) -> Iterator[_SpacyToken]:
+        """Iterate over spaCy tokens."""
+        ...
+
+
+class _SpacyLanguage(Protocol):
+    """Minimal spaCy language pipeline protocol."""
+
+    def __call__(self, text: str) -> _SpacyDoc:
+        """Parse text into spaCy doc."""
+        ...
+
+
+_SpacyLoader = Callable[[str], _SpacyLanguage]
 
 
 class StrictRatesMetric(Metric):
@@ -261,7 +291,189 @@ class ContentSimilaritySBERTMetric(Metric):
         self._util = util_module
 
 
-def _flatten_argument_text_slots(output: EventOutput | None) -> dict[str, str]:
+class BEMEAEMetric(Metric):
+    """BEMEAE metric with spaCy preprocessing and SBERT cosine similarity."""
+
+    _MODIFIER_DEPS = frozenset(
+        {
+            "amod",
+            "appos",
+            "nmod",
+            "nounmod",
+            "nummod",
+            "poss",
+            "possessive",
+            "compound",
+        }
+    )
+    _LIST_CONNECTORS = frozenset({"and", "&"})
+    _SAXON_GENITIVE = frozenset({"'s", "’s"})
+
+    def __init__(self) -> None:
+        """Initialize lazy spaCy/SBERT resources."""
+        self._sbert_model_name = os.getenv("SBERT_MODEL_NAME", "all-mpnet-base-v2")
+        self._spacy_model_name = os.getenv("SPACY_MODEL_NAME", "en_core_web_sm")
+        self._sbert_model: _SBERTEncoder | None = None
+        self._sbert_util: _SBERTUtil | None = None
+        self._spacy_nlp: _SpacyLanguage | None = None
+        self._embedding_cache: dict[str, object] = {}
+
+    def name(self) -> str:
+        """Return metric key."""
+        return "bemeae"
+
+    def compute(self, rows: list[EvaluationRow]) -> dict[str, float]:
+        """Compute BEMEAE soft precision/recall/F1 over preprocessed arguments."""
+        pred_score_sum = 0.0
+        pred_key_count = 0
+        gold_score_sum = 0.0
+        gold_key_count = 0
+
+        for row in rows:
+            pred_map = _flatten_argument_text_slots(
+                row.parsed_output,
+                preprocess=self._preprocess_text,
+            )
+            gold_map = _flatten_argument_text_slots(
+                row.gold,
+                preprocess=self._preprocess_text,
+            )
+
+            pred_score_sum += self._average_directional_similarity(pred_map, gold_map)
+            pred_key_count += 1
+            gold_score_sum += self._average_directional_similarity(gold_map, pred_map)
+            gold_key_count += 1
+
+        precision = _safe_divide_float(pred_score_sum, pred_key_count)
+        recall = _safe_divide_float(gold_score_sum, gold_key_count)
+        return {
+            "bemeae_soft_precision": precision,
+            "bemeae_soft_recall": recall,
+            "bemeae": _f1(precision, recall),
+        }
+
+    def _average_directional_similarity(
+        self,
+        source: dict[str, str],
+        target: dict[str, str],
+    ) -> float:
+        """Average directional similarity with zero for missing target keys."""
+        if not source:
+            return 0.0
+        scores = []
+        for key, source_value in source.items():
+            target_value = target.get(key)
+            if target_value is None:
+                scores.append(0.0)
+                continue
+            scores.append(self._semantic_similarity(source_value, target_value))
+        return sum(scores) / len(scores)
+
+    def _semantic_similarity(self, left: str, right: str) -> float:
+        """Compute SBERT cosine similarity."""
+        self._ensure_sbert_loaded()
+        if self._sbert_model is None or self._sbert_util is None:
+            msg = "SBERT model is not loaded."
+            raise RuntimeError(msg)
+        emb_left = self._embed(left)
+        emb_right = self._embed(right)
+        return float(self._sbert_util.cos_sim(emb_left, emb_right).item())
+
+    def _embed(self, text: str) -> object:
+        """Encode one text with cache."""
+        cached = self._embedding_cache.get(text)
+        if cached is not None:
+            return cached
+        if self._sbert_model is None:
+            msg = "SBERT model is not loaded."
+            raise RuntimeError(msg)
+        embedding = self._sbert_model.encode(
+            text,
+            convert_to_tensor=True,
+            normalize_embeddings=True,
+        )
+        self._embedding_cache[text] = embedding
+        return embedding
+
+    def _preprocess_text(self, text: str) -> str:
+        """Apply BEMEAE preprocessing on one argument text."""
+        self._ensure_spacy_loaded()
+        if self._spacy_nlp is None:
+            msg = "spaCy model is not loaded."
+            raise RuntimeError(msg)
+
+        normalized_tokens = []
+        doc = self._spacy_nlp(text)
+        for token_obj in doc:
+            token = cast("_SpacyToken", token_obj)
+            if self._should_drop_token(token):
+                continue
+
+            normalized = token.lemma_.lower().strip()
+            if normalized in {"", "-pron-"}:
+                normalized = token.lower_.strip()   # fallback if token normalization failed
+            if normalized:
+                normalized_tokens.append(normalized)
+        return " ".join(normalized_tokens).strip()
+
+    def _should_drop_token(self, token: _SpacyToken) -> bool:
+        """Return whether token should be removed by BEMEAE rules."""
+        if token.is_punct:
+            return True
+        if token.pos_ == "DET":
+            return True
+        if token.lower_ in self._SAXON_GENITIVE:
+            return True
+        if token.dep_.lower() in self._MODIFIER_DEPS:
+            return True
+        if token.lower_ in self._LIST_CONNECTORS and token.dep_.lower() == "cc":
+            return True
+        return False
+
+    def _ensure_sbert_loaded(self) -> None:
+        """Lazily import and initialize sentence-transformers model."""
+        if self._sbert_model is not None and self._sbert_util is not None:
+            return
+        try:
+            sentence_transformers = import_module("sentence_transformers")
+            sentence_transformer_cls = cast(
+                "_SBERTFactory", sentence_transformers.SentenceTransformer
+            )
+            util_module = cast("_SBERTUtil", sentence_transformers.util)
+        except ImportError as exc:
+            msg = (
+                "sentence-transformers is required for bemeae. "
+                "Install dependencies and rerun."
+            )
+            raise RuntimeError(msg) from exc
+        self._sbert_model = sentence_transformer_cls(self._sbert_model_name)
+        self._sbert_util = util_module
+
+    def _ensure_spacy_loaded(self) -> None:
+        """Lazily import and initialize spaCy language model."""
+        if self._spacy_nlp is not None:
+            return
+        try:
+            spacy_module = import_module("spacy")
+            spacy_load = cast("_SpacyLoader", spacy_module.load)
+        except ImportError as exc:
+            msg = "spaCy is required for bemeae. Install dependencies and rerun."
+            raise RuntimeError(msg) from exc
+
+        try:
+            self._spacy_nlp = spacy_load(self._spacy_model_name)
+        except OSError as exc:
+            msg = (
+                "spaCy model is missing for bemeae."
+            )
+            raise RuntimeError(msg) from exc
+
+
+def _flatten_argument_text_slots(
+    output: EventOutput | None,
+    *,
+    preprocess: Callable[[str], str] | None = None,
+) -> dict[str, str]:
     """Flatten EventOutput into role-keyed text slots for semantic comparison."""
     if output is None:
         return {}
@@ -270,6 +482,8 @@ def _flatten_argument_text_slots(output: EventOutput | None) -> dict[str, str]:
     for argument in output.arguments:
         role = argument.role.strip()
         text = argument.text.strip()
+        if preprocess is not None:
+            text = preprocess(text)
         if not role:
             role = "unknown_role"
         by_role.setdefault(role, []).append(text)
@@ -295,3 +509,4 @@ def register() -> None:
     METRIC_REGISTRY.register("arg_i_f1", ArgIF1Metric)
     METRIC_REGISTRY.register("arg_c_f1", ArgCF1Metric)
     METRIC_REGISTRY.register("content_similarity_sbert", ContentSimilaritySBERTMetric)
+    METRIC_REGISTRY.register("bemeae", BEMEAEMetric)
