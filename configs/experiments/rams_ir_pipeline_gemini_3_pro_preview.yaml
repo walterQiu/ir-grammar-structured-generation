@@ -1,0 +1,28 @@
+experiment_name: rams_ir_pipeline_gemini_3_pro_preview
+
+dataset:
+  name: rams
+  data_dir: datasets/RAMS/data
+  split: dev
+  max_samples: 100
+
+model:
+  name: ir_pipeline
+  extraction_model:
+    backend: gemini
+    llm_name: gemini-3-pro-preview
+    api_key_env: GEMINI_API_KEY
+    dotenv_path: dotenv/.env
+    temperature: 0.0
+    timeout_seconds: 300
+  ir_model:
+    backend: gemini
+    llm_name: gemini-3-pro-preview
+    api_key_env: GEMINI_API_KEY
+    dotenv_path: dotenv/.env
+    temperature: 0.0
+    timeout_seconds: 300
+
+evaluation:
+  validators: [strict]
+  metrics: [strict_rates, arg_i_f1, arg_c_f1, content_similarity_sbert, bemeae]

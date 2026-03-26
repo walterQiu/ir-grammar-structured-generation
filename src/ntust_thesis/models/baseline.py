@@ -2,23 +2,19 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
-
-from pydantic import ValidationError
 
 from ntust_thesis.core.config_models import BaselineModelConfig
 from ntust_thesis.core.interfaces import Model
 from ntust_thesis.core.registry import MODEL_REGISTRY
-from ntust_thesis.core.schemas import (
-    EventOutput,
-    Prediction,
-    PredictionMetadata,
-    Sample,
+from ntust_thesis.core.schemas import Prediction, PredictionMetadata, Sample
+from ntust_thesis.models.components.event_output_parser import (
+    parse_event_output_from_arguments_json,
 )
 from ntust_thesis.models.llm.gemini_client import GeminiClient
 from ntust_thesis.prompts import build_baseline_event_extraction_prompt
 from ntust_thesis.utils.env import get_required_env
-from ntust_thesis.utils.json_parser import parse_json_object
 
 
 class BaselineModel(Model):
@@ -44,34 +40,36 @@ class BaselineModel(Model):
         return "baseline"
 
     def predict(self, sample: Sample) -> Prediction:
-        """Generate text output then parse it as JSON."""
+        """Generate direct JSON output and parse into typed event output."""
         prompt = build_baseline_event_extraction_prompt(
             sentence=sample.raw_sentence,
             event_type=sample.metadata.event_type,
             legal_roles=sample.metadata.legal_roles,
+            role_multiplicities=sample.metadata.role_multiplicities,
         )
-        raw_output = self._llm.generate(prompt, temperature=self._temperature)
-        parsed_output = _parse_event_output(raw_output)
+        raw_model_text = self._llm.generate(prompt, temperature=self._temperature)
+        source_sentence = sample.metadata.sentence_text or sample.raw_sentence
+        parsed_output = parse_event_output_from_arguments_json(
+            raw_output=raw_model_text,
+            source_sentence=source_sentence,
+            event_type=sample.metadata.event_type or "unknown.event",
+        )
+
+        if parsed_output is None:
+            raw_output = raw_model_text
+        else:
+            raw_output = json.dumps(parsed_output.model_dump(), ensure_ascii=False)
+
         return Prediction(
             sample_id=sample.sample_id,
             raw_output=raw_output,
             parsed_output=parsed_output,
             metadata=PredictionMetadata(
                 model=self.name(),
+                backend=self._backend,
                 model_input=prompt,
             ),
         )
-
-
-def _parse_event_output(raw_output: str) -> EventOutput | None:
-    """Parse raw model text into typed event output."""
-    parsed = parse_json_object(raw_output)
-    if parsed is None:
-        return None
-    try:
-        return EventOutput.model_validate(parsed)
-    except ValidationError:
-        return None
 
 
 def register() -> None:

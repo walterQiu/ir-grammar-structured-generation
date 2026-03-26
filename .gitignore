@@ -208,3 +208,6 @@ __marimo__/
 
 # dataset dir
 /datasets/
+
+# experiment outputs
+/outputs/runs/

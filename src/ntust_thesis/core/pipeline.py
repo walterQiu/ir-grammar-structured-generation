@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
@@ -46,10 +47,12 @@ class ExperimentPipeline:
         model = MODEL_REGISTRY.create(model_key, config=model_config)
         validators = [VALIDATOR_REGISTRY.create(key) for key in validator_keys]
         metrics = [METRIC_REGISTRY.create(key) for key in metric_keys]
+        samples = dataset.load()
+        total = len(samples)
 
         metric_rows: list[EvaluationRow] = []
         rows: list[dict[str, Any]] = []
-        for sample in dataset.load():
+        for idx, sample in enumerate(samples, start=1):
             prediction = model.predict(sample)
             row_data: dict[str, Any] = {
                 "sample_id": sample.sample_id,
@@ -64,6 +67,10 @@ class ExperimentPipeline:
             row_model = EvaluationRow.model_validate(row_data)
             metric_rows.append(row_model)
             rows.append(row_model.model_dump())
+
+            if idx % 10 == 0 or idx == total:
+                sys.stdout.write(f"[progress] processed {idx}/{total} samples\n")
+                sys.stdout.flush()
 
         aggregated: dict[str, Any] = {}
         for metric in metrics:

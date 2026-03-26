@@ -36,8 +36,10 @@ def validate_schema(output: EventOutput, output_schema: OutputSchema) -> bool:
 
 
 def exact_match(pred: EventOutput, gold: EventOutput) -> bool:
-    """Strict structural equality check."""
-    return pred.model_dump() == gold.model_dump()
+    """Strict argument-level equality check by role+text only."""
+    pred_args = sorted((arg.role, arg.text) for arg in pred.arguments)
+    gold_args = sorted((arg.role, arg.text) for arg in gold.arguments)
+    return pred_args == gold_args
 
 
 class StrictValidator(Validator):

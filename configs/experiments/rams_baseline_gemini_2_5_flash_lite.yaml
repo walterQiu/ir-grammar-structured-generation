@@ -1,19 +1,20 @@
-experiment_name: eae_baseline
+experiment_name: rams_baseline_gemini_2_5_flash_lite
 
 dataset:
   name: rams
   data_dir: datasets/RAMS/data
-  split: train
+  split: dev
   max_samples: 100
 
 model:
   name: baseline
-  backend: mock
+  backend: gemini
   llm_name: gemini-2.5-flash-lite
   api_key_env: GEMINI_API_KEY
   dotenv_path: dotenv/.env
   temperature: 0.0
+  timeout_seconds: 300
 
 evaluation:
   validators: [strict]
-  metrics: [strict_rates]
+  metrics: [strict_rates, arg_i_f1, arg_c_f1, content_similarity_sbert, bemeae]
