@@ -204,45 +204,69 @@ class ContentSimilaritySBERTMetric(Metric):
         return "content_similarity_sbert"
 
     def compute(self, rows: list[EvaluationRow]) -> dict[str, float]:
-        """Compute soft precision/recall/F1 from role-keyed argument texts."""
-        pred_score_sum = 0.0
-        pred_key_count = 0
-        gold_score_sum = 0.0
-        gold_key_count = 0
+        """Compute micro soft precision/recall/F1 with Hungarian matching."""
+        matched_similarity_sum = 0.0
+        pred_total = 0
+        gold_total = 0
 
         for row in rows:
-            pred_map = _flatten_argument_text_slots(row.parsed_output)
-            gold_map = _flatten_argument_text_slots(row.gold)
+            pred_grouped = _group_argument_texts_by_role(row.parsed_output)
+            gold_grouped = _group_argument_texts_by_role(row.gold)
 
-            pred_score_sum += self._average_directional_similarity(pred_map, gold_map)
-            pred_key_count += 1
-            gold_score_sum += self._average_directional_similarity(gold_map, pred_map)
-            gold_key_count += 1
+            matched, pred_count, gold_count = self._match_row_hungarian(
+                pred_grouped,
+                gold_grouped,
+            )
+            matched_similarity_sum += matched
+            pred_total += pred_count
+            gold_total += gold_count
 
-        soft_precision = _safe_divide_float(pred_score_sum, pred_key_count)
-        soft_recall = _safe_divide_float(gold_score_sum, gold_key_count)
+        soft_precision = _safe_divide_float(matched_similarity_sum, pred_total)
+        soft_recall = _safe_divide_float(matched_similarity_sum, gold_total)
         return {
             "content_soft_precision": soft_precision,
             "content_soft_recall": soft_recall,
             "content_similarity": _f1(soft_precision, soft_recall),
         }
 
-    def _average_directional_similarity(
+    def _match_row_hungarian(
         self,
-        source: dict[str, str],
-        target: dict[str, str],
-    ) -> float:
-        """Average directional similarity with missing-key zero contribution."""
-        if not source:
-            return 0.0
-        scores = []
-        for key, source_value in source.items():
-            target_value = target.get(key)
-            if target_value is None:
-                scores.append(0.0)
+        pred_grouped: dict[str, list[str]],
+        gold_grouped: dict[str, list[str]],
+    ) -> tuple[float, int, int]:
+        """Compute one row soft-TP sum with Hungarian matching by role."""
+        total_pred = sum(len(items) for items in pred_grouped.values())
+        total_gold = sum(len(items) for items in gold_grouped.values())
+        matched_sum = 0.0
+
+        roles = set(pred_grouped) | set(gold_grouped)
+        for role in roles:
+            pred_texts = pred_grouped.get(role, [])
+            gold_texts = gold_grouped.get(role, [])
+            if not pred_texts or not gold_texts:
                 continue
-            scores.append(self._semantic_similarity(source_value, target_value))
-        return sum(scores) / len(scores)
+            matched_sum += self._hungarian_match_sum(pred_texts, gold_texts)
+
+        return matched_sum, total_pred, total_gold
+
+    def _hungarian_match_sum(
+        self, pred_texts: list[str], gold_texts: list[str]
+    ) -> float:
+        """Return max total cosine similarity under one-to-one matching."""
+        scipy_optimize = import_module("scipy.optimize")
+        linear_sum_assignment = scipy_optimize.linear_sum_assignment
+
+        similarity_matrix = [
+            [self._semantic_similarity(pred, gold) for gold in gold_texts]
+            for pred in pred_texts
+        ]
+        cost_matrix = [[1.0 - score for score in row] for row in similarity_matrix]
+        row_ids, col_ids = linear_sum_assignment(cost_matrix)
+
+        total = 0.0
+        for row_idx, col_idx in zip(row_ids.tolist(), col_ids.tolist(), strict=True):
+            total += similarity_matrix[row_idx][col_idx]
+        return total
 
     def _semantic_similarity(self, left: str, right: str) -> float:
         """Compute cosine similarity from SBERT embeddings."""
