@@ -307,7 +307,7 @@ class BEMEAEMetric(Metric):
         }
     )
     _LIST_CONNECTORS = frozenset({"and", "&"})
-    _SAXON_GENITIVE = frozenset({"'s", "’s"})
+    _SAXON_GENITIVE = frozenset({"'s"})
 
     def __init__(self) -> None:
         """Initialize lazy spaCy/SBERT resources."""
@@ -324,50 +324,74 @@ class BEMEAEMetric(Metric):
 
     def compute(self, rows: list[EvaluationRow]) -> dict[str, float]:
         """Compute BEMEAE soft precision/recall/F1 over preprocessed arguments."""
-        pred_score_sum = 0.0
-        pred_key_count = 0
-        gold_score_sum = 0.0
-        gold_key_count = 0
+        matched_similarity_sum = 0.0
+        pred_total = 0
+        gold_total = 0
 
         for row in rows:
-            pred_map = _flatten_argument_text_slots(
+            pred_grouped = _group_argument_texts_by_role(
                 row.parsed_output,
                 preprocess=self._preprocess_text,
             )
-            gold_map = _flatten_argument_text_slots(
+            gold_grouped = _group_argument_texts_by_role(
                 row.gold,
                 preprocess=self._preprocess_text,
             )
 
-            pred_score_sum += self._average_directional_similarity(pred_map, gold_map)
-            pred_key_count += 1
-            gold_score_sum += self._average_directional_similarity(gold_map, pred_map)
-            gold_key_count += 1
+            matched, pred_count, gold_count = self._match_row_hungarian(
+                pred_grouped,
+                gold_grouped,
+            )
+            matched_similarity_sum += matched
+            pred_total += pred_count
+            gold_total += gold_count
 
-        precision = _safe_divide_float(pred_score_sum, pred_key_count)
-        recall = _safe_divide_float(gold_score_sum, gold_key_count)
+        precision = _safe_divide_float(matched_similarity_sum, pred_total)
+        recall = _safe_divide_float(matched_similarity_sum, gold_total)
         return {
             "bemeae_soft_precision": precision,
             "bemeae_soft_recall": recall,
             "bemeae": _f1(precision, recall),
         }
 
-    def _average_directional_similarity(
+    def _match_row_hungarian(
         self,
-        source: dict[str, str],
-        target: dict[str, str],
-    ) -> float:
-        """Average directional similarity with zero for missing target keys."""
-        if not source:
-            return 0.0
-        scores = []
-        for key, source_value in source.items():
-            target_value = target.get(key)
-            if target_value is None:
-                scores.append(0.0)
+        pred_grouped: dict[str, list[str]],
+        gold_grouped: dict[str, list[str]],
+    ) -> tuple[float, int, int]:
+        """Compute one row soft-TP sum with Hungarian matching by role."""
+        total_pred = sum(len(items) for items in pred_grouped.values())
+        total_gold = sum(len(items) for items in gold_grouped.values())
+        matched_sum = 0.0
+
+        roles = set(pred_grouped) | set(gold_grouped)
+        for role in roles:
+            pred_texts = pred_grouped.get(role, [])
+            gold_texts = gold_grouped.get(role, [])
+            if not pred_texts or not gold_texts:
                 continue
-            scores.append(self._semantic_similarity(source_value, target_value))
-        return sum(scores) / len(scores)
+            matched_sum += self._hungarian_match_sum(pred_texts, gold_texts)
+
+        return matched_sum, total_pred, total_gold
+
+    def _hungarian_match_sum(
+        self, pred_texts: list[str], gold_texts: list[str]
+    ) -> float:
+        """Return max total cosine similarity under one-to-one matching."""
+        scipy_optimize = import_module("scipy.optimize")
+        linear_sum_assignment = scipy_optimize.linear_sum_assignment
+
+        similarity_matrix = [
+            [self._semantic_similarity(pred, gold) for gold in gold_texts]
+            for pred in pred_texts
+        ]
+        cost_matrix = [[1.0 - score for score in row] for row in similarity_matrix]
+        row_ids, col_ids = linear_sum_assignment(cost_matrix)
+
+        total = 0.0
+        for row_idx, col_idx in zip(row_ids.tolist(), col_ids.tolist(), strict=True):
+            total += similarity_matrix[row_idx][col_idx]
+        return total
 
     def _semantic_similarity(self, left: str, right: str) -> float:
         """Compute SBERT cosine similarity."""
@@ -411,10 +435,15 @@ class BEMEAEMetric(Metric):
 
             normalized = token.lemma_.lower().strip()
             if normalized in {"", "-pron-"}:
-                normalized = token.lower_.strip()   # fallback if token normalization failed
+                normalized = (
+                    token.lower_.strip()
+                )  # fallback if token normalization failed
             if normalized:
                 normalized_tokens.append(normalized)
-        return " ".join(normalized_tokens).strip()
+        normalized_text = " ".join(normalized_tokens).strip()
+        if not normalized_text:
+            return text.strip()
+        return normalized_text
 
     def _should_drop_token(self, token: _SpacyToken) -> bool:
         """Return whether token should be removed by BEMEAE rules."""
@@ -426,9 +455,7 @@ class BEMEAEMetric(Metric):
             return True
         if token.dep_.lower() in self._MODIFIER_DEPS:
             return True
-        if token.lower_ in self._LIST_CONNECTORS and token.dep_.lower() == "cc":
-            return True
-        return False
+        return token.lower_ in self._LIST_CONNECTORS and token.dep_.lower() == "cc"
 
     def _ensure_sbert_loaded(self) -> None:
         """Lazily import and initialize sentence-transformers model."""
@@ -463,9 +490,7 @@ class BEMEAEMetric(Metric):
         try:
             self._spacy_nlp = spacy_load(self._spacy_model_name)
         except OSError as exc:
-            msg = (
-                "spaCy model is missing for bemeae."
-            )
+            msg = "spaCy model is missing for bemeae."
             raise RuntimeError(msg) from exc
 
 
@@ -494,6 +519,26 @@ def _flatten_argument_text_slots(
         for idx, text in enumerate(texts):
             slot_map[f"arguments.{role}.{idx}"] = str(text)
     return slot_map
+
+
+def _group_argument_texts_by_role(
+    output: EventOutput | None,
+    *,
+    preprocess: Callable[[str], str] | None = None,
+) -> dict[str, list[str]]:
+    """Group argument texts by role for role-constrained matching."""
+    if output is None:
+        return {}
+
+    grouped: dict[str, list[str]] = {}
+    for argument in output.arguments:
+        role = argument.role.strip() or "unknown_role"
+        text = argument.text.strip()
+        if preprocess is not None:
+            text = preprocess(text)
+        grouped.setdefault(role, []).append(text)
+
+    return grouped
 
 
 def _safe_divide_float(numerator: float, denominator: int) -> float:
