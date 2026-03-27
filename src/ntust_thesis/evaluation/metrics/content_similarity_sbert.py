@@ -56,9 +56,9 @@ class ContentSimilaritySBERTMetric(Metric):
         soft_precision = safe_divide_float(matched_similarity_sum, pred_total)
         soft_recall = safe_divide_float(matched_similarity_sum, gold_total)
         return {
-            "content_soft_precision": soft_precision,
-            "content_soft_recall": soft_recall,
-            "content_similarity": f1(soft_precision, soft_recall),
+            "sbert_cossim_precision": soft_precision,
+            "sbert_cossim_recall": soft_recall,
+            "sbert_cossim_f1": f1(soft_precision, soft_recall),
         }
 
     def _match_row_hungarian(
