@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from ntust_thesis.core.interfaces import Compiler
 from ntust_thesis.core.schemas import EventOutput
-from ntust_thesis.models.components.span_matcher import find_span_by_text
 
 _ARGUMENT_PREFIX = "arguments."
 _APPEND_OPERATOR = "+="
@@ -16,11 +15,9 @@ class DeterministicIRCompiler(Compiler):
     def compile(
         self,
         ir_text: str,
-        source_sentence: str,
         event_type: str,
     ) -> EventOutput:
         """Compile IR text under strict schema constraints."""
-        tokens = source_sentence.split()
         role_mentions: list[tuple[str, str]] = []
 
         for raw_line in ir_text.splitlines():
@@ -45,12 +42,10 @@ class DeterministicIRCompiler(Compiler):
 
         arguments = []
         for role, mention_text in role_mentions:
-            span = find_span_by_text(tokens, mention_text)
             arguments.append(
                 {
                     "role": role,
                     "text": mention_text,
-                    "span": span,
                 }
             )
 

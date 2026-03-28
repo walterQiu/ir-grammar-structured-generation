@@ -90,7 +90,6 @@ class RAMSDataset(Dataset):
                 {
                     "role": role,
                     "text": text,
-                    "span": (arg_span[0], arg_span[1]),
                 }
             )
 

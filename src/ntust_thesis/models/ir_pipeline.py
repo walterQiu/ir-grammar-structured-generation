@@ -70,11 +70,9 @@ class IRPipelineModel(Model):
 
         error_message: str | None = None
         compiled: EventOutput | None = None
-        source_sentence = sample.metadata.sentence_text or sample.raw_sentence
         try:
             compiled = self._compiler.compile(
                 ir_text=ir_text,
-                source_sentence=source_sentence,
                 event_type=sample.metadata.event_type or "unknown.event",
             )
         except Exception as exc:

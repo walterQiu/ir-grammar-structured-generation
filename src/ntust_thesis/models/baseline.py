@@ -48,10 +48,8 @@ class BaselineModel(Model):
             role_multiplicities=sample.metadata.role_multiplicities,
         )
         raw_model_text = self._llm.generate(prompt, temperature=self._temperature)
-        source_sentence = sample.metadata.sentence_text or sample.raw_sentence
         parsed_output = parse_event_output_from_arguments_json(
             raw_output=raw_model_text,
-            source_sentence=source_sentence,
             event_type=sample.metadata.event_type or "unknown.event",
         )
 

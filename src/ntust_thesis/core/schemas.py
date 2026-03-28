@@ -14,7 +14,6 @@ class Argument(BaseModel):
 
     role: str
     text: str
-    span: tuple[int, int]
 
 
 class EventOutput(BaseModel):

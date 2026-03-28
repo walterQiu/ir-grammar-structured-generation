@@ -65,7 +65,6 @@ class Compiler(ABC):
     def compile(
         self,
         ir_text: str,
-        source_sentence: str,
         event_type: str,
     ) -> EventOutput:
         """Compile IR text into JSON output."""
