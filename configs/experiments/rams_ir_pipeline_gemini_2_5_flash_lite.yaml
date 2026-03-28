@@ -15,6 +15,14 @@ model:
     dotenv_path: dotenv/.env
     temperature: 0.0
     timeout_seconds: 300
+    enable_sleep: true
+    sleep_seconds: 1.0
+    enable_retry: true
+    max_retries: 5
+    backoff_initial_seconds: 2.0
+    backoff_multiplier: 2.0
+    backoff_max_seconds: 32.0
+    retry_http_statuses: [429, 500, 502, 503, 504]
   ir_model:
     backend: gemini
     llm_name: gemini-2.5-flash-lite
@@ -22,6 +30,14 @@ model:
     dotenv_path: dotenv/.env
     temperature: 0.0
     timeout_seconds: 300
+    enable_sleep: true
+    sleep_seconds: 1.0
+    enable_retry: true
+    max_retries: 5
+    backoff_initial_seconds: 2.0
+    backoff_multiplier: 2.0
+    backoff_max_seconds: 32.0
+    retry_http_statuses: [429, 500, 502, 503, 504]
 
 evaluation:
   validators: [strict]

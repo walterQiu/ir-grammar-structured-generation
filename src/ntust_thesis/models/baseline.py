@@ -33,6 +33,14 @@ class BaselineModel(Model):
             api_key=api_key,
             model_name=model_name,
             timeout_seconds=timeout,
+            enable_sleep=config.enable_sleep,
+            sleep_seconds=config.sleep_seconds,
+            enable_retry=config.enable_retry,
+            max_retries=config.max_retries,
+            backoff_initial_seconds=config.backoff_initial_seconds,
+            backoff_multiplier=config.backoff_multiplier,
+            backoff_max_seconds=config.backoff_max_seconds,
+            retry_http_statuses=tuple(config.retry_http_statuses),
         )
 
     def name(self) -> str:

@@ -29,6 +29,16 @@ class StageModelConfig(BaseModel):
     dotenv_path: str = "dotenv/.env"
     temperature: float = 0.0
     timeout_seconds: int = 60
+    enable_sleep: bool = False
+    sleep_seconds: float = Field(default=0.0, ge=0.0)
+    enable_retry: bool = True
+    max_retries: int = Field(default=3, ge=0)
+    backoff_initial_seconds: float = Field(default=1.0, ge=0.0)
+    backoff_multiplier: float = Field(default=2.0, ge=1.0)
+    backoff_max_seconds: float = Field(default=16.0, ge=0.0)
+    retry_http_statuses: list[int] = Field(
+        default_factory=lambda: [429, 500, 502, 503, 504]
+    )
 
 
 class BaselineModelConfig(BaseModel):
@@ -43,6 +53,16 @@ class BaselineModelConfig(BaseModel):
     dotenv_path: str = "dotenv/.env"
     temperature: float = 0.0
     timeout_seconds: int = 60
+    enable_sleep: bool = False
+    sleep_seconds: float = Field(default=0.0, ge=0.0)
+    enable_retry: bool = True
+    max_retries: int = Field(default=3, ge=0)
+    backoff_initial_seconds: float = Field(default=1.0, ge=0.0)
+    backoff_multiplier: float = Field(default=2.0, ge=1.0)
+    backoff_max_seconds: float = Field(default=16.0, ge=0.0)
+    retry_http_statuses: list[int] = Field(
+        default_factory=lambda: [429, 500, 502, 503, 504]
+    )
 
 
 class IRPipelineModelConfig(BaseModel):

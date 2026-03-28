@@ -14,5 +14,7 @@ Future Works
 - 另一個 EAE dataset 嘗試
 - EAE span candidate 欄位處理問題
     - 詳情請看"論文筆記"
+        - search "傳統 EAE tasks 會給 model span candidate"
+    - 簡單說就是傳統 IE model 會吃到 candidate span，再從候選中選 span；但我用的是 LM，所以 inference 時不需要看到這個候選，但這樣可能造成比較上的不公平?
 - In context learning 嘗試
 - 地端模型嘗試

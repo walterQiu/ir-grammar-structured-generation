@@ -135,6 +135,14 @@ class IRPipelineModel(Model):
             api_key=api_key,
             model_name=model_name,
             timeout_seconds=timeout,
+            enable_sleep=cfg.enable_sleep,
+            sleep_seconds=cfg.sleep_seconds,
+            enable_retry=cfg.enable_retry,
+            max_retries=cfg.max_retries,
+            backoff_initial_seconds=cfg.backoff_initial_seconds,
+            backoff_multiplier=cfg.backoff_multiplier,
+            backoff_max_seconds=cfg.backoff_max_seconds,
+            retry_http_statuses=tuple(cfg.retry_http_statuses),
         )
 
 
