@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 from ntust_thesis.core.config_models import IRPipelineModelConfig, StageModelConfig
 from ntust_thesis.core.interfaces import Model
@@ -25,7 +24,13 @@ from ntust_thesis.models.components.ir_generator import (
 )
 from ntust_thesis.models.llm.gemini_client import GeminiClient
 from ntust_thesis.prompts import build_ir_extraction_prompt, build_ir_generation_prompt
-from ntust_thesis.utils.env import get_required_env
+from ntust_thesis.utils.env import (
+    DEFAULT_DOTENV_PATH,
+    get_env_float,
+    get_env_int,
+    get_env_int_list,
+    get_required_env,
+)
 
 
 class IRPipelineModel(Model):
@@ -33,6 +38,50 @@ class IRPipelineModel(Model):
 
     def __init__(self, config: IRPipelineModelConfig) -> None:
         """Initialize IR pipeline with model config."""
+        dotenv_paths = [DEFAULT_DOTENV_PATH]
+        self._llm_temperature = get_env_float(
+            "llm_temperature",
+            default=0.0,
+            fallback_paths=dotenv_paths,
+        )
+        self._llm_timeout_seconds = get_env_int(
+            "llm_timeout_seconds",
+            default=120,
+            fallback_paths=dotenv_paths,
+        )
+        self._llm_sleep_seconds = get_env_float(
+            "llm_sleep_seconds",
+            default=1.0,
+            fallback_paths=dotenv_paths,
+        )
+        self._llm_max_retries = get_env_int(
+            "llm_max_retries",
+            default=5,
+            fallback_paths=dotenv_paths,
+        )
+        self._llm_backoff_initial_seconds = get_env_float(
+            "llm_backoff_initial_seconds",
+            default=2.0,
+            fallback_paths=dotenv_paths,
+        )
+        self._llm_backoff_multiplier = get_env_float(
+            "llm_backoff_multiplier",
+            default=2.0,
+            fallback_paths=dotenv_paths,
+        )
+        self._llm_backoff_max_seconds = get_env_float(
+            "llm_backoff_max_seconds",
+            default=32.0,
+            fallback_paths=dotenv_paths,
+        )
+        self._llm_retry_http_statuses = tuple(
+            get_env_int_list(
+                "llm_retry_http_statuses",
+                default=[429, 500, 502, 503, 504],
+                fallback_paths=dotenv_paths,
+            )
+        )
+
         extraction_cfg = config.extraction_model
         ir_cfg = config.ir_model
         self._extraction_backend = extraction_cfg.backend
@@ -107,7 +156,7 @@ class IRPipelineModel(Model):
         """Create extraction stage from extraction model config."""
         backend = cfg.backend
         if backend == "gemini":
-            temperature = cfg.temperature
+            temperature = self._llm_temperature
             llm = self._build_gemini_client(cfg)
             return GeminiExtractor(llm=llm, temperature=temperature)
         msg = f"Unsupported extraction backend: {backend}"
@@ -117,32 +166,29 @@ class IRPipelineModel(Model):
         """Create IR generation stage from ir model config."""
         backend = cfg.backend
         if backend == "gemini":
-            temperature = cfg.temperature
+            temperature = self._llm_temperature
             llm = self._build_gemini_client(cfg)
             return GeminiIRGenerator(llm=llm, temperature=temperature)
         msg = f"Unsupported IR backend: {backend}"
         raise ValueError(msg)
 
-    @staticmethod
-    def _build_gemini_client(cfg: StageModelConfig) -> GeminiClient:
+    def _build_gemini_client(self, cfg: StageModelConfig) -> GeminiClient:
         """Create Gemini client from stage-specific config."""
         api_key_env = cfg.api_key_env
-        dotenv_path = Path(cfg.dotenv_path)
-        api_key = get_required_env(api_key_env, fallback_paths=[dotenv_path])
+        api_key = get_required_env(api_key_env, fallback_paths=[DEFAULT_DOTENV_PATH])
         model_name = cfg.llm_name
-        timeout = cfg.timeout_seconds
         return GeminiClient(
             api_key=api_key,
             model_name=model_name,
-            timeout_seconds=timeout,
+            timeout_seconds=self._llm_timeout_seconds,
             enable_sleep=cfg.enable_sleep,
-            sleep_seconds=cfg.sleep_seconds,
+            sleep_seconds=self._llm_sleep_seconds,
             enable_retry=cfg.enable_retry,
-            max_retries=cfg.max_retries,
-            backoff_initial_seconds=cfg.backoff_initial_seconds,
-            backoff_multiplier=cfg.backoff_multiplier,
-            backoff_max_seconds=cfg.backoff_max_seconds,
-            retry_http_statuses=tuple(cfg.retry_http_statuses),
+            max_retries=self._llm_max_retries,
+            backoff_initial_seconds=self._llm_backoff_initial_seconds,
+            backoff_multiplier=self._llm_backoff_multiplier,
+            backoff_max_seconds=self._llm_backoff_max_seconds,
+            retry_http_statuses=self._llm_retry_http_statuses,
         )
 
 

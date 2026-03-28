@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 from ntust_thesis.core.config_models import BaselineModelConfig
 from ntust_thesis.core.interfaces import Model
@@ -14,7 +13,13 @@ from ntust_thesis.models.components.event_output_parser import (
 )
 from ntust_thesis.models.llm.gemini_client import GeminiClient
 from ntust_thesis.prompts import build_baseline_event_extraction_prompt
-from ntust_thesis.utils.env import get_required_env
+from ntust_thesis.utils.env import (
+    DEFAULT_DOTENV_PATH,
+    get_env_float,
+    get_env_int,
+    get_env_int_list,
+    get_required_env,
+)
 
 
 class BaselineModel(Model):
@@ -23,24 +28,62 @@ class BaselineModel(Model):
     def __init__(self, config: BaselineModelConfig) -> None:
         """Initialize baseline model from config."""
         self._backend = config.backend
-        self._temperature = config.temperature
+        dotenv_paths = [DEFAULT_DOTENV_PATH]
+        self._temperature = get_env_float(
+            "llm_temperature",
+            default=0.0,
+            fallback_paths=dotenv_paths,
+        )
+        timeout = get_env_int(
+            "llm_timeout_seconds",
+            default=120,
+            fallback_paths=dotenv_paths,
+        )
+        sleep_seconds = get_env_float(
+            "llm_sleep_seconds",
+            default=1.0,
+            fallback_paths=dotenv_paths,
+        )
+        max_retries = get_env_int(
+            "llm_max_retries",
+            default=5,
+            fallback_paths=dotenv_paths,
+        )
+        backoff_initial_seconds = get_env_float(
+            "llm_backoff_initial_seconds",
+            default=2.0,
+            fallback_paths=dotenv_paths,
+        )
+        backoff_multiplier = get_env_float(
+            "llm_backoff_multiplier",
+            default=2.0,
+            fallback_paths=dotenv_paths,
+        )
+        backoff_max_seconds = get_env_float(
+            "llm_backoff_max_seconds",
+            default=32.0,
+            fallback_paths=dotenv_paths,
+        )
+        retry_http_statuses = get_env_int_list(
+            "llm_retry_http_statuses",
+            default=[429, 500, 502, 503, 504],
+            fallback_paths=dotenv_paths,
+        )
         api_key_env = config.api_key_env
-        dotenv_path = Path(config.dotenv_path)
-        api_key = get_required_env(api_key_env, fallback_paths=[dotenv_path])
+        api_key = get_required_env(api_key_env, fallback_paths=dotenv_paths)
         model_name = config.llm_name
-        timeout = config.timeout_seconds
         self._llm = GeminiClient(
             api_key=api_key,
             model_name=model_name,
             timeout_seconds=timeout,
             enable_sleep=config.enable_sleep,
-            sleep_seconds=config.sleep_seconds,
+            sleep_seconds=sleep_seconds,
             enable_retry=config.enable_retry,
-            max_retries=config.max_retries,
-            backoff_initial_seconds=config.backoff_initial_seconds,
-            backoff_multiplier=config.backoff_multiplier,
-            backoff_max_seconds=config.backoff_max_seconds,
-            retry_http_statuses=tuple(config.retry_http_statuses),
+            max_retries=max_retries,
+            backoff_initial_seconds=backoff_initial_seconds,
+            backoff_multiplier=backoff_multiplier,
+            backoff_max_seconds=backoff_max_seconds,
+            retry_http_statuses=tuple(retry_http_statuses),
         )
 
     def name(self) -> str:
