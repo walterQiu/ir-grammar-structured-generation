@@ -12,6 +12,7 @@ from ntust_thesis.models.components.event_output_parser import (
     parse_event_output_from_arguments_json,
 )
 from ntust_thesis.models.llm.gemini_client import GeminiClient
+from ntust_thesis.models.llm.vllm_client import VllmChatCompletionsClient
 from ntust_thesis.prompts import build_baseline_event_extraction_prompt
 from ntust_thesis.utils.env import (
     DEFAULT_DOTENV_PATH,
@@ -23,7 +24,7 @@ from ntust_thesis.utils.env import (
 
 
 class BaselineModel(Model):
-    """Baseline model using Gemini direct generation."""
+    """Baseline model using pluggable LLM backends."""
 
     def __init__(self, config: BaselineModelConfig) -> None:
         """Initialize baseline model from config."""
@@ -69,22 +70,41 @@ class BaselineModel(Model):
             default=[429, 500, 502, 503, 504],
             fallback_paths=dotenv_paths,
         )
-        api_key_env = config.api_key_env
-        api_key = get_required_env(api_key_env, fallback_paths=dotenv_paths)
         model_name = config.llm_name
-        self._llm = GeminiClient(
-            api_key=api_key,
-            model_name=model_name,
-            timeout_seconds=timeout,
-            enable_sleep=config.enable_sleep,
-            sleep_seconds=sleep_seconds,
-            enable_retry=config.enable_retry,
-            max_retries=max_retries,
-            backoff_initial_seconds=backoff_initial_seconds,
-            backoff_multiplier=backoff_multiplier,
-            backoff_max_seconds=backoff_max_seconds,
-            retry_http_statuses=tuple(retry_http_statuses),
-        )
+        if config.backend == "gemini":
+            api_key_env = config.api_key_env
+            api_key = get_required_env(api_key_env, fallback_paths=dotenv_paths)
+            self._llm = GeminiClient(
+                api_key=api_key,
+                model_name=model_name,
+                timeout_seconds=timeout,
+                enable_sleep=config.enable_sleep,
+                sleep_seconds=sleep_seconds,
+                enable_retry=config.enable_retry,
+                max_retries=max_retries,
+                backoff_initial_seconds=backoff_initial_seconds,
+                backoff_multiplier=backoff_multiplier,
+                backoff_max_seconds=backoff_max_seconds,
+                retry_http_statuses=tuple(retry_http_statuses),
+            )
+        elif config.backend == "vllm":
+            api_base = config.api_base or "http://127.0.0.1:8000/v1"
+            self._llm = VllmChatCompletionsClient(
+                api_base=api_base,
+                model_name=model_name,
+                timeout_seconds=timeout,
+                enable_sleep=config.enable_sleep,
+                sleep_seconds=sleep_seconds,
+                enable_retry=config.enable_retry,
+                max_retries=max_retries,
+                backoff_initial_seconds=backoff_initial_seconds,
+                backoff_multiplier=backoff_multiplier,
+                backoff_max_seconds=backoff_max_seconds,
+                retry_http_statuses=tuple(retry_http_statuses),
+            )
+        else:
+            msg = f"Unsupported backend: {config.backend}"
+            raise ValueError(msg)
 
     def name(self) -> str:
         """Return model key."""

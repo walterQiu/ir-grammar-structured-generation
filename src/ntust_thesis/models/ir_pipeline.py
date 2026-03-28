@@ -23,6 +23,7 @@ from ntust_thesis.models.components.ir_generator import (
     IRGenerator,
 )
 from ntust_thesis.models.llm.gemini_client import GeminiClient
+from ntust_thesis.models.llm.vllm_client import VllmChatCompletionsClient
 from ntust_thesis.prompts import build_ir_extraction_prompt, build_ir_generation_prompt
 from ntust_thesis.utils.env import (
     DEFAULT_DOTENV_PATH,
@@ -155,9 +156,9 @@ class IRPipelineModel(Model):
     def _build_extractor(self, cfg: StageModelConfig) -> Extractor:
         """Create extraction stage from extraction model config."""
         backend = cfg.backend
-        if backend == "gemini":
+        if backend in {"gemini", "vllm"}:
             temperature = self._llm_temperature
-            llm = self._build_gemini_client(cfg)
+            llm = self._build_llm_client(cfg)
             return GeminiExtractor(llm=llm, temperature=temperature)
         msg = f"Unsupported extraction backend: {backend}"
         raise ValueError(msg)
@@ -165,31 +166,49 @@ class IRPipelineModel(Model):
     def _build_ir_generator(self, cfg: StageModelConfig) -> IRGenerator:
         """Create IR generation stage from ir model config."""
         backend = cfg.backend
-        if backend == "gemini":
+        if backend in {"gemini", "vllm"}:
             temperature = self._llm_temperature
-            llm = self._build_gemini_client(cfg)
+            llm = self._build_llm_client(cfg)
             return GeminiIRGenerator(llm=llm, temperature=temperature)
         msg = f"Unsupported IR backend: {backend}"
         raise ValueError(msg)
 
-    def _build_gemini_client(self, cfg: StageModelConfig) -> GeminiClient:
-        """Create Gemini client from stage-specific config."""
-        api_key_env = cfg.api_key_env
-        api_key = get_required_env(api_key_env, fallback_paths=[DEFAULT_DOTENV_PATH])
+    def _build_llm_client(
+        self, cfg: StageModelConfig
+    ) -> GeminiClient | VllmChatCompletionsClient:
+        """Create backend-specific LLM client from stage config."""
         model_name = cfg.llm_name
-        return GeminiClient(
-            api_key=api_key,
-            model_name=model_name,
-            timeout_seconds=self._llm_timeout_seconds,
-            enable_sleep=cfg.enable_sleep,
-            sleep_seconds=self._llm_sleep_seconds,
-            enable_retry=cfg.enable_retry,
-            max_retries=self._llm_max_retries,
-            backoff_initial_seconds=self._llm_backoff_initial_seconds,
-            backoff_multiplier=self._llm_backoff_multiplier,
-            backoff_max_seconds=self._llm_backoff_max_seconds,
-            retry_http_statuses=self._llm_retry_http_statuses,
-        )
+        common_kwargs = {
+            "timeout_seconds": self._llm_timeout_seconds,
+            "enable_sleep": cfg.enable_sleep,
+            "sleep_seconds": self._llm_sleep_seconds,
+            "enable_retry": cfg.enable_retry,
+            "max_retries": self._llm_max_retries,
+            "backoff_initial_seconds": self._llm_backoff_initial_seconds,
+            "backoff_multiplier": self._llm_backoff_multiplier,
+            "backoff_max_seconds": self._llm_backoff_max_seconds,
+            "retry_http_statuses": self._llm_retry_http_statuses,
+        }
+        if cfg.backend == "gemini":
+            api_key_env = cfg.api_key_env
+            api_key = get_required_env(
+                api_key_env,
+                fallback_paths=[DEFAULT_DOTENV_PATH],
+            )
+            return GeminiClient(
+                api_key=api_key,
+                model_name=model_name,
+                **common_kwargs,
+            )
+        if cfg.backend == "vllm":
+            api_base = cfg.api_base or "http://127.0.0.1:8000/v1"
+            return VllmChatCompletionsClient(
+                api_base=api_base,
+                model_name=model_name,
+                **common_kwargs,
+            )
+        msg = f"Unsupported backend: {cfg.backend}"
+        raise ValueError(msg)
 
 
 def register() -> None:

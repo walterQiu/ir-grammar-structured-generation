@@ -23,9 +23,10 @@ class StageModelConfig(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    backend: Literal["gemini"] = "gemini"
+    backend: Literal["gemini", "vllm"] = "gemini"
     llm_name: str = "gemini-2.5-flash-lite"
     api_key_env: str = "GEMINI_API_KEY"
+    api_base: str | None = None
     enable_sleep: bool = False
     enable_retry: bool = True
 
@@ -36,9 +37,10 @@ class BaselineModelConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     name: Literal["baseline"]
-    backend: Literal["gemini"] = "gemini"
+    backend: Literal["gemini", "vllm"] = "gemini"
     llm_name: str = "gemini-2.5-flash-lite"
     api_key_env: str = "GEMINI_API_KEY"
+    api_base: str | None = None
     enable_sleep: bool = False
     enable_retry: bool = True
 
