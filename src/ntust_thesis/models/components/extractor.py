@@ -17,7 +17,7 @@ class Extractor:
         self,
         sentence: str,
         event_type: str | None = None,
-        legal_roles: list[str] | None = None,
+        candidate_roles: list[str] | None = None,
         role_multiplicities: dict[str, int] | None = None,
     ) -> str:
         """Return extraction stage output text."""
@@ -36,14 +36,14 @@ class GeminiExtractor(Extractor):
         self,
         sentence: str,
         event_type: str | None = None,
-        legal_roles: list[str] | None = None,
+        candidate_roles: list[str] | None = None,
         role_multiplicities: dict[str, int] | None = None,
     ) -> str:
         """Ask Gemini to produce extraction notes."""
         prompt = build_ir_extraction_prompt(
             sentence=sentence,
             event_type=event_type,
-            legal_roles=legal_roles,
+            candidate_roles=candidate_roles,
             role_multiplicities=role_multiplicities,
         )
         return self._llm.generate(prompt, temperature=self._temperature)

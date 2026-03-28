@@ -44,7 +44,7 @@ class BaselineModel(Model):
         prompt = build_baseline_event_extraction_prompt(
             sentence=sample.raw_sentence,
             event_type=sample.metadata.event_type,
-            legal_roles=sample.metadata.legal_roles,
+            candidate_roles=sample.metadata.candidate_roles,
             role_multiplicities=sample.metadata.role_multiplicities,
         )
         raw_model_text = self._llm.generate(prompt, temperature=self._temperature)

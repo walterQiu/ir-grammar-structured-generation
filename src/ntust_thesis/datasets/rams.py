@@ -98,14 +98,14 @@ class RAMSDataset(Dataset):
         )
         output_schema = OutputSchema()
         marked_sentence = self._mark_trigger(tokens, trigger_span[0], trigger_span[1])
-        legal_roles = list(event_roles.roles.keys())
+        candidate_roles = list(event_roles.roles.keys())
         role_multiplicities = dict(event_roles.roles)
         raw_sentence = marked_sentence
         metadata = SampleMetadata(
             sentence_text=" ".join(tokens),
             marked_sentence=marked_sentence,
             event_type=event_type,
-            legal_roles=legal_roles,
+            candidate_roles=candidate_roles,
             role_multiplicities=role_multiplicities,
         )
         return Sample(

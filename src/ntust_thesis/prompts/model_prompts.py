@@ -6,12 +6,14 @@ from __future__ import annotations
 def build_baseline_event_extraction_prompt(
     sentence: str,
     event_type: str | None = None,
-    legal_roles: list[str] | None = None,
+    candidate_roles: list[str] | None = None,
     role_multiplicities: dict[str, int] | None = None,
 ) -> str:
     """Build prompt for baseline direct JSON generation."""
     event_line = f"Event type (reference): {event_type}\n" if event_type else ""
-    roles_line = f"Legal roles: {', '.join(legal_roles)}\n" if legal_roles else ""
+    roles_line = (
+        f"Candidate roles: {', '.join(candidate_roles)}\n" if candidate_roles else ""
+    )
     multiplicity_line = ""
     if role_multiplicities:
         pairs = ", ".join(
@@ -40,12 +42,14 @@ def build_baseline_event_extraction_prompt(
 def build_ir_extraction_prompt(
     sentence: str,
     event_type: str | None = None,
-    legal_roles: list[str] | None = None,
+    candidate_roles: list[str] | None = None,
     role_multiplicities: dict[str, int] | None = None,
 ) -> str:
     """Build prompt for IR extraction stage."""
     event_line = f"Event type (reference): {event_type}\n" if event_type else ""
-    roles_line = f"Legal roles: {', '.join(legal_roles)}\n" if legal_roles else ""
+    roles_line = (
+        f"Candidate roles: {', '.join(candidate_roles)}\n" if candidate_roles else ""
+    )
     multiplicity_line = ""
     if role_multiplicities:
         pairs = ", ".join(
@@ -57,7 +61,7 @@ def build_ir_extraction_prompt(
         "The trigger word(s) of the event is marked with **trigger word**.\n\n"
         "Reason step by step about which text spans in the sentence are valid arguments of this event.\n"
         "For each valid argument you find, briefly explain what text span it is and which role it most likely plays.\n"
-        "Use the event type, legal roles, and role multiplicities only as references for deciding validity.\n"
+        "Use the event type, candidate roles, and role multiplicities only as references for deciding validity.\n"
         "Do not invent arguments that are not clearly supported by the sentence.\n"
         "Do not treat one mention as multiple distinct arguments unless the sentence clearly supports that.\n"
         "Do not organize the answer into a table, JSON, key-value pairs, role-label lines, or any other fixed schema.\n"

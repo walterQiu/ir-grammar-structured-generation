@@ -33,7 +33,7 @@ From each RAMS JSONL row, we use:
 1. Path: `datasets/RAMS/scorer/event_role_multiplicities.txt`
 2. Used to map `event_type -> {role: multiplicity}`
 3. Provides:
-   - `legal_roles`
+   - `candidate_roles`
    - `role_multiplicities`
 
 ## Project Sample Fields (After RAMS Conversion)
@@ -53,7 +53,7 @@ Each RAMS row is converted into:
     "sentence_text": "<flattened sentence>",
     "marked_sentence": "<trigger-marked sentence>",
     "event_type": "<event_type>",
-    "legal_roles": ["<role1>", "<role2>"],
+    "candidate_roles": ["<role1>", "<role2>"],
     "role_multiplicities": {"<role1>": 1, "<role2>": 2}
   }
 }
@@ -63,8 +63,23 @@ Each RAMS row is converted into:
 Models are given dataset-derived fields:
 1. `raw_sentence` (trigger-marked sentence)
 2. `metadata.event_type`
-3. `metadata.legal_roles`
+3. `metadata.candidate_roles`
 4. `metadata.role_multiplicities`
+
+## RAMS Targets Predicted by Current Models
+For each RAMS sample, the model prediction target is the argument set aligned to `gold_evt_links`:
+1. Predict argument `role`
+   - Role space is constrained by `candidate_roles` (from ontology by `event_type`).
+2. Predict argument `text`
+   - Surface text span in the sentence.
+3. Predict argument multiplicity behavior
+   - Follow `role_multiplicities` constraints per role.
+
+What models do not predict:
+1. `doc_key` (used as id only)
+2. Trigger span/location
+3. Token start/end offsets
+4. `event_type` as a generated field (it is taken from RAMS trigger metadata)
 
 ## Model Prediction Fields Stored
 For each sample, prediction artifacts store:

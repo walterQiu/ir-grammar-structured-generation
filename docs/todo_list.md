@@ -1,9 +1,4 @@
 Current Works
-- find span position function 可以拿掉? (可以)
-    - _find_span_by_text()
-    - 教授如果覺得我的 RAMS dataset 使用方式是OK的就行
-    - predictions 輸出的 span position encode 部分也都可以拿掉
-    - 跟教授討論完後記得更新 RAMS dataset 的說明文件
 - 加 time.sleep()、retry mechanism
     - 或是 checkpoint
 

@@ -50,13 +50,13 @@ class IRPipelineModel(Model):
         extraction_prompt = build_ir_extraction_prompt(
             sentence=sample.raw_sentence,
             event_type=sample.metadata.event_type,
-            legal_roles=sample.metadata.legal_roles,
+            candidate_roles=sample.metadata.candidate_roles,
             role_multiplicities=sample.metadata.role_multiplicities,
         )
         extraction_text = self._extractor.extract(
             sentence=sample.raw_sentence,
             event_type=sample.metadata.event_type,
-            legal_roles=sample.metadata.legal_roles,
+            candidate_roles=sample.metadata.candidate_roles,
             role_multiplicities=sample.metadata.role_multiplicities,
         )
         ir_prompt = build_ir_generation_prompt(
