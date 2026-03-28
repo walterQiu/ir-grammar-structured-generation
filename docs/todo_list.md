@@ -1,5 +1,5 @@
 Current Works
-
+- extraction sentence 跟 ir sentence 的 sentence 都放到 prompt 最後面試試看
 
 Future Works
 - 資料集處理
