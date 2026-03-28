@@ -46,9 +46,18 @@ def main() -> None:
 
     write_jsonl(run_dir / "predictions.jsonl", result.rows)
     write_json(run_dir / "metrics.json", result.metrics)
+    write_json(
+        run_dir / "failed_samples.json", {"failed_samples": result.failed_samples}
+    )
     write_yaml(run_dir / "config_snapshot.yaml", config.model_dump())
 
-    payload = {"rows": len(result.rows), "metrics": result.metrics}
+    failed_sample_ids = [item["sample_id"] for item in result.failed_samples]
+    payload = {
+        "rows": len(result.rows),
+        "failed_count": len(result.failed_samples),
+        "failed_sample_ids": failed_sample_ids,
+        "metrics": result.metrics,
+    }
     sys.stdout.write(f"{json.dumps(payload, ensure_ascii=False)}\n")
 
 

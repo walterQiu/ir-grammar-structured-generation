@@ -25,6 +25,7 @@ class PipelineResult:
 
     rows: list[dict[str, Any]]
     metrics: dict[str, Any]
+    failed_samples: list[dict[str, Any]]
 
 
 class ExperimentPipeline:
@@ -52,21 +53,35 @@ class ExperimentPipeline:
 
         metric_rows: list[EvaluationRow] = []
         rows: list[dict[str, Any]] = []
+        failed_samples: list[dict[str, Any]] = []
         for idx, sample in enumerate(samples, start=1):
-            prediction = model.predict(sample)
-            row_data: dict[str, Any] = {
-                "sample_id": sample.sample_id,
-                "raw_output": prediction.raw_output,
-                "parsed_output": prediction.parsed_output,
-                "gold": sample.gold,
-                "prediction_metadata": prediction.metadata,
-                "sample_metadata": sample.metadata,
-            }
-            for validator in validators:
-                row_data.update(validator.validate(prediction, sample))
-            row_model = EvaluationRow.model_validate(row_data)
-            metric_rows.append(row_model)
-            rows.append(row_model.model_dump())
+            try:
+                prediction = model.predict(sample)
+                row_data: dict[str, Any] = {
+                    "sample_id": sample.sample_id,
+                    "raw_output": prediction.raw_output,
+                    "parsed_output": prediction.parsed_output,
+                    "gold": sample.gold,
+                    "prediction_metadata": prediction.metadata,
+                    "sample_metadata": sample.metadata,
+                }
+                for validator in validators:
+                    row_data.update(validator.validate(prediction, sample))
+                row_model = EvaluationRow.model_validate(row_data)
+                metric_rows.append(row_model)
+                rows.append(row_model.model_dump())
+            except Exception as exc:
+                failed_samples.append(
+                    {
+                        "sample_index": idx,
+                        "sample_id": sample.sample_id,
+                        "error": str(exc),
+                    }
+                )
+                sys.stdout.write(
+                    f"[warning] failed sample {idx}/{total}: {sample.sample_id}\n"
+                )
+                sys.stdout.flush()
 
             if idx % 10 == 0 or idx == total:
                 sys.stdout.write(f"[progress] processed {idx}/{total} samples\n")
@@ -75,4 +90,8 @@ class ExperimentPipeline:
         aggregated: dict[str, Any] = {}
         for metric in metrics:
             aggregated.update(metric.compute(metric_rows))
-        return PipelineResult(rows=rows, metrics=aggregated)
+        return PipelineResult(
+            rows=rows,
+            metrics=aggregated,
+            failed_samples=failed_samples,
+        )
