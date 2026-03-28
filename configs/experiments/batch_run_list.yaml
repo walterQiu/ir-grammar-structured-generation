@@ -1,0 +1,13 @@
+experiments:
+  # - configs/experiments/development_used.yaml
+  # - configs/experiments/development_used_vllm_qwen2_5_7b.yaml
+  - configs/experiments/rams_baseline_vllm_qwen2_5_7b_instruct.yaml
+  - configs/experiments/rams_ir_pipeline_vllm_qwen2_5_7b_instruct.yaml
+  # - configs/experiments/development_used_vllm_mistral_7b.yaml
+  # - configs/experiments/rams_baseline_vllm_mistral_7b_instruct_v0_3.yaml
+  # - configs/experiments/rams_ir_pipeline_vllm_mistral_7b_instruct_v0_3.yaml
+  - configs/experiments/rams_baseline_gemini_2_5_flash_lite.yaml
+  - configs/experiments/rams_ir_pipeline_gemini_2_5_flash_lite.yaml
+  - configs/experiments/rams_baseline_gemini_3_pro_preview.yaml
+  - configs/experiments/rams_ir_pipeline_gemini_3_pro_preview.yaml
+

@@ -11,3 +11,5 @@ add datasets/
 cp dotenv/.env.example dotenv.env & fill up environment variables in .env
 
 UV_CACHE_DIR=/tmp/.uv-cache PYTHONPATH=src uv run python run.py --config configs/experiments/development_used.yaml
+
+./tools/run_selected_experiments.sh
