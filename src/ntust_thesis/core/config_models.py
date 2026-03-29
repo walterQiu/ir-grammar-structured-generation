@@ -45,6 +45,20 @@ class BaselineModelConfig(BaseModel):
     enable_retry: bool = True
 
 
+class DirectIRBaselineModelConfig(BaseModel):
+    """Direct IR baseline model configuration."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    name: Literal["direct_ir_baseline"]
+    backend: Literal["gemini", "vllm"] = "gemini"
+    llm_name: str = "gemini-2.5-flash-lite"
+    api_key_env: str = "GEMINI_API_KEY"
+    api_base: str | None = None
+    enable_sleep: bool = False
+    enable_retry: bool = True
+
+
 class IRPipelineModelConfig(BaseModel):
     """IR pipeline model configuration."""
 
@@ -66,7 +80,10 @@ class TwoStageBaselineModelConfig(BaseModel):
 
 
 ModelConfig = Annotated[
-    BaselineModelConfig | IRPipelineModelConfig | TwoStageBaselineModelConfig,
+    BaselineModelConfig
+    | DirectIRBaselineModelConfig
+    | IRPipelineModelConfig
+    | TwoStageBaselineModelConfig,
     Field(discriminator="name"),
 ]
 

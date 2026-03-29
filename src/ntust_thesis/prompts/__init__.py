@@ -2,6 +2,7 @@
 
 from ntust_thesis.prompts.model_prompts import (
     build_baseline_event_extraction_prompt,
+    build_direct_ir_prompt,
     build_ir_extraction_prompt,
     build_ir_generation_prompt,
     build_schema_generation_prompt,
@@ -9,6 +10,7 @@ from ntust_thesis.prompts.model_prompts import (
 
 __all__ = [
     "build_baseline_event_extraction_prompt",
+    "build_direct_ir_prompt",
     "build_ir_extraction_prompt",
     "build_ir_generation_prompt",
     "build_schema_generation_prompt",

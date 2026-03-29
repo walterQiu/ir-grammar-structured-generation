@@ -6,6 +6,9 @@ from ntust_thesis.datasets.rams import register as register_datasets
 from ntust_thesis.evaluation.metrics import register as register_metrics
 from ntust_thesis.evaluation.validator import register as register_validators
 from ntust_thesis.models.baseline import register as register_baseline
+from ntust_thesis.models.direct_ir_baseline import (
+    register as register_direct_ir_baseline,
+)
 from ntust_thesis.models.ir_pipeline import register as register_ir
 from ntust_thesis.models.two_stage_baseline import (
     register as register_two_stage_baseline,
@@ -18,6 +21,7 @@ def register_builtin_components() -> None:
         return
     register_datasets()
     register_baseline()
+    register_direct_ir_baseline()
     register_ir()
     register_two_stage_baseline()
     register_validators()
