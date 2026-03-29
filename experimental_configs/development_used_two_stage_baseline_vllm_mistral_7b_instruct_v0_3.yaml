@@ -1,4 +1,4 @@
-experiment_name: development_used_two_stage_baseline_vllm_mistral_7b
+experiment_name: development_used_two_stage_baseline_vllm_mistral_7b_instruct_v0_3
 
 dataset:
   name: rams

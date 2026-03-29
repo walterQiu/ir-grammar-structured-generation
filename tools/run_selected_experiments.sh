@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-LIST_YAML="${ROOT_DIR}/configs/experiments/batch_run_list.yaml"
+LIST_YAML="${ROOT_DIR}/experimental_configs/batch_run_list.yaml"
 
 if [[ ! -f "${LIST_YAML}" ]]; then
   echo "[error] list file not found: ${LIST_YAML}" >&2
