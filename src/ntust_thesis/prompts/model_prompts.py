@@ -103,3 +103,29 @@ def build_ir_generation_prompt(
         f"{multiplicity_line}"
         f"Extraction notes:\n{extraction_text}"
     )
+
+
+def build_schema_generation_prompt(
+    extraction_text: str,
+    role_multiplicities: dict[str, int] | None = None,
+) -> str:
+    """Build prompt for converting extraction text directly to final JSON."""
+    multiplicity_line = ""
+    if role_multiplicities:
+        pairs = ", ".join(
+            f"{role}={count}" for role, count in role_multiplicities.items()
+        )
+        multiplicity_line = f"Role multiplicities: {pairs}\n"
+    return (
+        "Convert extraction notes into final JSON event arguments.\n"
+        "Output only this JSON object structure:\n"
+        '{"arguments":[{"role":"<role>","text":"<text>"}]}\n'
+        "Do not output event type.\n"
+        "Respect role multiplicities strictly.\n"
+        "Do NOT split a single text span into multiple mentions.\n"
+        "Do NOT decompose coordinated phrases (e.g., 'A, B, and C').\n"
+        "Keep the original text span exactly as given.\n"
+        "No markdown, no extra commentary.\n"
+        f"{multiplicity_line}"
+        f"Extraction notes:\n{extraction_text}"
+    )

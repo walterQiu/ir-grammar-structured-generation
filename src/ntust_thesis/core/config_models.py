@@ -55,8 +55,18 @@ class IRPipelineModelConfig(BaseModel):
     ir_model: StageModelConfig = Field(default_factory=StageModelConfig)
 
 
+class TwoStageBaselineModelConfig(BaseModel):
+    """Two-stage baseline: extraction text -> final JSON."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    name: Literal["two_stage_baseline"]
+    extraction_model: StageModelConfig = Field(default_factory=StageModelConfig)
+    schema_model: StageModelConfig = Field(default_factory=StageModelConfig)
+
+
 ModelConfig = Annotated[
-    BaselineModelConfig | IRPipelineModelConfig,
+    BaselineModelConfig | IRPipelineModelConfig | TwoStageBaselineModelConfig,
     Field(discriminator="name"),
 ]
 
