@@ -93,8 +93,18 @@ class EvaluationConfig(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    validators: list[str] = Field(default_factory=lambda: ["strict"])
-    metrics: list[str] = Field(default_factory=lambda: ["strict_rates"])
+    metrics: list[str] = Field(
+        default_factory=lambda: [
+            "is_valid_json",
+            "schema_exact_match",
+            "exact_match",
+            "arg_i_f1",
+            "arg_c_f1",
+            "content_similarity_sbert",
+            "bemeae",
+            "json_structure_f1",
+        ]
+    )
 
 
 class ExperimentConfig(BaseModel):

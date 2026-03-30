@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from ntust_thesis.datasets.rams import register as register_datasets
 from ntust_thesis.evaluation.metrics import register as register_metrics
-from ntust_thesis.evaluation.validator import register as register_validators
 from ntust_thesis.models.baseline import register as register_baseline
 from ntust_thesis.models.direct_ir_baseline import (
     register as register_direct_ir_baseline,
@@ -24,6 +23,5 @@ def register_builtin_components() -> None:
     register_direct_ir_baseline()
     register_ir()
     register_two_stage_baseline()
-    register_validators()
     register_metrics()
     register_builtin_components._done = True

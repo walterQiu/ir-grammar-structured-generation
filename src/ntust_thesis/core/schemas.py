@@ -94,6 +94,3 @@ class EvaluationRow(BaseModel):
     gold: EventOutput
     prediction_metadata: PredictionMetadata
     sample_metadata: SampleMetadata
-    json_valid: bool
-    schema_valid: bool
-    exact_match: bool

@@ -1,11 +1,9 @@
 experiment_name: rams_baseline_gemini_3_pro_preview
-
 dataset:
   name: rams
   data_dir: datasets/RAMS/data
   split: dev
   max_samples: 100
-
 model:
   name: baseline
   backend: gemini
@@ -13,7 +11,13 @@ model:
   api_key_env: GEMINI_API_KEY
   enable_sleep: true
   enable_retry: true
-
 evaluation:
-  validators: [strict]
-  metrics: [strict_rates, arg_i_f1, arg_c_f1, content_similarity_sbert, bemeae]
+  metrics:
+  - is_valid_json
+  - schema_exact_match
+  - exact_match
+  - arg_i_f1
+  - arg_c_f1
+  - content_similarity_sbert
+  - bemeae
+  - json_structure_f1
