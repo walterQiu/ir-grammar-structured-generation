@@ -1,21 +1,21 @@
-experiment_name: development_used_two_stage_baseline_vllm_mistral_7b_instruct_v0_3
+experiment_name: two-stage-baseline_gemini2_qwen_rams
 dataset:
   name: rams
   data_dir: datasets/RAMS/data
   split: dev
-  max_samples: 3
+  max_samples: 100
 model:
   name: two_stage_baseline
   extraction_model:
-    backend: vllm
-    llm_name: mistralai/Mistral-7B-Instruct-v0.3
-    api_base: http://140.118.155.118:8001/v1
-    enable_sleep: false
+    backend: gemini
+    llm_name: gemini-2.5-flash-lite
+    api_key_env: GEMINI_API_KEY
+    enable_sleep: true
     enable_retry: true
   schema_model:
     backend: vllm
-    llm_name: mistralai/Mistral-7B-Instruct-v0.3
-    api_base: http://140.118.155.118:8001/v1
+    llm_name: Qwen/Qwen2.5-7B-Instruct
+    api_base: http://140.118.155.118:8000/v1
     enable_sleep: false
     enable_retry: true
 evaluation:

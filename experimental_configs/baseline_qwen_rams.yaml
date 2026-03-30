@@ -1,4 +1,4 @@
-experiment_name: rams_baseline_gemini_3_pro_preview
+experiment_name: baseline_qwen_rams
 dataset:
   name: rams
   data_dir: datasets/RAMS/data
@@ -6,10 +6,10 @@ dataset:
   max_samples: 100
 model:
   name: baseline
-  backend: gemini
-  llm_name: gemini-3-pro-preview
-  api_key_env: GEMINI_API_KEY
-  enable_sleep: true
+  backend: vllm
+  llm_name: Qwen/Qwen2.5-7B-Instruct
+  api_base: http://140.118.155.118:8000/v1
+  enable_sleep: false
   enable_retry: true
 evaluation:
   metrics:

@@ -1,11 +1,11 @@
-experiment_name: rams_baseline_vllm_mistral_7b_instruct_v0_3
+experiment_name: ir-baseline_mistral_rams
 dataset:
   name: rams
   data_dir: datasets/RAMS/data
   split: dev
   max_samples: 100
 model:
-  name: baseline
+  name: direct_ir_baseline
   backend: vllm
   llm_name: mistralai/Mistral-7B-Instruct-v0.3
   api_base: http://140.118.155.118:8001/v1

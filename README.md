@@ -10,6 +10,8 @@ add datasets/
 
 cp dotenv/.env.example dotenv.env & fill up environment variables in .env
 
+export HF_TOKEN=<HF_TOKEN>  # optional
+
 UV_CACHE_DIR=/tmp/.uv-cache PYTHONPATH=src uv run python run.py --config experimental_configs/development_used.yaml
 
 

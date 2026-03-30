@@ -1,4 +1,4 @@
-experiment_name: rams_ir_pipeline_vllm_qwen2_5_7b_instruct
+experiment_name: ir-pipeline_gemini3_qwen_rams
 dataset:
   name: rams
   data_dir: datasets/RAMS/data
@@ -7,10 +7,10 @@ dataset:
 model:
   name: ir_pipeline
   extraction_model:
-    backend: vllm
-    llm_name: Qwen/Qwen2.5-7B-Instruct
-    api_base: http://140.118.155.118:8000/v1
-    enable_sleep: false
+    backend: gemini
+    llm_name: gemini-3-pro-preview
+    api_key_env: GEMINI_API_KEY
+    enable_sleep: true
     enable_retry: true
   ir_model:
     backend: vllm
