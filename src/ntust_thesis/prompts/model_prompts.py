@@ -9,7 +9,7 @@ from ntust_thesis.prompts.ir_generation_examples import (
 PromptPair = tuple[str, str]  # (system prompt, user_prompt)
 
 
-def build_baseline_event_extraction_prompt(
+def build_baseline_prompt(
     sentence: str,
     event_type: str | None = None,
     candidate_roles: list[str] | None = None,
@@ -43,7 +43,7 @@ def build_baseline_event_extraction_prompt(
     return system_prompt, user_prompt
 
 
-def build_ir_extraction_prompt(
+def build_two_stage_extraction_prompt(
     sentence: str,
     event_type: str | None = None,
     candidate_roles: list[str] | None = None,
@@ -118,7 +118,7 @@ def build_ir_generation_prompt(
     return system_prompt, user_prompt
 
 
-def build_schema_generation_prompt(
+def build_json_generation_prompt(
     extraction_text: str,
     role_multiplicities: dict[str, int] | None = None,
 ) -> PromptPair:

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from ntust_thesis.prompts import build_ir_extraction_prompt
+from ntust_thesis.prompts import build_two_stage_extraction_prompt
 
 if TYPE_CHECKING:
     from ntust_thesis.core.interfaces import LLMClient
@@ -40,7 +40,7 @@ class GeminiExtractor(Extractor):
         role_multiplicities: dict[str, int] | None = None,
     ) -> str:
         """Ask Gemini to produce extraction notes."""
-        system_prompt, user_prompt = build_ir_extraction_prompt(
+        system_prompt, user_prompt = build_two_stage_extraction_prompt(
             sentence=sentence,
             event_type=event_type,
             candidate_roles=candidate_roles,

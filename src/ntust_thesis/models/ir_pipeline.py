@@ -24,7 +24,10 @@ from ntust_thesis.models.components.ir_generator import (
 )
 from ntust_thesis.models.llm.gemini_client import GeminiClient
 from ntust_thesis.models.llm.vllm_client import VllmChatCompletionsClient
-from ntust_thesis.prompts import build_ir_extraction_prompt, build_ir_generation_prompt
+from ntust_thesis.prompts import (
+    build_ir_generation_prompt,
+    build_two_stage_extraction_prompt,
+)
 from ntust_thesis.utils.env import (
     DEFAULT_DOTENV_PATH,
     get_env_float,
@@ -97,11 +100,13 @@ class IRPipelineModel(Model):
 
     def predict(self, sample: Sample) -> Prediction:
         """Run extraction -> IR -> compile and return final prediction."""
-        extraction_system_prompt, extraction_user_prompt = build_ir_extraction_prompt(
-            sentence=sample.raw_sentence,
-            event_type=sample.metadata.event_type,
-            candidate_roles=sample.metadata.candidate_roles,
-            role_multiplicities=sample.metadata.role_multiplicities,
+        extraction_system_prompt, extraction_user_prompt = (
+            build_two_stage_extraction_prompt(
+                sentence=sample.raw_sentence,
+                event_type=sample.metadata.event_type,
+                candidate_roles=sample.metadata.candidate_roles,
+                role_multiplicities=sample.metadata.role_multiplicities,
+            )
         )
         extraction_text = self._extractor.extract(
             sentence=sample.raw_sentence,

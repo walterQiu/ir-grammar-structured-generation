@@ -22,8 +22,8 @@ from ntust_thesis.models.components.schema_generator import (
 from ntust_thesis.models.llm.gemini_client import GeminiClient
 from ntust_thesis.models.llm.vllm_client import VllmChatCompletionsClient
 from ntust_thesis.prompts import (
-    build_ir_extraction_prompt,
-    build_schema_generation_prompt,
+    build_json_generation_prompt,
+    build_two_stage_extraction_prompt,
 )
 from ntust_thesis.utils.env import (
     DEFAULT_DOTENV_PATH,
@@ -96,11 +96,13 @@ class TwoStageBaselineModel(Model):
 
     def predict(self, sample: Sample) -> Prediction:
         """Run extraction -> schema generation and parse final JSON output."""
-        extraction_system_prompt, extraction_user_prompt = build_ir_extraction_prompt(
-            sentence=sample.raw_sentence,
-            event_type=sample.metadata.event_type,
-            candidate_roles=sample.metadata.candidate_roles,
-            role_multiplicities=sample.metadata.role_multiplicities,
+        extraction_system_prompt, extraction_user_prompt = (
+            build_two_stage_extraction_prompt(
+                sentence=sample.raw_sentence,
+                event_type=sample.metadata.event_type,
+                candidate_roles=sample.metadata.candidate_roles,
+                role_multiplicities=sample.metadata.role_multiplicities,
+            )
         )
         extraction_text = self._extractor.extract(
             sentence=sample.raw_sentence,
@@ -108,7 +110,7 @@ class TwoStageBaselineModel(Model):
             candidate_roles=sample.metadata.candidate_roles,
             role_multiplicities=sample.metadata.role_multiplicities,
         )
-        schema_system_prompt, schema_user_prompt = build_schema_generation_prompt(
+        schema_system_prompt, schema_user_prompt = build_json_generation_prompt(
             extraction_text=extraction_text,
             role_multiplicities=sample.metadata.role_multiplicities,
         )

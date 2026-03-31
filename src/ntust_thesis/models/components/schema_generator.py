@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from ntust_thesis.prompts import build_schema_generation_prompt
+from ntust_thesis.prompts import build_json_generation_prompt
 
 if TYPE_CHECKING:
     from ntust_thesis.core.interfaces import LLMClient
@@ -36,7 +36,7 @@ class LLMSchemaGenerator(SchemaGenerator):
         role_multiplicities: dict[str, int] | None = None,
     ) -> str:
         """Generate final JSON string from extraction text."""
-        system_prompt, user_prompt = build_schema_generation_prompt(
+        system_prompt, user_prompt = build_json_generation_prompt(
             extraction_text=extraction_text,
             role_multiplicities=role_multiplicities,
         )
