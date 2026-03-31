@@ -81,35 +81,6 @@ def build_ir_extraction_prompt(
     return system_prompt, user_prompt
 
 
-# def build_ir_generation_prompt(
-#     extraction_text: str,
-#     role_multiplicities: dict[str, int] | None = None,
-# ) -> str:
-#     """Build prompt for converting extraction text to dot-notation IR."""
-#     multiplicity_line = ""
-#     if role_multiplicities:
-#         pairs = ", ".join(
-#             f"{role}={count}" for role, count in role_multiplicities.items()
-#         )
-#         multiplicity_line = f"Role multiplicities: {pairs}\n"
-#     return (
-#         "Convert free-form extraction notes to dot-notation IR.\n"
-#         "The extraction notes may contain explanations; ignore narrative text and keep only role-span facts.\n"
-#         "Output only lines in this format:\n"
-#         "arguments.<role> += <text>\n"
-#         "Each line corresponds to one role assignment.\n"
-#         "Respect role multiplicities strictly:\n"
-#         "- If multiplicity = 1, output exactly ONE line for that role.\n"
-#         "- If multiplicity > 1, output multiple lines as needed.\n"
-#         "- If no valid argument is present, output nothing.\n"
-#         "Do NOT split a single text span into multiple mentions.\n"
-#         "Do NOT decompose coordinated phrases (e.g., 'A, B, and C').\n"
-#         "Keep the original text span exactly as given.\n"
-#         "Do not output event type.\n"
-#         "No markdown, no extra commentary.\n"
-#         f"{multiplicity_line}"
-#         f"Extraction notes:\n{extraction_text}"
-#     )
 def build_ir_generation_prompt(
     extraction_text: str,
     role_multiplicities: dict[str, int] | None = None,
