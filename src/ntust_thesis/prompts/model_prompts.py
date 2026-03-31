@@ -39,7 +39,7 @@ def build_baseline_event_extraction_prompt(
         "Keep the original text span exactly as in the sentence.\n"
         "No markdown, no extra commentary.\n"
     )
-    user_prompt = f"Sentence: {sentence}\n{event_line}{roles_line}{multiplicity_line}"
+    user_prompt = f"{event_line}{roles_line}{multiplicity_line}Sentence: {sentence}\n"
     return system_prompt, user_prompt
 
 
@@ -72,10 +72,10 @@ def build_ir_extraction_prompt(
         "Respond in free-form natural language only.\n\n"
     )
     user_prompt = (
-        f"Sentence: {sentence}\n"
         f"{event_line}"
         f"{roles_line}"
         f"{multiplicity_line}"
+        f"Sentence: {sentence}\n"
         "Let's think step by step."
     )
     return system_prompt, user_prompt
@@ -161,6 +161,7 @@ def build_direct_ir_prompt(
             f"{role}={count}" for role, count in role_multiplicities.items()
         )
         multiplicity_line = f"Role multiplicities: {pairs}\n"
+    in_context_examples = build_ir_generation_in_context_examples()
     system_prompt = (
         "Extract event arguments from the sentence and output dot-notation IR directly.\n"
         "The trigger word(s) of the event is marked with **trigger word**.\n"
@@ -176,6 +177,8 @@ def build_direct_ir_prompt(
         "Keep the original text span exactly as given.\n"
         "Do not output event type.\n"
         "No markdown, no extra commentary.\n"
+        "\n"
+        f"{in_context_examples}\n"
     )
-    user_prompt = f"Sentence: {sentence}\n{event_line}{roles_line}{multiplicity_line}"
+    user_prompt = f"{event_line}{roles_line}{multiplicity_line}Sentence: {sentence}\n"
     return system_prompt, user_prompt
