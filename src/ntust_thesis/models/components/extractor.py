@@ -40,10 +40,14 @@ class GeminiExtractor(Extractor):
         role_multiplicities: dict[str, int] | None = None,
     ) -> str:
         """Ask Gemini to produce extraction notes."""
-        prompt = build_ir_extraction_prompt(
+        system_prompt, user_prompt = build_ir_extraction_prompt(
             sentence=sentence,
             event_type=event_type,
             candidate_roles=candidate_roles,
             role_multiplicities=role_multiplicities,
         )
-        return self._llm.generate(prompt, temperature=self._temperature)
+        return self._llm.generate(
+            system_prompt,
+            user_prompt,
+            self._temperature,
+        )

@@ -41,13 +41,23 @@ class VllmChatCompletionsClient(LLMClient):
         self._backoff_max_seconds = backoff_max_seconds
         self._retry_http_statuses = retry_http_statuses
 
-    def generate(self, prompt: str, **kwargs: object) -> str:
+    def generate(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        temperature: float,
+        **kwargs: object,
+    ) -> str:
         """Generate text from vLLM chat completion."""
-        temperature = _coerce_temperature(kwargs.get("temperature", 0.0))
+        temperature = _coerce_temperature(temperature)
         allow_empty = bool(kwargs.get("allow_empty", False))
+        messages: list[dict[str, str]] = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": user_prompt})
         payload = {
             "model": self._model_name,
-            "messages": [{"role": "user", "content": prompt}],
+            "messages": messages,
             "temperature": temperature,
         }
 

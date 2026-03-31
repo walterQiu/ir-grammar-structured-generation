@@ -96,7 +96,7 @@ class TwoStageBaselineModel(Model):
 
     def predict(self, sample: Sample) -> Prediction:
         """Run extraction -> schema generation and parse final JSON output."""
-        extraction_prompt = build_ir_extraction_prompt(
+        extraction_system_prompt, extraction_user_prompt = build_ir_extraction_prompt(
             sentence=sample.raw_sentence,
             event_type=sample.metadata.event_type,
             candidate_roles=sample.metadata.candidate_roles,
@@ -108,7 +108,7 @@ class TwoStageBaselineModel(Model):
             candidate_roles=sample.metadata.candidate_roles,
             role_multiplicities=sample.metadata.role_multiplicities,
         )
-        schema_prompt = build_schema_generation_prompt(
+        schema_system_prompt, schema_user_prompt = build_schema_generation_prompt(
             extraction_text=extraction_text,
             role_multiplicities=sample.metadata.role_multiplicities,
         )
@@ -136,8 +136,10 @@ class TwoStageBaselineModel(Model):
                 extraction_backend=self._extraction_backend,
                 extraction_text=extraction_text,
                 model_input={
-                    "extraction_prompt": extraction_prompt,
-                    "schema_prompt": schema_prompt,
+                    "extraction_system_prompt": extraction_system_prompt,
+                    "extraction_user_prompt": extraction_user_prompt,
+                    "schema_system_prompt": schema_system_prompt,
+                    "schema_user_prompt": schema_user_prompt,
                 },
                 # schema_backend=self._schema_backend,
                 # schema_text=schema_text,

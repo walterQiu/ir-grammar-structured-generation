@@ -115,14 +115,17 @@ class DirectIRBaselineModel(Model):
 
     def predict(self, sample: Sample) -> Prediction:
         """Generate IR directly and compile to final JSON output."""
-        prompt = build_direct_ir_prompt(
+        system_prompt, user_prompt = build_direct_ir_prompt(
             sentence=sample.raw_sentence,
             event_type=sample.metadata.event_type,
             candidate_roles=sample.metadata.candidate_roles,
             role_multiplicities=sample.metadata.role_multiplicities,
         )
         ir_text = self._llm.generate(
-            prompt, temperature=self._temperature, allow_empty=True
+            system_prompt,
+            user_prompt,
+            self._temperature,
+            allow_empty=True,
         )
 
         error_message: str | None = None
@@ -151,7 +154,10 @@ class DirectIRBaselineModel(Model):
                 backend=self._backend,
                 ir_text=ir_text,
                 compile_error=error_message,
-                model_input=prompt,
+                model_input={
+                    "system_prompt": system_prompt,
+                    "user_prompt": user_prompt,
+                },
             ),
         )
 

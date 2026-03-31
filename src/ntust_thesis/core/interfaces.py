@@ -74,5 +74,11 @@ class LLMClient(ABC):
     """Interface for interchangeable LLM backends."""
 
     @abstractmethod
-    def generate(self, prompt: str, **kwargs: object) -> str:
-        """Generate text from prompt."""
+    def generate(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        temperature: float,
+        **kwargs: object,
+    ) -> str:
+        """Generate text from system+user prompts."""

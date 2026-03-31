@@ -36,8 +36,12 @@ class LLMSchemaGenerator(SchemaGenerator):
         role_multiplicities: dict[str, int] | None = None,
     ) -> str:
         """Generate final JSON string from extraction text."""
-        prompt = build_schema_generation_prompt(
+        system_prompt, user_prompt = build_schema_generation_prompt(
             extraction_text=extraction_text,
             role_multiplicities=role_multiplicities,
         )
-        return self._llm.generate(prompt, temperature=self._temperature)
+        return self._llm.generate(
+            system_prompt,
+            user_prompt,
+            self._temperature,
+        )

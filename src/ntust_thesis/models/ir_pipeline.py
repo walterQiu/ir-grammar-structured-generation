@@ -97,7 +97,7 @@ class IRPipelineModel(Model):
 
     def predict(self, sample: Sample) -> Prediction:
         """Run extraction -> IR -> compile and return final prediction."""
-        extraction_prompt = build_ir_extraction_prompt(
+        extraction_system_prompt, extraction_user_prompt = build_ir_extraction_prompt(
             sentence=sample.raw_sentence,
             event_type=sample.metadata.event_type,
             candidate_roles=sample.metadata.candidate_roles,
@@ -109,7 +109,7 @@ class IRPipelineModel(Model):
             candidate_roles=sample.metadata.candidate_roles,
             role_multiplicities=sample.metadata.role_multiplicities,
         )
-        ir_prompt = build_ir_generation_prompt(
+        ir_system_prompt, ir_user_prompt = build_ir_generation_prompt(
             extraction_text=extraction_text,
             role_multiplicities=sample.metadata.role_multiplicities,
         )
@@ -147,8 +147,10 @@ class IRPipelineModel(Model):
                 ir_text=ir_text,
                 compile_error=error_message,
                 model_input={
-                    "extraction_prompt": extraction_prompt,
-                    "ir_prompt": ir_prompt,
+                    "extraction_system_prompt": extraction_system_prompt,
+                    "extraction_user_prompt": extraction_user_prompt,
+                    "ir_system_prompt": ir_system_prompt,
+                    "ir_user_prompt": ir_user_prompt,
                 },
             ),
         )

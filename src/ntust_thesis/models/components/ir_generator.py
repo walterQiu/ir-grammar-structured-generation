@@ -36,12 +36,13 @@ class GeminiIRGenerator(IRGenerator):
         role_multiplicities: dict[str, int] | None = None,
     ) -> str:
         """Generate strict dot-notation IR lines."""
-        prompt = build_ir_generation_prompt(
+        system_prompt, user_prompt = build_ir_generation_prompt(
             extraction_text=extraction_text,
             role_multiplicities=role_multiplicities,
         )
         return self._llm.generate(
-            prompt,
-            temperature=self._temperature,
+            system_prompt,
+            user_prompt,
+            self._temperature,
             allow_empty=True,
         )

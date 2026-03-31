@@ -41,19 +41,27 @@ class GeminiClient(LLMClient):
         self._backoff_max_seconds = backoff_max_seconds
         self._retry_http_statuses = retry_http_statuses
 
-    def generate(self, prompt: str, **kwargs: object) -> str:
+    def generate(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        temperature: float,
+        **kwargs: object,
+    ) -> str:
         """Generate text from Gemini."""
-        temperature = _coerce_temperature(kwargs.get("temperature", 0.0))
+        temperature = _coerce_temperature(temperature)
         allow_empty = bool(kwargs.get("allow_empty", False))
         payload = {
             "contents": [
                 {
                     "role": "user",
-                    "parts": [{"text": prompt}],
+                    "parts": [{"text": user_prompt}],
                 }
             ],
             "generationConfig": {"temperature": temperature},
         }
+        if system_prompt:
+            payload["systemInstruction"] = {"parts": [{"text": system_prompt}]}
 
         url = (
             "https://generativelanguage.googleapis.com/v1beta/models/"

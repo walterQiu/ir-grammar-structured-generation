@@ -112,13 +112,17 @@ class BaselineModel(Model):
 
     def predict(self, sample: Sample) -> Prediction:
         """Generate direct JSON output and parse into typed event output."""
-        prompt = build_baseline_event_extraction_prompt(
+        system_prompt, user_prompt = build_baseline_event_extraction_prompt(
             sentence=sample.raw_sentence,
             event_type=sample.metadata.event_type,
             candidate_roles=sample.metadata.candidate_roles,
             role_multiplicities=sample.metadata.role_multiplicities,
         )
-        raw_model_text = self._llm.generate(prompt, temperature=self._temperature)
+        raw_model_text = self._llm.generate(
+            system_prompt,
+            user_prompt,
+            self._temperature,
+        )
         parsed_output = parse_event_output_from_arguments_json(
             raw_output=raw_model_text,
             event_type=sample.metadata.event_type or "unknown.event",
@@ -136,7 +140,10 @@ class BaselineModel(Model):
             metadata=PredictionMetadata(
                 model=self.name(),
                 backend=self._backend,
-                model_input=prompt,
+                model_input={
+                    "system_prompt": system_prompt,
+                    "user_prompt": user_prompt,
+                },
             ),
         )
 
