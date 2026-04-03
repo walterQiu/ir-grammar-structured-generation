@@ -1,10 +1,10 @@
-"""IR grammar validators and parser helpers."""
+"""Dot-notation IR grammar parser and validator."""
 
 from __future__ import annotations
 
 import re
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
+
+from ntust_thesis.ir.common import IRGrammarValidator, IRValidationResult
 
 _ARGUMENT_PREFIX = "arguments."
 _APPEND_OPERATOR = "+="
@@ -15,28 +15,6 @@ _DOT_NOTATION_LINE_RE = re.compile(
     rf"\s*{re.escape(_APPEND_OPERATOR)}\s*"
     r"(?P<span>\S(?:.*\S)?)$"
 )
-
-
-@dataclass(frozen=True, slots=True)
-class IRValidationResult:
-    """Validation result for one IR text."""
-
-    is_valid: bool
-    error_message: str | None = None
-    error_line_no: int | None = None
-    error_line_text: str | None = None
-
-
-class IRGrammarValidator(ABC):
-    """Interface for pluggable IR grammar validators."""
-
-    @abstractmethod
-    def name(self) -> str:
-        """Return grammar identifier."""
-
-    @abstractmethod
-    def validate(self, ir_text: str) -> IRValidationResult:
-        """Validate IR text and return structured result."""
 
 
 class DotNotationIRValidator(IRGrammarValidator):
@@ -80,16 +58,8 @@ class DotNotationIRValidator(IRGrammarValidator):
         return IRValidationResult(is_valid=True)
 
 
-def get_ir_grammar_validator(grammar_name: str) -> IRGrammarValidator:
-    """Return validator instance for grammar name."""
-    if grammar_name == "dot_notation_ir":
-        return DotNotationIRValidator()
-    msg = f"Unsupported IR grammar: {grammar_name}"
-    raise ValueError(msg)
-
-
 def parse_dot_notation_ir(ir_text: str) -> list[tuple[str, str]]:
-    """Parse validated dot-notation IR into (role, mention_text) pairs."""
+    """Parse validated dot-notation IR into (role_path, mention_text) pairs."""
     mentions: list[tuple[str, str]] = []
     for idx, raw_line in enumerate(ir_text.splitlines(), start=1):
         line = raw_line.strip()
@@ -99,8 +69,8 @@ def parse_dot_notation_ir(ir_text: str) -> list[tuple[str, str]]:
         if parsed is None:
             msg = f"Invalid dot_notation_ir at line {idx}: {raw_line}"
             raise ValueError(msg)
-        role, mention_text = parsed
-        mentions.append((role, mention_text))
+        role_path, mention_text = parsed
+        mentions.append((role_path, mention_text))
     return mentions
 
 

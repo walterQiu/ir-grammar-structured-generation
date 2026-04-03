@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from ntust_thesis.core.interfaces import Metric
-from ntust_thesis.core.ir_grammar import get_ir_grammar_validator
 from ntust_thesis.evaluation.metrics.common import safe_divide
+from ntust_thesis.ir import get_ir_grammar_validator
 
 if TYPE_CHECKING:
     from ntust_thesis.core.schemas import EvaluationRow

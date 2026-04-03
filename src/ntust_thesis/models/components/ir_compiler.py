@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 from ntust_thesis.core.interfaces import Compiler
-from ntust_thesis.core.ir_grammar import (
-    get_ir_grammar_validator,
-    parse_dot_notation_ir,
-)
 from ntust_thesis.core.schemas import EventOutput
+from ntust_thesis.ir import (
+    get_ir_grammar_parser,
+    get_ir_grammar_validator,
+)
 
 
 class DeterministicIRCompiler(Compiler):
@@ -17,6 +17,7 @@ class DeterministicIRCompiler(Compiler):
         """Initialize compiler with grammar validator."""
         self._ir_grammar = ir_grammar
         self._validator = get_ir_grammar_validator(ir_grammar)
+        self._parser = get_ir_grammar_parser(ir_grammar)
 
     def compile(
         self,
@@ -31,7 +32,7 @@ class DeterministicIRCompiler(Compiler):
                 f" at line {validation.error_line_no}: {validation.error_message}"
             )
             raise ValueError(msg)
-        role_mentions = parse_dot_notation_ir(ir_text)
+        role_mentions = self._parser(ir_text)
 
         arguments = []
         for role, mention_text in role_mentions:
