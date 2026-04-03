@@ -18,9 +18,11 @@ model:
     api_key_env: GEMINI_API_KEY
     enable_sleep: true
     enable_retry: true
+  ir_grammar: dot_notation_ir
 evaluation:
   metrics:
   - is_valid_json
+  - is_valid_ir
   - schema_exact_match
   - exact_match
   - arg_i_f1

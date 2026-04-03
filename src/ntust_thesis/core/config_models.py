@@ -57,6 +57,7 @@ class DirectIRBaselineModelConfig(BaseModel):
     api_base: str | None = None
     enable_sleep: bool = False
     enable_retry: bool = True
+    ir_grammar: str = "dot_notation_ir"
 
 
 class IRPipelineModelConfig(BaseModel):
@@ -67,6 +68,7 @@ class IRPipelineModelConfig(BaseModel):
     name: Literal["ir_pipeline"]
     extraction_model: StageModelConfig = Field(default_factory=StageModelConfig)
     ir_model: StageModelConfig = Field(default_factory=StageModelConfig)
+    ir_grammar: str = "dot_notation_ir"
 
 
 class TwoStageBaselineModelConfig(BaseModel):

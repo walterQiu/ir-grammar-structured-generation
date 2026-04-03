@@ -18,9 +18,11 @@ model:
     api_base: http://140.118.155.118:8000/v1
     enable_sleep: false
     enable_retry: true
+  ir_grammar: dot_notation_ir
 evaluation:
   metrics:
   - is_valid_json
+  - is_valid_ir
   - schema_exact_match
   - exact_match
   - arg_i_f1

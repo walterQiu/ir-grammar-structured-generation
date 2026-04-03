@@ -1,14 +1,7 @@
 Current Works
+- json 複雜度
+
 - 換更強的 extraction model
-
-- In context learning 嘗試
-
-- 優化 IR model，盡量讓他的輸出乾淨點 (參考論文筆記中那堆奇怪的 IR model 輸出)
-
-- extraction_prompt 裡面有 briefly explain，是不是不要讓 model 幹這件事比較好?
-
-- config yaml 重新命名 & sample 數確認都是100
-
 
 
 Future Works
@@ -18,6 +11,8 @@ Future Works
 - prompt 優化 (所有prompt都需要)
     - extraction 的去看 G&O 論文
     - ir 的去看 code4struct 或另一篇還沒看的論文 或 G&O 的 O 部分
+
+- extraction 之後要加 cleanup 嗎?
 
 - build_baseline_event_extraction_prompt 的那種寫法好像沒辦法處理多層 schema ?
 

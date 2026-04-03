@@ -92,7 +92,7 @@ class IRPipelineModel(Model):
         self._ir_backend = ir_cfg.backend
         self._extractor = self._build_extractor(extraction_cfg)
         self._ir_generator = self._build_ir_generator(ir_cfg)
-        self._compiler = DeterministicIRCompiler()
+        self._compiler = DeterministicIRCompiler(ir_grammar=config.ir_grammar)
 
     def name(self) -> str:
         """Return model key."""

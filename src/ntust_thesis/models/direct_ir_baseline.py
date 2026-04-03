@@ -107,7 +107,7 @@ class DirectIRBaselineModel(Model):
         else:
             msg = f"Unsupported backend: {config.backend}"
             raise ValueError(msg)
-        self._compiler = DeterministicIRCompiler()
+        self._compiler = DeterministicIRCompiler(ir_grammar=config.ir_grammar)
 
     def name(self) -> str:
         """Return model key."""
