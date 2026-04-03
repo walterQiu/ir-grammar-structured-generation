@@ -28,14 +28,21 @@ def parse_event_output_from_arguments_json(
             continue
         role = raw_arg.get("role")
         span = raw_arg.get("span")
-        if not isinstance(role, str) or not isinstance(span, str):
+        if not isinstance(role, (str, dict)) or not isinstance(span, str):
             continue
         span_text = span.strip()
         if not span_text:
             continue
+        if isinstance(role, str):
+            normalized_role = role.strip()
+            if not normalized_role:
+                continue
+            role_value: str | dict[str, Any] = normalized_role
+        else:
+            role_value = role
         arguments.append(
             {
-                "role": role.strip(),
+                "role": role_value,
                 "span": span_text,
             }
         )

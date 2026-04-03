@@ -6,6 +6,7 @@ from collections import Counter
 from typing import TYPE_CHECKING
 
 from ntust_thesis.core.interfaces import Metric
+from ntust_thesis.core.role_path import role_to_path
 from ntust_thesis.evaluation.metrics.common import f1, safe_divide
 
 if TYPE_CHECKING:
@@ -66,8 +67,14 @@ class ArgCF1Metric(Metric):
             )
             gold_args = row.gold.arguments
 
-            pred_items = Counter((arg.role, arg.span.strip()) for arg in pred_args)
-            gold_items = Counter((arg.role, arg.span.strip()) for arg in gold_args)
+            pred_items = Counter(
+                ((role_to_path(arg.role) or "unknown_role"), arg.span.strip())
+                for arg in pred_args
+            )
+            gold_items = Counter(
+                ((role_to_path(arg.role) or "unknown_role"), arg.span.strip())
+                for arg in gold_args
+            )
 
             pred_total += sum(pred_items.values())
             gold_total += sum(gold_items.values())

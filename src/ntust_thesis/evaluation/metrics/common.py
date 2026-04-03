@@ -6,6 +6,8 @@ from collections.abc import Callable, Iterator
 from importlib import import_module
 from typing import TYPE_CHECKING, Protocol
 
+from ntust_thesis.core.role_path import role_to_path
+
 if TYPE_CHECKING:
     from ntust_thesis.core.schemas import EventOutput
 
@@ -105,7 +107,7 @@ def group_argument_spans_by_role(
 
     grouped: dict[str, list[str]] = {}
     for argument in output.arguments:
-        role = argument.role.strip() or "unknown_role"
+        role = role_to_path(argument.role) or "unknown_role"
         span = argument.span.strip()
         if preprocess is not None:
             span = preprocess(span)

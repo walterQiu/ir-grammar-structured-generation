@@ -6,6 +6,7 @@ from collections import Counter
 from typing import TYPE_CHECKING
 
 from ntust_thesis.core.interfaces import Metric
+from ntust_thesis.core.role_path import role_to_path
 from ntust_thesis.evaluation.metrics.common import safe_divide
 
 if TYPE_CHECKING:
@@ -42,6 +43,10 @@ def _schema_exact_match(pred: EventOutput, gold: EventOutput) -> bool:
     """
     if pred.event_type != gold.event_type:
         return False
-    pred_roles = Counter(arg.role for arg in pred.arguments)
-    gold_roles = Counter(arg.role for arg in gold.arguments)
+    pred_roles = Counter(
+        (role_to_path(arg.role) or "unknown_role") for arg in pred.arguments
+    )
+    gold_roles = Counter(
+        (role_to_path(arg.role) or "unknown_role") for arg in gold.arguments
+    )
     return pred_roles == gold_roles

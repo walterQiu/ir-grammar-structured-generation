@@ -6,6 +6,7 @@ from collections import Counter
 from typing import TYPE_CHECKING, Any
 
 from ntust_thesis.core.interfaces import Metric
+from ntust_thesis.core.role_path import role_to_path
 from ntust_thesis.evaluation.metrics.common import f1, safe_divide
 
 if TYPE_CHECKING:
@@ -85,9 +86,11 @@ def _flatten_argument_role_paths(arguments: list[Any]) -> list[str]:
         if not isinstance(item, dict):
             continue
         raw_role = item.get("role")
-        if not isinstance(raw_role, str):
+        if not isinstance(raw_role, (str, dict)):
             continue
-        role = raw_role.strip()
+        role = role_to_path(raw_role)
+        if role is None:
+            continue
         if not role:
             continue
         paths.append(f"arguments.{role}")

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from ntust_thesis.core.interfaces import Compiler
+from ntust_thesis.core.role_path import role_path_to_structure
 from ntust_thesis.core.schemas import EventOutput
 from ntust_thesis.ir import (
     get_ir_grammar_parser,
@@ -35,10 +36,10 @@ class DeterministicIRCompiler(Compiler):
         role_spans = self._parser(ir_text)
 
         arguments = []
-        for role, span_text in role_spans:
+        for role_path, span_text in role_spans:
             arguments.append(
                 {
-                    "role": role,
+                    "role": role_path_to_structure(role_path),
                     "span": span_text,
                 }
             )

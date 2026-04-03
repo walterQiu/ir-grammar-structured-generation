@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from ntust_thesis.core.interfaces import Metric
+from ntust_thesis.core.role_path import role_to_path
 from ntust_thesis.evaluation.metrics.common import safe_divide
 
 if TYPE_CHECKING:
@@ -34,6 +35,10 @@ class ExactMatchMetric(Metric):
 
 def _exact_match(pred: EventOutput, gold: EventOutput) -> bool:
     """Strict argument-level equality by role+span."""
-    pred_args = sorted((arg.role, arg.span) for arg in pred.arguments)
-    gold_args = sorted((arg.role, arg.span) for arg in gold.arguments)
+    pred_args = sorted(
+        ((role_to_path(arg.role) or "unknown_role"), arg.span) for arg in pred.arguments
+    )
+    gold_args = sorted(
+        ((role_to_path(arg.role) or "unknown_role"), arg.span) for arg in gold.arguments
+    )
     return pred_args == gold_args

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -12,7 +12,7 @@ class Argument(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    role: str
+    role: str | dict[str, Any]
     span: str
 
 
