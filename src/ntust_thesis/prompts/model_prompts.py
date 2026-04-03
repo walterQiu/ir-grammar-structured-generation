@@ -107,6 +107,7 @@ def build_ir_generation_prompt(
         "- Output only explicit, valid role spans.\n"
         "- Do not output implied, hypothetical, uncertain, rejected, or explanatory content.\n"
         "- Keep spans as written. Do not split coordinated phrases.\n"
+        "- If no valid arguments are found, output nothing (do not generate any lines or text).\n"
         "- Do not output event type or any extra text.\n"
         "\n"
         f"{in_context_examples}\n"
