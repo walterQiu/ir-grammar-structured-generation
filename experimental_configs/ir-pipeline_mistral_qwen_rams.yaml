@@ -21,7 +21,6 @@ model:
   ir_grammar: dot_notation_ir
 evaluation:
   metrics:
-  - is_valid_json
   - is_valid_ir
   - schema_exact_match
   - exact_match
