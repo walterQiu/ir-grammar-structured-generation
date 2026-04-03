@@ -18,7 +18,7 @@ dev = [
 ]
 
 [tool.ruff]
-exclude = [".venv", ".git", ".vscode"]
+exclude = [".venv", ".git", ".vscode", "rams_analysis"]
 line-length = 88
 target-version = "py313"
 
