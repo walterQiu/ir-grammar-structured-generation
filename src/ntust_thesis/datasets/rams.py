@@ -85,11 +85,11 @@ class RAMSDataset(Dataset):
         for link in row.gold_evt_links:
             arg_span = link[1]
             role = _normalize_role_name(link[2])
-            text = self._span_to_text(tokens, arg_span[0], arg_span[1])
+            span = self._span_to_text(tokens, arg_span[0], arg_span[1])
             arguments.append(
                 {
                     "role": role,
-                    "text": text,
+                    "span": span,
                 }
             )
 

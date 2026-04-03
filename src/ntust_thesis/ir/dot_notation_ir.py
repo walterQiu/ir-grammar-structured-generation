@@ -59,8 +59,8 @@ class DotNotationIRValidator(IRGrammarValidator):
 
 
 def parse_dot_notation_ir(ir_text: str) -> list[tuple[str, str]]:
-    """Parse validated dot-notation IR into (role_path, mention_text) pairs."""
-    mentions: list[tuple[str, str]] = []
+    """Parse validated dot-notation IR into (role_path, span_text) pairs."""
+    spans: list[tuple[str, str]] = []
     for idx, raw_line in enumerate(ir_text.splitlines(), start=1):
         line = raw_line.strip()
         if not line:
@@ -69,9 +69,9 @@ def parse_dot_notation_ir(ir_text: str) -> list[tuple[str, str]]:
         if parsed is None:
             msg = f"Invalid dot_notation_ir at line {idx}: {raw_line}"
             raise ValueError(msg)
-        role_path, mention_text = parsed
-        mentions.append((role_path, mention_text))
-    return mentions
+        role_path, span_text = parsed
+        spans.append((role_path, span_text))
+    return spans
 
 
 def _parse_dot_notation_line(line: str) -> tuple[str, str] | None:

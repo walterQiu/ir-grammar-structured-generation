@@ -94,29 +94,29 @@ def f1(precision: float, recall: float) -> float:
     return (2 * precision * recall) / (precision + recall)
 
 
-def group_argument_texts_by_role(
+def group_argument_spans_by_role(
     output: EventOutput | None,
     *,
     preprocess: Callable[[str], str] | None = None,
 ) -> dict[str, list[str]]:
-    """Group argument texts by role for role-constrained matching."""
+    """Group argument spans by role for role-constrained matching."""
     if output is None:
         return {}
 
     grouped: dict[str, list[str]] = {}
     for argument in output.arguments:
         role = argument.role.strip() or "unknown_role"
-        text = argument.text.strip()
+        span = argument.span.strip()
         if preprocess is not None:
-            text = preprocess(text)
-        grouped.setdefault(role, []).append(text)
+            span = preprocess(span)
+        grouped.setdefault(role, []).append(span)
 
     return grouped
 
 
 def hungarian_match_sum(
-    pred_texts: list[str],
-    gold_texts: list[str],
+    pred_spans: list[str],
+    gold_spans: list[str],
     score_fn: Callable[[str, str], float],
 ) -> float:
     """Return max total score under one-to-one Hungarian matching."""
@@ -124,7 +124,7 @@ def hungarian_match_sum(
     linear_sum_assignment = scipy_optimize.linear_sum_assignment
 
     similarity_matrix = [
-        [score_fn(pred, gold) for gold in gold_texts] for pred in pred_texts
+        [score_fn(pred, gold) for gold in gold_spans] for pred in pred_spans
     ]
     cost_matrix = [[1.0 - score for score in row] for row in similarity_matrix]
     row_ids, col_ids = linear_sum_assignment(cost_matrix)

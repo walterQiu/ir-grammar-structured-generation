@@ -13,7 +13,7 @@ class Argument(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     role: str
-    text: str
+    span: str
 
 
 class EventOutput(BaseModel):

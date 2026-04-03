@@ -30,11 +30,11 @@ def build_baseline_prompt(
         "Extract event arguments from the sentence. "
         "The trigger word(s) of the event is marked with **trigger word**.\n"
         "Return only a JSON object with this structure:\n"
-        '{"arguments":[{"role":"<role>","text":"<text>"}]}\n'
+        '{"arguments":[{"role":"<role>","span":"<span>"}]}\n'
         "Do not output event type.\n"
         "Do not output span positions.\n"
         "Respect role multiplicities strictly.\n"
-        "Do NOT split a single text span into multiple mentions.\n"
+        "Do NOT split a single text span into multiple spans.\n"
         "Do NOT decompose coordinated phrases (e.g., 'A, B, and C').\n"
         "Keep the original text span exactly as in the sentence.\n"
         "No markdown, no extra commentary.\n"
@@ -67,7 +67,7 @@ def build_two_stage_extraction_prompt(
         "For each valid argument you find, briefly explain what text span it is and which role it most likely plays.\n"
         "Use the event type, candidate roles, and role multiplicities only as references for deciding validity.\n"
         "Do not invent arguments that are not clearly supported by the sentence.\n"
-        "Do not treat one mention as multiple distinct arguments unless the sentence clearly supports that.\n"
+        "Do not treat one span as multiple distinct arguments unless the sentence clearly supports that.\n"
         "Do not organize the answer into a table, JSON, key-value pairs, role-label lines, or any other fixed schema.\n"
         "Respond in free-form natural language only.\n\n"
     )
@@ -98,7 +98,7 @@ def build_ir_generation_prompt(
     system_prompt = (
         "Convert extraction notes to dot-notation IR.\n"
         "Output only lines in this format:\n"
-        "arguments.<role> += <text>\n"
+        "arguments.<role> += <span>\n"
         "\n"
         "Rules:\n"
         "- Use only roles listed in 'Allowed roles and multiplicities'.\n"
@@ -132,10 +132,10 @@ def build_json_generation_prompt(
     system_prompt = (
         "Convert extraction notes into final JSON event arguments.\n"
         "Output only this JSON object structure:\n"
-        '{"arguments":[{"role":"<role>","text":"<text>"}]}\n'
+        '{"arguments":[{"role":"<role>","span":"<span>"}]}\n'
         "Do not output event type.\n"
         "Respect role multiplicities strictly.\n"
-        "Do NOT split a single text span into multiple mentions.\n"
+        "Do NOT split a single text span into multiple spans.\n"
         "Do NOT decompose coordinated phrases (e.g., 'A, B, and C').\n"
         "Keep the original text span exactly as given.\n"
         "No markdown, no extra commentary.\n"
@@ -166,13 +166,13 @@ def build_direct_ir_prompt(
         "Extract event arguments from the sentence and output dot-notation IR directly.\n"
         "The trigger word(s) of the event is marked with **trigger word**.\n"
         "Output only lines in this format:\n"
-        "arguments.<role> += <text>\n"
+        "arguments.<role> += <span>\n"
         "Each line corresponds to one role assignment.\n"
         "Respect role multiplicities strictly:\n"
         "- If multiplicity = 1, output exactly ONE line for that role.\n"
         "- If multiplicity > 1, output multiple lines as needed.\n"
         "- If no valid argument is present, output nothing.\n"
-        "Do NOT split a single text span into multiple mentions.\n"
+        "Do NOT split a single text span into multiple spans.\n"
         "Do NOT decompose coordinated phrases (e.g., 'A, B, and C').\n"
         "Keep the original text span exactly as given.\n"
         "Do not output event type.\n"

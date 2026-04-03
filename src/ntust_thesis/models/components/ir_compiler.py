@@ -32,14 +32,14 @@ class DeterministicIRCompiler(Compiler):
                 f" at line {validation.error_line_no}: {validation.error_message}"
             )
             raise ValueError(msg)
-        role_mentions = self._parser(ir_text)
+        role_spans = self._parser(ir_text)
 
         arguments = []
-        for role, mention_text in role_mentions:
+        for role, span_text in role_spans:
             arguments.append(
                 {
                     "role": role,
-                    "text": mention_text,
+                    "span": span_text,
                 }
             )
 

@@ -13,14 +13,14 @@ if TYPE_CHECKING:
 
 
 class ArgIF1Metric(Metric):
-    """Argument Identification F1: match by argument text only."""
+    """Argument Identification F1: match by argument span only."""
 
     def name(self) -> str:
         """Return metric key."""
         return "arg_i_f1"
 
     def compute(self, rows: list[EvaluationRow]) -> dict[str, float]:
-        """Compute micro Precision/Recall/F1 for text-only matching."""
+        """Compute micro Precision/Recall/F1 for span-only matching."""
         tp = 0
         pred_total = 0
         gold_total = 0
@@ -31,12 +31,12 @@ class ArgIF1Metric(Metric):
             )
             gold_args = row.gold.arguments
 
-            pred_texts = Counter(arg.text.strip() for arg in pred_args)
-            gold_texts = Counter(arg.text.strip() for arg in gold_args)
+            pred_spans = Counter(arg.span.strip() for arg in pred_args)
+            gold_spans = Counter(arg.span.strip() for arg in gold_args)
 
-            pred_total += sum(pred_texts.values())
-            gold_total += sum(gold_texts.values())
-            tp += sum((pred_texts & gold_texts).values())
+            pred_total += sum(pred_spans.values())
+            gold_total += sum(gold_spans.values())
+            tp += sum((pred_spans & gold_spans).values())
 
         precision = safe_divide(tp, pred_total)
         recall = safe_divide(tp, gold_total)
@@ -48,14 +48,14 @@ class ArgIF1Metric(Metric):
 
 
 class ArgCF1Metric(Metric):
-    """Argument Classification F1: match by role and argument text."""
+    """Argument Classification F1: match by role and argument span."""
 
     def name(self) -> str:
         """Return metric key."""
         return "arg_c_f1"
 
     def compute(self, rows: list[EvaluationRow]) -> dict[str, float]:
-        """Compute micro Precision/Recall/F1 for (role, text) matching."""
+        """Compute micro Precision/Recall/F1 for (role, span) matching."""
         tp = 0
         pred_total = 0
         gold_total = 0
@@ -66,8 +66,8 @@ class ArgCF1Metric(Metric):
             )
             gold_args = row.gold.arguments
 
-            pred_items = Counter((arg.role, arg.text.strip()) for arg in pred_args)
-            gold_items = Counter((arg.role, arg.text.strip()) for arg in gold_args)
+            pred_items = Counter((arg.role, arg.span.strip()) for arg in pred_args)
+            gold_items = Counter((arg.role, arg.span.strip()) for arg in gold_args)
 
             pred_total += sum(pred_items.values())
             gold_total += sum(gold_items.values())

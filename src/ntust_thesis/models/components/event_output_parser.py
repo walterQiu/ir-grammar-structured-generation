@@ -14,7 +14,7 @@ def parse_event_output_from_arguments_json(
     raw_output: str,
     event_type: str,
 ) -> EventOutput | None:
-    """Parse JSON with arguments(role,text) into canonical EventOutput."""
+    """Parse JSON with arguments(role,span) into canonical EventOutput."""
     parsed = parse_json_object(raw_output)
     if parsed is None:
         return None
@@ -27,16 +27,16 @@ def parse_event_output_from_arguments_json(
         if not isinstance(raw_arg, dict):
             continue
         role = raw_arg.get("role")
-        text = raw_arg.get("text")
-        if not isinstance(role, str) or not isinstance(text, str):
+        span = raw_arg.get("span")
+        if not isinstance(role, str) or not isinstance(span, str):
             continue
-        mention_text = text.strip()
-        if not mention_text:
+        span_text = span.strip()
+        if not span_text:
             continue
         arguments.append(
             {
                 "role": role.strip(),
-                "text": mention_text,
+                "span": span_text,
             }
         )
 

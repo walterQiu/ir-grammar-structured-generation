@@ -15,7 +15,7 @@ from ntust_thesis.evaluation.metrics.common import (
     SpacyLoader,
     SpacyToken,
     f1,
-    group_argument_texts_by_role,
+    group_argument_spans_by_role,
     hungarian_match_sum,
     safe_divide_float,
 )
@@ -62,11 +62,11 @@ class BEMEAEMetric(Metric):
         gold_total = 0
 
         for row in rows:
-            pred_grouped = group_argument_texts_by_role(
+            pred_grouped = group_argument_spans_by_role(
                 row.parsed_output,
                 preprocess=self._preprocess_text,
             )
-            gold_grouped = group_argument_texts_by_role(
+            gold_grouped = group_argument_spans_by_role(
                 row.gold,
                 preprocess=self._preprocess_text,
             )
@@ -99,13 +99,13 @@ class BEMEAEMetric(Metric):
 
         roles = set(pred_grouped) | set(gold_grouped)
         for role in roles:
-            pred_texts = pred_grouped.get(role, [])
-            gold_texts = gold_grouped.get(role, [])
-            if not pred_texts or not gold_texts:
+            pred_spans = pred_grouped.get(role, [])
+            gold_spans = gold_grouped.get(role, [])
+            if not pred_spans or not gold_spans:
                 continue
             matched_sum += hungarian_match_sum(
-                pred_texts,
-                gold_texts,
+                pred_spans,
+                gold_spans,
                 self._semantic_similarity,
             )
 
@@ -138,7 +138,7 @@ class BEMEAEMetric(Metric):
         return embedding
 
     def _preprocess_text(self, text: str) -> str:
-        """Apply BEMEAE preprocessing on one argument text."""
+        """Apply BEMEAE preprocessing on one argument span."""
         self._ensure_spacy_loaded()
         if self._spacy_nlp is None:
             msg = "spaCy model is not loaded."

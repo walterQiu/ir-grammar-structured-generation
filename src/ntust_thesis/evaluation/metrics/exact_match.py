@@ -33,7 +33,7 @@ class ExactMatchMetric(Metric):
 
 
 def _exact_match(pred: EventOutput, gold: EventOutput) -> bool:
-    """Strict argument-level equality by role+text."""
-    pred_args = sorted((arg.role, arg.text) for arg in pred.arguments)
-    gold_args = sorted((arg.role, arg.text) for arg in gold.arguments)
+    """Strict argument-level equality by role+span."""
+    pred_args = sorted((arg.role, arg.span) for arg in pred.arguments)
+    gold_args = sorted((arg.role, arg.span) for arg in gold.arguments)
     return pred_args == gold_args
