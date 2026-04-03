@@ -85,8 +85,33 @@ class ExperimentPipeline:
         aggregated: dict[str, Any] = {}
         for metric in metrics:
             aggregated.update(metric.compute(metric_rows))
+
+        difficulty_rows = {
+            "easy": [row for row in metric_rows if _schema_difficulty(row) == "easy"],
+            "medium": [
+                row for row in metric_rows if _schema_difficulty(row) == "medium"
+            ],
+            "hard": [row for row in metric_rows if _schema_difficulty(row) == "hard"],
+        }
+        for level, rows_in_level in difficulty_rows.items():
+            aggregated[f"{level}_sample_count"] = len(rows_in_level)
+            for metric in metrics:
+                metric_result = metric.compute(rows_in_level)
+                for key, value in metric_result.items():
+                    aggregated[f"{level}_{key}"] = value
+
         return PipelineResult(
             rows=rows,
             metrics=aggregated,
             failed_samples=failed_samples,
         )
+
+
+def _schema_difficulty(row: EvaluationRow) -> str:
+    """Return schema difficulty bucket from gold argument count."""
+    n_roles = len(row.gold.arguments)
+    if n_roles <= 2:  # noqa: PLR2004
+        return "easy"
+    if n_roles == 3:  # noqa: PLR2004
+        return "medium"
+    return "hard"
