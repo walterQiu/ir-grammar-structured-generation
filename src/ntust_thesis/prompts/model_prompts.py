@@ -117,7 +117,9 @@ def build_two_stage_dot_notation_ir_prompt(
         )
         multiplicity_line = f"Allowed roles and multiplicities: {pairs}\n"
 
-    in_context_examples = build_ir_generation_in_context_examples()
+    in_context_examples = build_ir_generation_in_context_examples(
+        ir_grammar="dot_notation_ir"
+    )
 
     system_prompt = (
         "Convert extraction notes to dot-notation IR.\n"
@@ -152,8 +154,8 @@ def build_two_stage_code4struct_ir_prompt(
         event_class=event_class,
         candidate_roles=candidate_roles,
     )
-    k_shot_block = _build_code4struct_two_shot_placeholder_block(
-        event_class=event_class
+    in_context_examples = build_ir_generation_in_context_examples(
+        ir_grammar="code4struct_ir"
     )
     multiplicity_line = ""
     if role_multiplicities:
@@ -163,21 +165,30 @@ def build_two_stage_code4struct_ir_prompt(
         multiplicity_line = f"Allowed roles and multiplicities: {pairs}\n"
     task_block = (
         '"""\n'
-        f"Translate the following sentence into an instance of {event_class}.\n"
+        f"Convert the following extraction notes into an instance of {event_class}.\n"
         f'"{extraction_text}"\n'
         '"""\n'
         f"{event_class.lower()}_event = {event_class}(\n"
     )
 
     system_prompt = (
-        "You are an event extraction model that outputs only Python code completion.\n"
-        "Complete the target event instance according to ontology and examples.\n"
-        "Output only the missing argument lines and closing parenthesis.\n"
-        "No markdown, no extra commentary.\n"
+        "Convert extraction notes to code-like IR.\n"
+        "Output only a Python-like event instantiation in this format:\n"
+        "\n"
+        "Rules:\n"
+        "- Use only roles listed in 'Allowed roles and multiplicities'.\n"
+        "- Do not invent or rename roles.\n"
+        "- If a role has multiplicity 1, include at most one span in that role's list.\n"
+        "- Always represent role values as lists, even when there is only one span.\n"
+        "- Output only explicit, valid role spans.\n"
+        "- Do not output implied, hypothetical, uncertain, rejected, or explanatory content.\n"
+        "- Keep spans as written. Do not split coordinated phrases.\n"
+        f"- If no valid arguments are found, output:\n{event_class.lower()}_event = {event_class}()\n"
+        "- Do not output comments, explanations, or any extra text.\n"
+        "\n"
+        f"{in_context_examples}\n"
     )
-    user_prompt = (
-        f"{ontology_block}\n\n{k_shot_block}\n\n{multiplicity_line}{task_block}"
-    )
+    user_prompt = f"{ontology_block}\n\n{multiplicity_line}{task_block}"
     return system_prompt, user_prompt
 
 
@@ -224,7 +235,9 @@ def build_one_stage_dot_notation_ir_prompt(
             f"{role}={count}" for role, count in role_multiplicities.items()
         )
         multiplicity_line = f"Role multiplicities: {pairs}\n"
-    in_context_examples = build_ir_generation_in_context_examples()
+    in_context_examples = build_ir_generation_in_context_examples(
+        ir_grammar="dot_notation_ir"
+    )
     system_prompt = (
         "Extract event arguments from the sentence and output dot-notation IR directly.\n"
         "The trigger word(s) of the event is marked with **trigger word**.\n"
@@ -282,41 +295,23 @@ def _build_code4struct_ontology_block(
     )
 
 
-def _build_code4struct_two_shot_placeholder_block(event_class: str) -> str:
-    """Build placeholder fixed 2-shot examples for CODE4STRUCT prompt."""
-    event_var = f"{event_class.lower()}_event"
-    return (
-        "# k In-context Examples\n"
-        "# Example 1 (placeholder)\n"
-        '"""\n'
-        f"Translate the following sentence into an instance of {event_class}.\n"
-        "The trigger word(s) of the event is marked with **trigger word**.\n"
-        '"[PLACEHOLDER_EXAMPLE_1_SENTENCE]"\n'
-        '"""\n'
-        f"{event_var} = {event_class}(\n"
-        "    # TODO: replace with actual ICL example 1\n"
-        ")\n\n"
-        "# Example 2 (placeholder)\n"
-        '"""\n'
-        f"Translate the following sentence into an instance of {event_class}.\n"
-        "The trigger word(s) of the event is marked with **trigger word**.\n"
-        '"[PLACEHOLDER_EXAMPLE_2_SENTENCE]"\n'
-        '"""\n'
-        f"{event_var} = {event_class}(\n"
-        "    # TODO: replace with actual ICL example 2\n"
-        ")\n"
-    )
-
-
 def _to_event_class_name(event_type: str | None) -> str:
-    """Convert dot-delimited event_type into a Python class-like name."""
+    """Convert full dot-delimited event_type into a Python class-like name."""
     if not event_type:
         return "TargetEvent"
     parts = [part.strip() for part in event_type.split(".") if part.strip()]
     if not parts:
         return "TargetEvent"
-    raw_name = parts[-1]
-    return raw_name[0].upper() + raw_name[1:]
+
+    class_name_parts: list[str] = []
+    for part in parts:
+        cleaned = part.replace("/", "")
+        if not cleaned:
+            continue
+        class_name_parts.append(cleaned[0].upper() + cleaned[1:])
+    if not class_name_parts:
+        return "TargetEvent"
+    return "".join(class_name_parts)
 
 
 def _role_to_identifier(role: str) -> str:
