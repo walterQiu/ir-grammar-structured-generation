@@ -31,12 +31,12 @@ class StageModelConfig(BaseModel):
     enable_retry: bool = True
 
 
-class BaselineModelConfig(BaseModel):
-    """Baseline model configuration."""
+class OneStageBaselineModelConfig(BaseModel):
+    """One-stage baseline model configuration."""
 
     model_config = ConfigDict(extra="forbid")
 
-    name: Literal["baseline"]
+    name: Literal["one_stage_baseline"]
     backend: Literal["gemini", "vllm"] = "gemini"
     llm_name: str = "gemini-2.5-flash-lite"
     api_key_env: str = "GEMINI_API_KEY"
@@ -45,12 +45,12 @@ class BaselineModelConfig(BaseModel):
     enable_retry: bool = True
 
 
-class DirectIRBaselineModelConfig(BaseModel):
-    """Direct IR baseline model configuration."""
+class OneStageIRModelConfig(BaseModel):
+    """One-stage IR model configuration."""
 
     model_config = ConfigDict(extra="forbid")
 
-    name: Literal["direct_ir_baseline"]
+    name: Literal["one_stage_ir"]
     backend: Literal["gemini", "vllm"] = "gemini"
     llm_name: str = "gemini-2.5-flash-lite"
     api_key_env: str = "GEMINI_API_KEY"
@@ -60,12 +60,12 @@ class DirectIRBaselineModelConfig(BaseModel):
     ir_grammar: str = "dot_notation_ir"
 
 
-class IRPipelineModelConfig(BaseModel):
-    """IR pipeline model configuration."""
+class TwoStageIRModelConfig(BaseModel):
+    """Two-stage IR model configuration."""
 
     model_config = ConfigDict(extra="forbid")
 
-    name: Literal["ir_pipeline"]
+    name: Literal["two_stage_ir"]
     extraction_model: StageModelConfig = Field(default_factory=StageModelConfig)
     ir_model: StageModelConfig = Field(default_factory=StageModelConfig)
     ir_grammar: str = "dot_notation_ir"
@@ -82,9 +82,9 @@ class TwoStageBaselineModelConfig(BaseModel):
 
 
 ModelConfig = Annotated[
-    BaselineModelConfig
-    | DirectIRBaselineModelConfig
-    | IRPipelineModelConfig
+    OneStageBaselineModelConfig
+    | OneStageIRModelConfig
+    | TwoStageIRModelConfig
     | TwoStageBaselineModelConfig,
     Field(discriminator="name"),
 ]

@@ -1,15 +1,15 @@
 experiments:
-  # baseline (single model)
-  - experimental_configs/baseline_mistral_rams.yaml
-  - experimental_configs/baseline_qwen_rams.yaml
-  - experimental_configs/baseline_gemini2_rams.yaml
-  - experimental_configs/baseline_gemini3_rams.yaml
+  # one-stage-baseline (single model)
+  - experimental_configs/one-stage-baseline_mistral_rams.yaml
+  - experimental_configs/one-stage-baseline_qwen_rams.yaml
+  - experimental_configs/one-stage-baseline_gemini2_rams.yaml
+  - experimental_configs/one-stage-baseline_gemini3_rams.yaml
 
-  # ir-baseline (single model)
-  - experimental_configs/ir-baseline_mistral_rams.yaml
-  - experimental_configs/ir-baseline_qwen_rams.yaml
-  - experimental_configs/ir-baseline_gemini2_rams.yaml
-  - experimental_configs/ir-baseline_gemini3_rams.yaml
+  # one-stage-ir (single model)
+  - experimental_configs/one-stage-ir_mistral_rams.yaml
+  - experimental_configs/one-stage-ir_qwen_rams.yaml
+  - experimental_configs/one-stage-ir_gemini2_rams.yaml
+  - experimental_configs/one-stage-ir_gemini3_rams.yaml
 
   # two-stage-baseline (extraction_model + organization_model)
   - experimental_configs/two-stage-baseline_mistral_mistral_rams.yaml
@@ -29,20 +29,20 @@ experiments:
   - experimental_configs/two-stage-baseline_gemini3_gemini2_rams.yaml
   - experimental_configs/two-stage-baseline_gemini3_gemini3_rams.yaml
 
-  # ir-pipeline (extraction_model + organization_model)
-  - experimental_configs/ir-pipeline_mistral_mistral_rams.yaml
-  - experimental_configs/ir-pipeline_mistral_qwen_rams.yaml
-  - experimental_configs/ir-pipeline_mistral_gemini2_rams.yaml
-  - experimental_configs/ir-pipeline_mistral_gemini3_rams.yaml
-  - experimental_configs/ir-pipeline_qwen_mistral_rams.yaml
-  - experimental_configs/ir-pipeline_qwen_qwen_rams.yaml
-  - experimental_configs/ir-pipeline_qwen_gemini2_rams.yaml
-  - experimental_configs/ir-pipeline_qwen_gemini3_rams.yaml
-  - experimental_configs/ir-pipeline_gemini2_mistral_rams.yaml
-  - experimental_configs/ir-pipeline_gemini2_qwen_rams.yaml
-  - experimental_configs/ir-pipeline_gemini2_gemini2_rams.yaml
-  - experimental_configs/ir-pipeline_gemini2_gemini3_rams.yaml
-  - experimental_configs/ir-pipeline_gemini3_mistral_rams.yaml
-  - experimental_configs/ir-pipeline_gemini3_qwen_rams.yaml
-  - experimental_configs/ir-pipeline_gemini3_gemini2_rams.yaml
-  - experimental_configs/ir-pipeline_gemini3_gemini3_rams.yaml
+  # two-stage-ir (extraction_model + organization_model)
+  - experimental_configs/two-stage-ir_mistral_mistral_rams.yaml
+  - experimental_configs/two-stage-ir_mistral_qwen_rams.yaml
+  - experimental_configs/two-stage-ir_mistral_gemini2_rams.yaml
+  - experimental_configs/two-stage-ir_mistral_gemini3_rams.yaml
+  - experimental_configs/two-stage-ir_qwen_mistral_rams.yaml
+  - experimental_configs/two-stage-ir_qwen_qwen_rams.yaml
+  - experimental_configs/two-stage-ir_qwen_gemini2_rams.yaml
+  - experimental_configs/two-stage-ir_qwen_gemini3_rams.yaml
+  - experimental_configs/two-stage-ir_gemini2_mistral_rams.yaml
+  - experimental_configs/two-stage-ir_gemini2_qwen_rams.yaml
+  - experimental_configs/two-stage-ir_gemini2_gemini2_rams.yaml
+  - experimental_configs/two-stage-ir_gemini2_gemini3_rams.yaml
+  - experimental_configs/two-stage-ir_gemini3_mistral_rams.yaml
+  - experimental_configs/two-stage-ir_gemini3_qwen_rams.yaml
+  - experimental_configs/two-stage-ir_gemini3_gemini2_rams.yaml
+  - experimental_configs/two-stage-ir_gemini3_gemini3_rams.yaml

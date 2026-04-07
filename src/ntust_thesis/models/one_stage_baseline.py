@@ -1,22 +1,19 @@
-"""Direct IR baseline: one model generates IR, then compiler finalizes JSON."""
+"""Baseline direct generation model."""
 
 from __future__ import annotations
 
 import json
 
-from ntust_thesis.core.config_models import DirectIRBaselineModelConfig
+from ntust_thesis.core.config_models import OneStageBaselineModelConfig
 from ntust_thesis.core.interfaces import Model
 from ntust_thesis.core.registry import MODEL_REGISTRY
-from ntust_thesis.core.schemas import (
-    EventOutput,
-    Prediction,
-    PredictionMetadata,
-    Sample,
+from ntust_thesis.core.schemas import Prediction, PredictionMetadata, Sample
+from ntust_thesis.models.components.event_output_parser import (
+    parse_event_output_from_arguments_json,
 )
-from ntust_thesis.models.components.ir_compiler import DeterministicIRCompiler
 from ntust_thesis.models.llm.gemini_client import GeminiClient
 from ntust_thesis.models.llm.vllm_client import VllmChatCompletionsClient
-from ntust_thesis.prompts import build_one_stage_dot_notation_ir_prompt
+from ntust_thesis.prompts import build_one_stage_json_prompt
 from ntust_thesis.utils.env import (
     DEFAULT_DOTENV_PATH,
     get_env_float,
@@ -26,11 +23,11 @@ from ntust_thesis.utils.env import (
 )
 
 
-class DirectIRBaselineModel(Model):
-    """Single-stage model that outputs IR directly."""
+class OneStageBaselineModel(Model):
+    """One-stage baseline model using pluggable LLM backends."""
 
-    def __init__(self, config: DirectIRBaselineModelConfig) -> None:
-        """Initialize direct IR baseline model from config."""
+    def __init__(self, config: OneStageBaselineModelConfig) -> None:
+        """Initialize one-stage baseline model from config."""
         self._backend = config.backend
         dotenv_paths = [DEFAULT_DOTENV_PATH]
         self._temperature = get_env_float(
@@ -75,7 +72,8 @@ class DirectIRBaselineModel(Model):
         )
         model_name = config.llm_name
         if config.backend == "gemini":
-            api_key = get_required_env(config.api_key_env, fallback_paths=dotenv_paths)
+            api_key_env = config.api_key_env
+            api_key = get_required_env(api_key_env, fallback_paths=dotenv_paths)
             self._llm = GeminiClient(
                 api_key=api_key,
                 model_name=model_name,
@@ -107,50 +105,33 @@ class DirectIRBaselineModel(Model):
         else:
             msg = f"Unsupported backend: {config.backend}"
             raise ValueError(msg)
-        if config.ir_grammar != "dot_notation_ir":
-            msg = (
-                "direct_ir_baseline only supports dot_notation_ir. "
-                f"Got: {config.ir_grammar}"
-            )
-            raise ValueError(msg)
-        self._ir_grammar = config.ir_grammar
-        self._compiler = DeterministicIRCompiler(ir_grammar=self._ir_grammar)
 
     def name(self) -> str:
         """Return model key."""
-        return "direct_ir_baseline"
+        return "one_stage_baseline"
 
     def predict(self, sample: Sample) -> Prediction:
-        """Generate IR directly and compile to final JSON output."""
-        system_prompt, user_prompt = build_one_stage_dot_notation_ir_prompt(
+        """Generate direct JSON output and parse into typed event output."""
+        system_prompt, user_prompt = build_one_stage_json_prompt(
             sentence=sample.raw_sentence,
             event_type=sample.metadata.event_type,
             candidate_roles=sample.metadata.candidate_roles,
             role_multiplicities=sample.metadata.role_multiplicities,
         )
-        ir_text = self._llm.generate(
+        raw_model_text = self._llm.generate(
             system_prompt,
             user_prompt,
             self._temperature,
-            allow_empty=True,
+        )
+        parsed_output = parse_event_output_from_arguments_json(
+            raw_output=raw_model_text,
+            event_type=sample.metadata.event_type or "unknown.event",
         )
 
-        error_message: str | None = None
-        compiled: EventOutput | None = None
-        try:
-            compiled = self._compiler.compile(
-                ir_text=ir_text,
-                event_type=sample.metadata.event_type or "unknown.event",
-            )
-        except Exception as exc:
-            error_message = str(exc)
-
-        if compiled is None:
-            raw_output = ir_text
-            parsed_output = None
+        if parsed_output is None:
+            raw_output = raw_model_text
         else:
-            raw_output = json.dumps(compiled.model_dump(), ensure_ascii=False)
-            parsed_output = compiled
+            raw_output = json.dumps(parsed_output.model_dump(), ensure_ascii=False)
 
         return Prediction(
             sample_id=sample.sample_id,
@@ -159,8 +140,6 @@ class DirectIRBaselineModel(Model):
             metadata=PredictionMetadata(
                 model=self.name(),
                 backend=self._backend,
-                ir_text=ir_text,
-                compile_error=error_message,
                 model_input={
                     "system_prompt": system_prompt,
                     "user_prompt": user_prompt,
@@ -170,11 +149,11 @@ class DirectIRBaselineModel(Model):
 
 
 def register() -> None:
-    """Register built-in direct IR baseline model."""
-    MODEL_REGISTRY.register("direct_ir_baseline", _build_direct_ir_baseline_model)
+    """Register built-in one-stage baseline model."""
+    MODEL_REGISTRY.register("one_stage_baseline", _build_one_stage_baseline_model)
 
 
-def _build_direct_ir_baseline_model(config: object) -> DirectIRBaselineModel:
-    """Build direct IR baseline model from boundary input."""
-    typed_config = DirectIRBaselineModelConfig.model_validate(config)
-    return DirectIRBaselineModel(config=typed_config)
+def _build_one_stage_baseline_model(config: object) -> OneStageBaselineModel:
+    """Build one-stage baseline model from boundary input."""
+    typed_config = OneStageBaselineModelConfig.model_validate(config)
+    return OneStageBaselineModel(config=typed_config)

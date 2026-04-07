@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 
-from ntust_thesis.core.config_models import IRPipelineModelConfig, StageModelConfig
+from ntust_thesis.core.config_models import StageModelConfig, TwoStageIRModelConfig
 from ntust_thesis.core.interfaces import Model
 from ntust_thesis.core.registry import MODEL_REGISTRY
 from ntust_thesis.core.schemas import (
@@ -37,11 +37,11 @@ from ntust_thesis.utils.env import (
 )
 
 
-class IRPipelineModel(Model):
-    """IR pipeline with pluggable extraction and IR generation backends."""
+class TwoStageIRModel(Model):
+    """Two-stage IR pipeline with extraction and IR generation backends."""
 
-    def __init__(self, config: IRPipelineModelConfig) -> None:
-        """Initialize IR pipeline with model config."""
+    def __init__(self, config: TwoStageIRModelConfig) -> None:
+        """Initialize two-stage IR pipeline with model config."""
         dotenv_paths = [DEFAULT_DOTENV_PATH]
         self._llm_temperature = get_env_float(
             "llm_temperature",
@@ -97,7 +97,7 @@ class IRPipelineModel(Model):
 
     def name(self) -> str:
         """Return model key."""
-        return "ir_pipeline"
+        return "two_stage_ir"
 
     def predict(self, sample: Sample) -> Prediction:
         """Run extraction -> IR -> compile and return final prediction."""
@@ -229,11 +229,11 @@ class IRPipelineModel(Model):
 
 
 def register() -> None:
-    """Register built-in IR pipeline model."""
-    MODEL_REGISTRY.register("ir_pipeline", _build_ir_pipeline_model)
+    """Register built-in two-stage IR pipeline model."""
+    MODEL_REGISTRY.register("two_stage_ir", _build_two_stage_ir_model)
 
 
-def _build_ir_pipeline_model(config: object) -> IRPipelineModel:
-    """Build IR pipeline model from boundary input."""
-    typed_config = IRPipelineModelConfig.model_validate(config)
-    return IRPipelineModel(config=typed_config)
+def _build_two_stage_ir_model(config: object) -> TwoStageIRModel:
+    """Build two-stage IR pipeline model from boundary input."""
+    typed_config = TwoStageIRModelConfig.model_validate(config)
+    return TwoStageIRModel(config=typed_config)

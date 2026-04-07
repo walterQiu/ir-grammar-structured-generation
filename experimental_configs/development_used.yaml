@@ -3,9 +3,9 @@ dataset:
   name: rams
   data_dir: datasets/RAMS/data
   split: dev
-  max_samples: 3
+  max_samples: 5
 model:
-  name: ir_pipeline
+  name: two_stage_ir
   extraction_model:
     backend: gemini
     llm_name: gemini-2.5-flash-lite
@@ -18,7 +18,7 @@ model:
     api_key_env: GEMINI_API_KEY
     enable_sleep: true
     enable_retry: true
-  ir_grammar: dot_notation_ir
+  ir_grammar: code4struct_ir
 evaluation:
   metrics:
   - is_valid_ir

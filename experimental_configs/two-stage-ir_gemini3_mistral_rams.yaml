@@ -1,11 +1,11 @@
-experiment_name: ir-pipeline_gemini3_mistral_rams
+experiment_name: two-stage-ir_gemini3_mistral_rams
 dataset:
   name: rams
   data_dir: datasets/RAMS/data
   split: dev
   max_samples: 100
 model:
-  name: ir_pipeline
+  name: two_stage_ir
   extraction_model:
     backend: gemini
     llm_name: gemini-3-pro-preview
