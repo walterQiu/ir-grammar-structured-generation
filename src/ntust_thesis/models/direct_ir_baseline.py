@@ -16,7 +16,7 @@ from ntust_thesis.core.schemas import (
 from ntust_thesis.models.components.ir_compiler import DeterministicIRCompiler
 from ntust_thesis.models.llm.gemini_client import GeminiClient
 from ntust_thesis.models.llm.vllm_client import VllmChatCompletionsClient
-from ntust_thesis.prompts import build_direct_ir_prompt
+from ntust_thesis.prompts import build_one_stage_dot_notation_ir_prompt
 from ntust_thesis.utils.env import (
     DEFAULT_DOTENV_PATH,
     get_env_float,
@@ -107,7 +107,14 @@ class DirectIRBaselineModel(Model):
         else:
             msg = f"Unsupported backend: {config.backend}"
             raise ValueError(msg)
-        self._compiler = DeterministicIRCompiler(ir_grammar=config.ir_grammar)
+        if config.ir_grammar != "dot_notation_ir":
+            msg = (
+                "direct_ir_baseline only supports dot_notation_ir. "
+                f"Got: {config.ir_grammar}"
+            )
+            raise ValueError(msg)
+        self._ir_grammar = config.ir_grammar
+        self._compiler = DeterministicIRCompiler(ir_grammar=self._ir_grammar)
 
     def name(self) -> str:
         """Return model key."""
@@ -115,7 +122,7 @@ class DirectIRBaselineModel(Model):
 
     def predict(self, sample: Sample) -> Prediction:
         """Generate IR directly and compile to final JSON output."""
-        system_prompt, user_prompt = build_direct_ir_prompt(
+        system_prompt, user_prompt = build_one_stage_dot_notation_ir_prompt(
             sentence=sample.raw_sentence,
             event_type=sample.metadata.event_type,
             candidate_roles=sample.metadata.candidate_roles,

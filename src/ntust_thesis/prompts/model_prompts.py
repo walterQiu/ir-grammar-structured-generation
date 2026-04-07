@@ -9,13 +9,13 @@ from ntust_thesis.prompts.ir_generation_examples import (
 PromptPair = tuple[str, str]  # (system prompt, user_prompt)
 
 
-def build_baseline_prompt(
+def build_one_stage_json_prompt(
     sentence: str,
     event_type: str | None = None,
     candidate_roles: list[str] | None = None,
     role_multiplicities: dict[str, int] | None = None,
 ) -> PromptPair:
-    """Build prompt for baseline direct JSON generation."""
+    """Build prompt for one-stage direct JSON generation."""
     event_line = f"Event type (reference): {event_type}\n" if event_type else ""
     roles_line = (
         f"Candidate roles: {', '.join(candidate_roles)}\n" if candidate_roles else ""
@@ -49,7 +49,7 @@ def build_two_stage_extraction_prompt(
     candidate_roles: list[str] | None = None,
     role_multiplicities: dict[str, int] | None = None,
 ) -> PromptPair:
-    """Build prompt for IR extraction stage."""
+    """Build prompt for two-stage extraction step."""
     event_line = f"Event type (reference): {event_type}\n" if event_type else ""
     roles_line = (
         f"Candidate roles: {', '.join(candidate_roles)}\n" if candidate_roles else ""
@@ -81,11 +81,35 @@ def build_two_stage_extraction_prompt(
     return system_prompt, user_prompt
 
 
-def build_ir_generation_prompt(
+def build_two_stage_ir_prompt(
+    extraction_text: str,
+    event_type: str | None,
+    candidate_roles: list[str] | None,
+    role_multiplicities: dict[str, int] | None = None,
+    ir_grammar: str = "dot_notation_ir",
+) -> PromptPair:
+    """Build two-stage IR-generation prompt by selected grammar."""
+    if ir_grammar == "dot_notation_ir":
+        return build_two_stage_dot_notation_ir_prompt(
+            extraction_text=extraction_text,
+            role_multiplicities=role_multiplicities,
+        )
+    if ir_grammar == "code4struct_ir":
+        return build_two_stage_code4struct_ir_prompt(
+            extraction_text=extraction_text,
+            event_type=event_type,
+            candidate_roles=candidate_roles,
+            role_multiplicities=role_multiplicities,
+        )
+    msg = f"Unsupported IR grammar for two-stage prompt building: {ir_grammar}"
+    raise ValueError(msg)
+
+
+def build_two_stage_dot_notation_ir_prompt(
     extraction_text: str,
     role_multiplicities: dict[str, int] | None = None,
 ) -> PromptPair:
-    """Build prompt for converting extraction text to dot-notation IR."""
+    """Build two-stage prompt for dot-notation IR generation."""
     multiplicity_line = ""
     if role_multiplicities:
         pairs = ", ".join(
@@ -112,18 +136,56 @@ def build_ir_generation_prompt(
         "\n"
         f"{in_context_examples}\n"
     )
+    user_prompt = f"{multiplicity_line}Extraction notes:\n{extraction_text}"
+    return system_prompt, user_prompt
+
+
+def build_two_stage_code4struct_ir_prompt(
+    extraction_text: str,
+    event_type: str | None,
+    candidate_roles: list[str] | None,
+    role_multiplicities: dict[str, int] | None = None,
+) -> PromptPair:
+    """Build two-stage prompt for CODE4STRUCT-style IR generation."""
+    event_class = _to_event_class_name(event_type)
+    ontology_block = _build_code4struct_ontology_block(
+        event_class=event_class,
+        candidate_roles=candidate_roles,
+    )
+    k_shot_block = _build_code4struct_two_shot_placeholder_block(
+        event_class=event_class
+    )
+    multiplicity_line = ""
+    if role_multiplicities:
+        pairs = ", ".join(
+            f"{role}={count}" for role, count in role_multiplicities.items()
+        )
+        multiplicity_line = f"Allowed roles and multiplicities: {pairs}\n"
+    task_block = (
+        '"""\n'
+        f"Translate the following sentence into an instance of {event_class}.\n"
+        f'"{extraction_text}"\n'
+        '"""\n'
+        f"{event_class.lower()}_event = {event_class}(\n"
+    )
+
+    system_prompt = (
+        "You are an event extraction model that outputs only Python code completion.\n"
+        "Complete the target event instance according to ontology and examples.\n"
+        "Output only the missing argument lines and closing parenthesis.\n"
+        "No markdown, no extra commentary.\n"
+    )
     user_prompt = (
-        f"Allowed roles and multiplicities: {multiplicity_line}\n"
-        f"Extraction notes:\n{extraction_text}"
+        f"{ontology_block}\n\n{k_shot_block}\n\n{multiplicity_line}{task_block}"
     )
     return system_prompt, user_prompt
 
 
-def build_json_generation_prompt(
+def build_two_stage_json_prompt(
     extraction_text: str,
     role_multiplicities: dict[str, int] | None = None,
 ) -> PromptPair:
-    """Build prompt for converting extraction text directly to final JSON."""
+    """Build prompt for two-stage extraction->JSON generation."""
     multiplicity_line = ""
     if role_multiplicities:
         pairs = ", ".join(
@@ -145,13 +207,13 @@ def build_json_generation_prompt(
     return system_prompt, user_prompt
 
 
-def build_direct_ir_prompt(
+def build_one_stage_dot_notation_ir_prompt(
     sentence: str,
     event_type: str | None = None,
     candidate_roles: list[str] | None = None,
     role_multiplicities: dict[str, int] | None = None,
 ) -> PromptPair:
-    """Build prompt for direct sentence-to-IR generation."""
+    """Build one-stage prompt for direct dot-notation IR generation."""
     event_line = f"Event type (reference): {event_type}\n" if event_type else ""
     roles_line = (
         f"Candidate roles: {', '.join(candidate_roles)}\n" if candidate_roles else ""
@@ -183,3 +245,85 @@ def build_direct_ir_prompt(
     )
     user_prompt = f"{event_line}{roles_line}{multiplicity_line}Sentence: {sentence}\n"
     return system_prompt, user_prompt
+
+
+def _build_code4struct_ontology_block(
+    event_class: str,
+    candidate_roles: list[str] | None,
+) -> str:
+    """Build CODE4STRUCT ontology block without entity/event docstrings."""
+    roles = candidate_roles or []
+    role_identifiers = [_role_to_identifier(role) for role in roles]
+    role_args = "\n".join(
+        f"        {role}: List[Entity] = []," for role in role_identifiers
+    )
+    role_assignments = "\n".join(
+        f"        self.{role} = {role}" for role in role_identifiers
+    )
+    if not role_args:
+        role_args = "        pass"
+    if not role_assignments:
+        role_assignments = "        pass"
+
+    return (
+        "from typing import List\n\n"
+        "class Entity:\n"
+        "    def __init__(self, name: str):\n"
+        "        self.name = name\n\n"
+        "class Event:\n"
+        '    def __init__(self, name: str = ""):\n'
+        "        self.name = name\n\n"
+        f"class {event_class}(Event):\n"
+        "    def __init__(\n"
+        "        self,\n"
+        f"{role_args}\n"
+        "    ):\n"
+        f"{role_assignments}\n"
+    )
+
+
+def _build_code4struct_two_shot_placeholder_block(event_class: str) -> str:
+    """Build placeholder fixed 2-shot examples for CODE4STRUCT prompt."""
+    event_var = f"{event_class.lower()}_event"
+    return (
+        "# k In-context Examples\n"
+        "# Example 1 (placeholder)\n"
+        '"""\n'
+        f"Translate the following sentence into an instance of {event_class}.\n"
+        "The trigger word(s) of the event is marked with **trigger word**.\n"
+        '"[PLACEHOLDER_EXAMPLE_1_SENTENCE]"\n'
+        '"""\n'
+        f"{event_var} = {event_class}(\n"
+        "    # TODO: replace with actual ICL example 1\n"
+        ")\n\n"
+        "# Example 2 (placeholder)\n"
+        '"""\n'
+        f"Translate the following sentence into an instance of {event_class}.\n"
+        "The trigger word(s) of the event is marked with **trigger word**.\n"
+        '"[PLACEHOLDER_EXAMPLE_2_SENTENCE]"\n'
+        '"""\n'
+        f"{event_var} = {event_class}(\n"
+        "    # TODO: replace with actual ICL example 2\n"
+        ")\n"
+    )
+
+
+def _to_event_class_name(event_type: str | None) -> str:
+    """Convert dot-delimited event_type into a Python class-like name."""
+    if not event_type:
+        return "TargetEvent"
+    parts = [part.strip() for part in event_type.split(".") if part.strip()]
+    if not parts:
+        return "TargetEvent"
+    raw_name = parts[-1]
+    return raw_name[0].upper() + raw_name[1:]
+
+
+def _role_to_identifier(role: str) -> str:
+    """Convert role path to a Python-identifier constructor argument."""
+    identifier = role.strip().replace(".", "__").replace("-", "_")
+    if not identifier:
+        return "role"
+    if not (identifier[0].isalpha() or identifier[0] == "_"):
+        identifier = f"role_{identifier}"
+    return identifier

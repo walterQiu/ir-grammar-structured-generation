@@ -25,8 +25,8 @@ from ntust_thesis.models.components.ir_generator import (
 from ntust_thesis.models.llm.gemini_client import GeminiClient
 from ntust_thesis.models.llm.vllm_client import VllmChatCompletionsClient
 from ntust_thesis.prompts import (
-    build_ir_generation_prompt,
     build_two_stage_extraction_prompt,
+    build_two_stage_ir_prompt,
 )
 from ntust_thesis.utils.env import (
     DEFAULT_DOTENV_PATH,
@@ -88,11 +88,12 @@ class IRPipelineModel(Model):
 
         extraction_cfg = config.extraction_model
         ir_cfg = config.ir_model
+        self._ir_grammar = config.ir_grammar
         self._extraction_backend = extraction_cfg.backend
         self._ir_backend = ir_cfg.backend
         self._extractor = self._build_extractor(extraction_cfg)
         self._ir_generator = self._build_ir_generator(ir_cfg)
-        self._compiler = DeterministicIRCompiler(ir_grammar=config.ir_grammar)
+        self._compiler = DeterministicIRCompiler(ir_grammar=self._ir_grammar)
 
     def name(self) -> str:
         """Return model key."""
@@ -114,12 +115,17 @@ class IRPipelineModel(Model):
             candidate_roles=sample.metadata.candidate_roles,
             role_multiplicities=sample.metadata.role_multiplicities,
         )
-        ir_system_prompt, ir_user_prompt = build_ir_generation_prompt(
+        ir_system_prompt, ir_user_prompt = build_two_stage_ir_prompt(
             extraction_text=extraction_text,
+            event_type=sample.metadata.event_type,
+            candidate_roles=sample.metadata.candidate_roles,
             role_multiplicities=sample.metadata.role_multiplicities,
+            ir_grammar=self._ir_grammar,
         )
         ir_text = self._ir_generator.generate(
             extraction_text=extraction_text,
+            event_type=sample.metadata.event_type,
+            candidate_roles=sample.metadata.candidate_roles,
             role_multiplicities=sample.metadata.role_multiplicities,
         )
 
@@ -176,7 +182,11 @@ class IRPipelineModel(Model):
         if backend in {"gemini", "vllm"}:
             temperature = self._llm_temperature
             llm = self._build_llm_client(cfg)
-            return GeminiIRGenerator(llm=llm, temperature=temperature)
+            return GeminiIRGenerator(
+                llm=llm,
+                temperature=temperature,
+                ir_grammar=self._ir_grammar,
+            )
         msg = f"Unsupported IR backend: {backend}"
         raise ValueError(msg)
 

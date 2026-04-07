@@ -13,7 +13,7 @@ from ntust_thesis.models.components.event_output_parser import (
 )
 from ntust_thesis.models.llm.gemini_client import GeminiClient
 from ntust_thesis.models.llm.vllm_client import VllmChatCompletionsClient
-from ntust_thesis.prompts import build_baseline_prompt
+from ntust_thesis.prompts import build_one_stage_json_prompt
 from ntust_thesis.utils.env import (
     DEFAULT_DOTENV_PATH,
     get_env_float,
@@ -112,7 +112,7 @@ class BaselineModel(Model):
 
     def predict(self, sample: Sample) -> Prediction:
         """Generate direct JSON output and parse into typed event output."""
-        system_prompt, user_prompt = build_baseline_prompt(
+        system_prompt, user_prompt = build_one_stage_json_prompt(
             sentence=sample.raw_sentence,
             event_type=sample.metadata.event_type,
             candidate_roles=sample.metadata.candidate_roles,
