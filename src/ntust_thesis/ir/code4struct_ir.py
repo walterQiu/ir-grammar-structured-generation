@@ -81,27 +81,22 @@ def _collect_non_empty_lines(ir_text: str) -> list[tuple[int, str]]:
 def _extract_validated_body_lines(
     non_empty_lines: list[tuple[int, str]],
 ) -> list[tuple[int, str]]:
-    """Validate header and closing line, then return body lines."""
-    _validate_header_line(non_empty_lines[0])
-    body_lines = non_empty_lines[1:]
-    if not body_lines:
-        header_line_no = non_empty_lines[0][0]
-        msg = (
-            f"line:{header_line_no}|Incomplete CODE4STRUCT instance: "
-            "expected at least a closing ')' after header."
-        )
-        raise ValueError(msg)
-    _validate_closing_line(body_lines[-1])
-    return body_lines
+    """Validate full-instance or completion-only format and return body lines."""
+    first_line_no, first_line = non_empty_lines[0]
+    if _HEADER_RE.fullmatch(first_line) is not None:
+        body_lines = non_empty_lines[1:]
+        if not body_lines:
+            msg = (
+                f"line:{first_line_no}|Incomplete CODE4STRUCT instance: "
+                "expected at least a closing ')' after header."
+            )
+            raise ValueError(msg)
+        _validate_closing_line(body_lines[-1])
+        return body_lines
 
-
-def _validate_header_line(line_with_no: tuple[int, str]) -> None:
-    """Ensure the first non-empty line is a CODE4STRUCT header."""
-    header_line_no, header_line = line_with_no
-    if _HEADER_RE.fullmatch(header_line) is not None:
-        return
-    msg = f"line:{header_line_no}|First non-empty line must be '<var> = <EventClass>('."
-    raise ValueError(msg)
+    # Completion-only mode: allow outputs without "<var> = <EventClass>(" prefix.
+    _validate_closing_line(non_empty_lines[-1])
+    return non_empty_lines
 
 
 def _validate_closing_line(line_with_no: tuple[int, str]) -> None:
