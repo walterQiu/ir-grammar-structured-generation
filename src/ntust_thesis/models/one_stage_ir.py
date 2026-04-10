@@ -130,7 +130,6 @@ class OneStageIRModel(Model):
         system_prompt, user_prompt = build_one_stage_ir_prompt(
             sentence=sample.raw_sentence,
             event_type=sample.metadata.event_type,
-            candidate_roles=sample.metadata.candidate_roles,
             role_multiplicities=sample.metadata.role_multiplicities,
             ir_grammar=self._ir_grammar,
         )

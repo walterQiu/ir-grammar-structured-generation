@@ -100,14 +100,12 @@ class TwoStageBaselineModel(Model):
             build_two_stage_extraction_prompt(
                 sentence=sample.raw_sentence,
                 event_type=sample.metadata.event_type,
-                candidate_roles=sample.metadata.candidate_roles,
                 role_multiplicities=sample.metadata.role_multiplicities,
             )
         )
         extraction_text = self._extractor.extract(
             sentence=sample.raw_sentence,
             event_type=sample.metadata.event_type,
-            candidate_roles=sample.metadata.candidate_roles,
             role_multiplicities=sample.metadata.role_multiplicities,
         )
         schema_system_prompt, schema_user_prompt = build_two_stage_json_prompt(

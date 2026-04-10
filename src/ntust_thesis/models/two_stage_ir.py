@@ -105,27 +105,23 @@ class TwoStageIRModel(Model):
             build_two_stage_extraction_prompt(
                 sentence=sample.raw_sentence,
                 event_type=sample.metadata.event_type,
-                candidate_roles=sample.metadata.candidate_roles,
                 role_multiplicities=sample.metadata.role_multiplicities,
             )
         )
         extraction_text = self._extractor.extract(
             sentence=sample.raw_sentence,
             event_type=sample.metadata.event_type,
-            candidate_roles=sample.metadata.candidate_roles,
             role_multiplicities=sample.metadata.role_multiplicities,
         )
         ir_system_prompt, ir_user_prompt = build_two_stage_ir_prompt(
             extraction_text=extraction_text,
             event_type=sample.metadata.event_type,
-            candidate_roles=sample.metadata.candidate_roles,
             role_multiplicities=sample.metadata.role_multiplicities,
             ir_grammar=self._ir_grammar,
         )
         ir_text = self._ir_generator.generate(
             extraction_text=extraction_text,
             event_type=sample.metadata.event_type,
-            candidate_roles=sample.metadata.candidate_roles,
             role_multiplicities=sample.metadata.role_multiplicities,
         )
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from ntust_thesis.prompts.ir_generation_examples import (
+    build_one_stage_ir_in_context_examples,
     build_two_stage_ir_in_context_examples,
 )
 
@@ -12,7 +13,6 @@ PromptPair = tuple[str, str]  # (system prompt, user_prompt)
 def build_one_stage_ir_prompt(
     sentence: str,
     event_type: str | None,
-    candidate_roles: list[str] | None,
     role_multiplicities: dict[str, int] | None = None,
     ir_grammar: str = "dot_notation_ir",
 ) -> PromptPair:
@@ -21,21 +21,18 @@ def build_one_stage_ir_prompt(
         return build_one_stage_json_prompt(
             sentence=sentence,
             event_type=event_type,
-            candidate_roles=candidate_roles,
             role_multiplicities=role_multiplicities,
         )
     if ir_grammar == "dot_notation_ir":
         return build_one_stage_dot_notation_ir_prompt(
             sentence=sentence,
             event_type=event_type,
-            candidate_roles=candidate_roles,
             role_multiplicities=role_multiplicities,
         )
     if ir_grammar == "code4struct_ir":
         return build_one_stage_code4struct_ir_prompt(
             sentence=sentence,
             event_type=event_type,
-            candidate_roles=candidate_roles,
             role_multiplicities=role_multiplicities,
         )
     msg = f"Unsupported IR grammar for one-stage prompt building: {ir_grammar}"
@@ -45,48 +42,46 @@ def build_one_stage_ir_prompt(
 def build_one_stage_json_prompt(
     sentence: str,
     event_type: str | None = None,
-    candidate_roles: list[str] | None = None,
     role_multiplicities: dict[str, int] | None = None,
 ) -> PromptPair:
     """Build prompt for one-stage direct JSON generation."""
     event_line = f"Event type (reference): {event_type}\n" if event_type else ""
-    roles_line = (
-        f"Candidate roles: {', '.join(candidate_roles)}\n" if candidate_roles else ""
-    )
     multiplicity_line = ""
     if role_multiplicities:
         pairs = ", ".join(
             f"{role}={count}" for role, count in role_multiplicities.items()
         )
         multiplicity_line = f"Allowed roles and multiplicities: {pairs}\n"
+
+    in_context_examples = build_one_stage_ir_in_context_examples(ir_grammar="json")
+
     system_prompt = (
         "Extract event arguments from the sentence. "
         "The trigger word(s) of the event is marked with **trigger word**.\n"
-        "Return only a JSON object with this structure:\n"
+        "Output only a JSON object with this structure:\n"
         '{"arguments":[{"role":"<role>","span":"<span>"}]}\n'
         "Do not output event type.\n"
-        "Do not output span positions.\n"
         "Respect role multiplicities strictly.\n"
+        "Do not infer or add arguments not supported by the sentence.\n"
         "Do NOT split a single text span into multiple spans.\n"
         "Do NOT decompose coordinated phrases (e.g., 'A, B, and C').\n"
         "Keep the original text span exactly as in the sentence.\n"
         "No markdown, no extra commentary.\n"
+        "\n"
+        f"{in_context_examples}\n"
     )
-    user_prompt = f"{event_line}{roles_line}{multiplicity_line}Sentence: {sentence}\n"
+
+    user_prompt = f"{event_line}{multiplicity_line}Sentence: {sentence}\n"
     return system_prompt, user_prompt
 
 
 def build_one_stage_dot_notation_ir_prompt(
     sentence: str,
     event_type: str | None = None,
-    candidate_roles: list[str] | None = None,
     role_multiplicities: dict[str, int] | None = None,
 ) -> PromptPair:
     """Build one-stage prompt for direct dot-notation IR generation."""
     event_line = f"Event type (reference): {event_type}\n" if event_type else ""
-    roles_line = (
-        f"Candidate roles: {', '.join(candidate_roles)}\n" if candidate_roles else ""
-    )
     multiplicity_line = ""
     if role_multiplicities:
         pairs = ", ".join(
@@ -114,21 +109,20 @@ def build_one_stage_dot_notation_ir_prompt(
         "\n"
         f"{in_context_examples}\n"
     )
-    user_prompt = f"{event_line}{roles_line}{multiplicity_line}Sentence: {sentence}\n"
+    user_prompt = f"{event_line}{multiplicity_line}Sentence: {sentence}\n"
     return system_prompt, user_prompt
 
 
 def build_one_stage_code4struct_ir_prompt(
     sentence: str,
     event_type: str | None,
-    candidate_roles: list[str] | None,
     role_multiplicities: dict[str, int] | None = None,
 ) -> PromptPair:
     """Build one-stage prompt for direct CODE4STRUCT-style IR generation."""
     event_class = _to_event_class_name(event_type)
     ontology_block = _build_code4struct_ontology_block(
         event_class=event_class,
-        candidate_roles=candidate_roles,
+        role_names=list(role_multiplicities.keys()) if role_multiplicities else [],
     )
     multiplicity_line = ""
     if role_multiplicities:
@@ -163,45 +157,38 @@ def build_one_stage_code4struct_ir_prompt(
 def build_two_stage_extraction_prompt(
     sentence: str,
     event_type: str | None = None,
-    candidate_roles: list[str] | None = None,
     role_multiplicities: dict[str, int] | None = None,
 ) -> PromptPair:
     """Build prompt for two-stage extraction step."""
     event_line = f"Event type (reference): {event_type}\n" if event_type else ""
-    roles_line = (
-        f"Candidate roles: {', '.join(candidate_roles)}\n" if candidate_roles else ""
-    )
     multiplicity_line = ""
     if role_multiplicities:
         pairs = ", ".join(
             f"{role}={count}" for role, count in role_multiplicities.items()
         )
         multiplicity_line = f"Allowed roles and multiplicities: {pairs}\n"
+
     system_prompt = (
         "Please identify the event arguments related to the marked trigger word in the following sentence.\n"
         "The trigger word(s) of the event is marked with **trigger word**.\n\n"
-        "Reason step by step about which text spans in the sentence are valid arguments of this event.\n"
-        "For each valid argument you find, briefly explain what text span it is and which role it most likely plays.\n"
-        "Use the event type, candidate roles, and role multiplicities only as references for deciding validity.\n"
+        "Identify valid argument spans and briefly describe which role each span most likely plays.\n"
+        "Use the event type and role multiplicities only as references for deciding validity.\n"
         "Do not invent arguments that are not clearly supported by the sentence.\n"
+        "Do not infer additional information beyond the sentence.\n"
+        "When referring to an argument, copy the exact text span from the sentence.\n"
+        "Do not paraphrase argument spans.\n"
         "Do not treat one span as multiple distinct arguments unless the sentence clearly supports that.\n"
         "Do not organize the answer into a table, JSON, key-value pairs, role-label lines, or any other fixed schema.\n"
         "Respond in free-form natural language only.\n\n"
     )
-    user_prompt = (
-        f"{event_line}"
-        f"{roles_line}"
-        f"{multiplicity_line}"
-        f"Sentence: {sentence}\n"
-        "Let's think step by step."
-    )
+
+    user_prompt = f"{event_line}{multiplicity_line}Sentence: {sentence}\n"
     return system_prompt, user_prompt
 
 
 def build_two_stage_ir_prompt(
     extraction_text: str,
     event_type: str | None,
-    candidate_roles: list[str] | None,
     role_multiplicities: dict[str, int] | None = None,
     ir_grammar: str = "dot_notation_ir",
 ) -> PromptPair:
@@ -220,7 +207,6 @@ def build_two_stage_ir_prompt(
         return build_two_stage_code4struct_ir_prompt(
             extraction_text=extraction_text,
             event_type=event_type,
-            candidate_roles=candidate_roles,
             role_multiplicities=role_multiplicities,
         )
     msg = f"Unsupported IR grammar for two-stage prompt building: {ir_grammar}"
@@ -238,20 +224,25 @@ def build_two_stage_json_prompt(
             f"{role}={count}" for role, count in role_multiplicities.items()
         )
         multiplicity_line = f"Allowed roles and multiplicities: {pairs}\n"
+
     in_context_examples = build_two_stage_ir_in_context_examples(ir_grammar="json")
+
     system_prompt = (
         "Convert extraction notes into final JSON event arguments.\n"
-        "Output only this JSON object structure:\n"
+        "Use only information supported by the extraction notes.\n"
+        "Do not add arguments not supported by the extraction notes.\n"
+        "Output only a JSON object with this structure:\n"
         '{"arguments":[{"role":"<role>","span":"<span>"}]}\n'
         "Do not output event type.\n"
         "Respect role multiplicities strictly.\n"
         "Do NOT split a single text span into multiple spans.\n"
         "Do NOT decompose coordinated phrases (e.g., 'A, B, and C').\n"
-        "Keep the original text span exactly as given.\n"
+        "Copy argument spans exactly as they appear in the extraction notes.\n"
         "No markdown, no extra commentary.\n"
         "\n"
         f"{in_context_examples}\n"
     )
+
     user_prompt = f"{multiplicity_line}Extraction notes:\n{extraction_text}"
     return system_prompt, user_prompt
 
@@ -296,14 +287,13 @@ def build_two_stage_dot_notation_ir_prompt(
 def build_two_stage_code4struct_ir_prompt(
     extraction_text: str,
     event_type: str | None,
-    candidate_roles: list[str] | None,
     role_multiplicities: dict[str, int] | None = None,
 ) -> PromptPair:
     """Build two-stage prompt for CODE4STRUCT-style IR generation."""
     event_class = _to_event_class_name(event_type)
     ontology_block = _build_code4struct_ontology_block(
         event_class=event_class,
-        candidate_roles=candidate_roles,
+        role_names=list(role_multiplicities.keys()) if role_multiplicities else [],
     )
     in_context_examples = build_two_stage_ir_in_context_examples(
         ir_grammar="code4struct_ir"
@@ -345,11 +335,10 @@ def build_two_stage_code4struct_ir_prompt(
 
 def _build_code4struct_ontology_block(
     event_class: str,
-    candidate_roles: list[str] | None,
+    role_names: list[str],
 ) -> str:
     """Build CODE4STRUCT ontology block without entity/event docstrings."""
-    roles = candidate_roles or []
-    role_identifiers = [_role_to_identifier(role) for role in roles]
+    role_identifiers = [_role_to_identifier(role) for role in role_names]
     role_args = "\n".join(
         f"        {role}: List[Entity] = []," for role in role_identifiers
     )

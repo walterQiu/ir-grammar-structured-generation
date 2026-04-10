@@ -115,7 +115,6 @@ class OneStageBaselineModel(Model):
         system_prompt, user_prompt = build_one_stage_json_prompt(
             sentence=sample.raw_sentence,
             event_type=sample.metadata.event_type,
-            candidate_roles=sample.metadata.candidate_roles,
             role_multiplicities=sample.metadata.role_multiplicities,
         )
         raw_model_text = self._llm.generate(
