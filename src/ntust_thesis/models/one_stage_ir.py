@@ -13,10 +13,13 @@ from ntust_thesis.core.schemas import (
     PredictionMetadata,
     Sample,
 )
+from ntust_thesis.models.components.event_output_parser import (
+    parse_event_output_from_arguments_json,
+)
 from ntust_thesis.models.components.ir_compiler import DeterministicIRCompiler
 from ntust_thesis.models.llm.gemini_client import GeminiClient
 from ntust_thesis.models.llm.vllm_client import VllmChatCompletionsClient
-from ntust_thesis.prompts import build_one_stage_dot_notation_ir_prompt
+from ntust_thesis.prompts import build_one_stage_ir_prompt
 from ntust_thesis.utils.env import (
     DEFAULT_DOTENV_PATH,
     get_env_float,
@@ -107,13 +110,16 @@ class OneStageIRModel(Model):
         else:
             msg = f"Unsupported backend: {config.backend}"
             raise ValueError(msg)
-        if config.ir_grammar != "dot_notation_ir":
+        self._ir_grammar = config.ir_grammar
+        self._compiler: DeterministicIRCompiler | None = None
+        if self._ir_grammar in {"dot_notation_ir", "code4struct_ir"}:
+            self._compiler = DeterministicIRCompiler(ir_grammar=self._ir_grammar)
+        elif self._ir_grammar != "json":
             msg = (
-                f"one_stage_ir only supports dot_notation_ir. Got: {config.ir_grammar}"
+                "one_stage_ir only supports json, dot_notation_ir, or code4struct_ir. "
+                f"Got: {self._ir_grammar}"
             )
             raise ValueError(msg)
-        self._ir_grammar = config.ir_grammar
-        self._compiler = DeterministicIRCompiler(ir_grammar=self._ir_grammar)
 
     def name(self) -> str:
         """Return model key."""
@@ -121,28 +127,38 @@ class OneStageIRModel(Model):
 
     def predict(self, sample: Sample) -> Prediction:
         """Generate IR directly and compile to final JSON output."""
-        system_prompt, user_prompt = build_one_stage_dot_notation_ir_prompt(
+        system_prompt, user_prompt = build_one_stage_ir_prompt(
             sentence=sample.raw_sentence,
             event_type=sample.metadata.event_type,
             candidate_roles=sample.metadata.candidate_roles,
             role_multiplicities=sample.metadata.role_multiplicities,
+            ir_grammar=self._ir_grammar,
         )
         ir_text = self._llm.generate(
             system_prompt,
             user_prompt,
             self._temperature,
-            allow_empty=True,
+            allow_empty=self._ir_grammar != "json",
         )
 
         error_message: str | None = None
         compiled: EventOutput | None = None
-        try:
-            compiled = self._compiler.compile(
-                ir_text=ir_text,
+        if self._ir_grammar == "json":
+            compiled = parse_event_output_from_arguments_json(
+                raw_output=ir_text,
                 event_type=sample.metadata.event_type or "unknown.event",
             )
-        except Exception as exc:
-            error_message = str(exc)
+        else:
+            if self._compiler is None:
+                msg = f"Compiler is not initialized for grammar: {self._ir_grammar}"
+                raise RuntimeError(msg)
+            try:
+                compiled = self._compiler.compile(
+                    ir_text=ir_text,
+                    event_type=sample.metadata.event_type or "unknown.event",
+                )
+            except Exception as exc:
+                error_message = str(exc)
 
         if compiled is None:
             raw_output = ir_text
