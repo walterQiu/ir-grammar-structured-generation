@@ -44,7 +44,13 @@ class ExperimentPipeline:
 
         dataset = DATASET_REGISTRY.create(dataset_key, config=dataset_config)
         model = MODEL_REGISTRY.create(model_key, config=model_config)
-        metrics = [METRIC_REGISTRY.create(key) for key in metric_keys]
+        ir_grammar = self._config.model.ir_grammar
+        metrics = [
+            METRIC_REGISTRY.create(key, ir_grammar=ir_grammar)
+            if key == "is_valid_ir"
+            else METRIC_REGISTRY.create(key)
+            for key in metric_keys
+        ]
         samples = dataset.load()
         total = len(samples)
 
