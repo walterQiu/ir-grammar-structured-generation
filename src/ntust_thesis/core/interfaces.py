@@ -38,14 +38,6 @@ class Model(ABC):
         """Generate prediction for one sample."""
 
 
-class Validator(ABC):
-    """Interface for strict validators."""
-
-    @abstractmethod
-    def validate(self, prediction: Prediction, sample: Sample) -> dict[str, object]:
-        """Return validation flags/details for one sample."""
-
-
 class Metric(ABC):
     """Interface for aggregate metric calculators."""
 

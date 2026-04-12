@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -23,15 +23,6 @@ class EventOutput(BaseModel):
 
     event_type: str
     arguments: list[Argument] = Field(default_factory=list)
-
-
-class OutputSchema(BaseModel):
-    """Schema spec used by strict validation."""
-
-    model_config = ConfigDict(extra="forbid")
-
-    type: Literal["object"] = "object"
-    required: tuple[str, ...] = ("event_type", "arguments")
 
 
 class SampleMetadata(BaseModel):
@@ -66,7 +57,6 @@ class Sample(BaseModel):
 
     sample_id: str
     raw_sentence: str
-    output_schema: OutputSchema
     gold: EventOutput
     metadata: SampleMetadata
 
