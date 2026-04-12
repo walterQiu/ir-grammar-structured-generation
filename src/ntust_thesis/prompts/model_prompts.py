@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from ntust_thesis.prompts.ir_generation_examples import (
+from ntust_thesis.prompts.icl_examples import (
     build_two_stage_ir_in_context_examples,
 )
 
