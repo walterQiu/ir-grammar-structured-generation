@@ -41,7 +41,6 @@ class SampleMetadata(BaseModel):
     sentence_text: str | None = None
     marked_sentence: str | None = None
     event_type: str
-    candidate_roles: list[str] | None = None
     role_multiplicities: dict[str, int]
 
 
