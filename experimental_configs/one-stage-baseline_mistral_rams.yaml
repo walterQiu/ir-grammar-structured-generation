@@ -14,7 +14,6 @@ model:
   ir_grammar: json
 evaluation:
   metrics:
-  - is_valid_json
   - schema_exact_match
   - exact_match
   - arg_i_f1

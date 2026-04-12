@@ -70,7 +70,7 @@ class EvaluationConfig(BaseModel):
 
     metrics: list[str] = Field(
         default_factory=lambda: [
-            "is_valid_json",
+            "is_valid_ir",
             "schema_exact_match",
             "exact_match",
             "arg_i_f1",
