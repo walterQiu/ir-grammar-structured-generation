@@ -5,7 +5,7 @@ dataset:
   split: dev
   max_samples: 100
 model:
-  name: one_stage_ir
+  name: one_stage
   backend: vllm
   llm_name: Qwen/Qwen2.5-7B-Instruct
   api_base: http://140.118.155.118:8000/v1

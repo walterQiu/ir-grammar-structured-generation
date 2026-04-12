@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 
-from ntust_thesis.core.config_models import StageModelConfig, TwoStageIRModelConfig
+from ntust_thesis.core.config_models import StageModelConfig, TwoStageModelConfig
 from ntust_thesis.core.interfaces import Model
 from ntust_thesis.core.registry import MODEL_REGISTRY
 from ntust_thesis.core.schemas import (
@@ -37,10 +37,10 @@ from ntust_thesis.utils.env import (
 )
 
 
-class TwoStageIRModel(Model):
+class TwoStageModel(Model):
     """Two-stage IR pipeline with extraction and IR generation backends."""
 
-    def __init__(self, config: TwoStageIRModelConfig) -> None:
+    def __init__(self, config: TwoStageModelConfig) -> None:
         """Initialize two-stage IR pipeline with model config."""
         dotenv_paths = [DEFAULT_DOTENV_PATH]
         self._llm_temperature = get_env_float(
@@ -97,7 +97,7 @@ class TwoStageIRModel(Model):
 
     def name(self) -> str:
         """Return model key."""
-        return "two_stage_ir"
+        return "two_stage"
 
     def predict(self, sample: Sample) -> Prediction:
         """Run extraction -> IR -> compile and return final prediction."""
@@ -225,11 +225,11 @@ class TwoStageIRModel(Model):
 
 
 def register() -> None:
-    """Register built-in two-stage IR pipeline model."""
-    MODEL_REGISTRY.register("two_stage_ir", _build_two_stage_ir_model)
+    """Register built-in two-stage pipeline model."""
+    MODEL_REGISTRY.register("two_stage", _build_two_stage_model)
 
 
-def _build_two_stage_ir_model(config: object) -> TwoStageIRModel:
-    """Build two-stage IR pipeline model from boundary input."""
-    typed_config = TwoStageIRModelConfig.model_validate(config)
-    return TwoStageIRModel(config=typed_config)
+def _build_two_stage_model(config: object) -> TwoStageModel:
+    """Build two-stage pipeline model from boundary input."""
+    typed_config = TwoStageModelConfig.model_validate(config)
+    return TwoStageModel(config=typed_config)

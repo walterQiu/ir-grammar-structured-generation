@@ -31,12 +31,12 @@ class StageModelConfig(BaseModel):
     enable_retry: bool = True
 
 
-class OneStageIRModelConfig(BaseModel):
-    """One-stage IR model configuration."""
+class OneStageModelConfig(BaseModel):
+    """One-stage model configuration."""
 
     model_config = ConfigDict(extra="forbid")
 
-    name: Literal["one_stage_ir"]
+    name: Literal["one_stage"]
     backend: Literal["gemini", "vllm"] = "gemini"
     llm_name: str = "gemini-2.5-flash-lite"
     api_key_env: str = "GEMINI_API_KEY"
@@ -46,19 +46,19 @@ class OneStageIRModelConfig(BaseModel):
     ir_grammar: str = "dot_notation_ir"
 
 
-class TwoStageIRModelConfig(BaseModel):
-    """Two-stage IR model configuration."""
+class TwoStageModelConfig(BaseModel):
+    """Two-stage model configuration."""
 
     model_config = ConfigDict(extra="forbid")
 
-    name: Literal["two_stage_ir"]
+    name: Literal["two_stage"]
     extraction_model: StageModelConfig = Field(default_factory=StageModelConfig)
     ir_model: StageModelConfig = Field(default_factory=StageModelConfig)
     ir_grammar: str = "dot_notation_ir"
 
 
 ModelConfig = Annotated[
-    OneStageIRModelConfig | TwoStageIRModelConfig,
+    OneStageModelConfig | TwoStageModelConfig,
     Field(discriminator="name"),
 ]
 

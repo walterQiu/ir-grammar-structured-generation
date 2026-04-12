@@ -3,18 +3,18 @@ dataset:
   name: rams
   data_dir: datasets/RAMS/data
   split: dev
-  max_samples: 5
+  max_samples: 6
 model:
-  name: two_stage_ir
+  name: two_stage
   extraction_model:
     backend: gemini
-    llm_name: gemini-2.5-flash-lite
+    llm_name: gemini-3-pro-preview
     api_key_env: GEMINI_API_KEY
     enable_sleep: true
     enable_retry: true
   ir_model:
     backend: gemini
-    llm_name: gemini-2.5-flash-lite
+    llm_name: gemini-3-pro-preview
     api_key_env: GEMINI_API_KEY
     enable_sleep: true
     enable_retry: true

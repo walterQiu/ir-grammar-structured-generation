@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 
-from ntust_thesis.core.config_models import OneStageIRModelConfig
+from ntust_thesis.core.config_models import OneStageModelConfig
 from ntust_thesis.core.interfaces import Model
 from ntust_thesis.core.registry import MODEL_REGISTRY
 from ntust_thesis.core.schemas import (
@@ -26,10 +26,10 @@ from ntust_thesis.utils.env import (
 )
 
 
-class OneStageIRModel(Model):
+class OneStageModel(Model):
     """One-stage model that outputs IR directly."""
 
-    def __init__(self, config: OneStageIRModelConfig) -> None:
+    def __init__(self, config: OneStageModelConfig) -> None:
         """Initialize one-stage IR model from config."""
         self._backend = config.backend
         dotenv_paths = [DEFAULT_DOTENV_PATH]
@@ -110,7 +110,7 @@ class OneStageIRModel(Model):
         self._ir_grammar = config.ir_grammar
         if self._ir_grammar not in {"json", "dot_notation_ir", "code4struct_ir"}:
             msg = (
-                "one_stage_ir only supports json, dot_notation_ir, or code4struct_ir. "
+                "one_stage only supports json, dot_notation_ir, or code4struct_ir. "
                 f"Got: {self._ir_grammar}"
             )
             raise ValueError(msg)
@@ -118,7 +118,7 @@ class OneStageIRModel(Model):
 
     def name(self) -> str:
         """Return model key."""
-        return "one_stage_ir"
+        return "one_stage"
 
     def predict(self, sample: Sample) -> Prediction:
         """Generate IR directly and compile to final JSON output."""
@@ -170,11 +170,11 @@ class OneStageIRModel(Model):
 
 
 def register() -> None:
-    """Register built-in one-stage IR model."""
-    MODEL_REGISTRY.register("one_stage_ir", _build_one_stage_ir_model)
+    """Register built-in one-stage model."""
+    MODEL_REGISTRY.register("one_stage", _build_one_stage_model)
 
 
-def _build_one_stage_ir_model(config: object) -> OneStageIRModel:
-    """Build one-stage IR model from boundary input."""
-    typed_config = OneStageIRModelConfig.model_validate(config)
-    return OneStageIRModel(config=typed_config)
+def _build_one_stage_model(config: object) -> OneStageModel:
+    """Build one-stage model from boundary input."""
+    typed_config = OneStageModelConfig.model_validate(config)
+    return OneStageModel(config=typed_config)
