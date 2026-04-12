@@ -12,6 +12,7 @@ from ntust_thesis.ir.dot_notation_ir import (
     DotNotationIRValidator,
     parse_dot_notation_ir,
 )
+from ntust_thesis.ir.json_ir import JsonIRValidator, parse_json_ir
 
 if TYPE_CHECKING:
     from ntust_thesis.ir.common import IRGrammarValidator, IRParser
@@ -19,6 +20,8 @@ if TYPE_CHECKING:
 
 def get_ir_grammar_validator(grammar_name: str) -> IRGrammarValidator:
     """Return validator instance for grammar name."""
+    if grammar_name == "json":
+        return JsonIRValidator()
     if grammar_name == "dot_notation_ir":
         return DotNotationIRValidator()
     if grammar_name == "code4struct_ir":
@@ -29,6 +32,8 @@ def get_ir_grammar_validator(grammar_name: str) -> IRGrammarValidator:
 
 def get_ir_grammar_parser(grammar_name: str) -> IRParser:
     """Return parser function for grammar name."""
+    if grammar_name == "json":
+        return parse_json_ir
     if grammar_name == "dot_notation_ir":
         return parse_dot_notation_ir
     if grammar_name == "code4struct_ir":

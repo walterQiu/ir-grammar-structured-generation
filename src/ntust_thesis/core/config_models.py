@@ -31,20 +31,6 @@ class StageModelConfig(BaseModel):
     enable_retry: bool = True
 
 
-class OneStageBaselineModelConfig(BaseModel):
-    """One-stage baseline model configuration."""
-
-    model_config = ConfigDict(extra="forbid")
-
-    name: Literal["one_stage_baseline"]
-    backend: Literal["gemini", "vllm"] = "gemini"
-    llm_name: str = "gemini-2.5-flash-lite"
-    api_key_env: str = "GEMINI_API_KEY"
-    api_base: str | None = None
-    enable_sleep: bool = False
-    enable_retry: bool = True
-
-
 class OneStageIRModelConfig(BaseModel):
     """One-stage IR model configuration."""
 
@@ -71,21 +57,8 @@ class TwoStageIRModelConfig(BaseModel):
     ir_grammar: str = "dot_notation_ir"
 
 
-class TwoStageBaselineModelConfig(BaseModel):
-    """Two-stage baseline: extraction text -> final JSON."""
-
-    model_config = ConfigDict(extra="forbid")
-
-    name: Literal["two_stage_baseline"]
-    extraction_model: StageModelConfig = Field(default_factory=StageModelConfig)
-    schema_model: StageModelConfig = Field(default_factory=StageModelConfig)
-
-
 ModelConfig = Annotated[
-    OneStageBaselineModelConfig
-    | OneStageIRModelConfig
-    | TwoStageIRModelConfig
-    | TwoStageBaselineModelConfig,
+    OneStageIRModelConfig | TwoStageIRModelConfig,
     Field(discriminator="name"),
 ]
 

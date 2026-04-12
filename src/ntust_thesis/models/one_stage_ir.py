@@ -13,9 +13,6 @@ from ntust_thesis.core.schemas import (
     PredictionMetadata,
     Sample,
 )
-from ntust_thesis.models.components.event_output_parser import (
-    parse_event_output_from_arguments_json,
-)
 from ntust_thesis.models.components.ir_compiler import DeterministicIRCompiler
 from ntust_thesis.models.llm.gemini_client import GeminiClient
 from ntust_thesis.models.llm.vllm_client import VllmChatCompletionsClient
@@ -111,15 +108,13 @@ class OneStageIRModel(Model):
             msg = f"Unsupported backend: {config.backend}"
             raise ValueError(msg)
         self._ir_grammar = config.ir_grammar
-        self._compiler: DeterministicIRCompiler | None = None
-        if self._ir_grammar in {"dot_notation_ir", "code4struct_ir"}:
-            self._compiler = DeterministicIRCompiler(ir_grammar=self._ir_grammar)
-        elif self._ir_grammar != "json":
+        if self._ir_grammar not in {"json", "dot_notation_ir", "code4struct_ir"}:
             msg = (
                 "one_stage_ir only supports json, dot_notation_ir, or code4struct_ir. "
                 f"Got: {self._ir_grammar}"
             )
             raise ValueError(msg)
+        self._compiler = DeterministicIRCompiler(ir_grammar=self._ir_grammar)
 
     def name(self) -> str:
         """Return model key."""
@@ -137,27 +132,18 @@ class OneStageIRModel(Model):
             system_prompt,
             user_prompt,
             self._temperature,
-            allow_empty=self._ir_grammar != "json",
+            allow_empty=True,
         )
 
         error_message: str | None = None
         compiled: EventOutput | None = None
-        if self._ir_grammar == "json":
-            compiled = parse_event_output_from_arguments_json(
-                raw_output=ir_text,
+        try:
+            compiled = self._compiler.compile(
+                ir_text=ir_text,
                 event_type=sample.metadata.event_type or "unknown.event",
             )
-        else:
-            if self._compiler is None:
-                msg = f"Compiler is not initialized for grammar: {self._ir_grammar}"
-                raise RuntimeError(msg)
-            try:
-                compiled = self._compiler.compile(
-                    ir_text=ir_text,
-                    event_type=sample.metadata.event_type or "unknown.event",
-                )
-            except Exception as exc:
-                error_message = str(exc)
+        except Exception as exc:
+            error_message = str(exc)
 
         if compiled is None:
             raw_output = ir_text

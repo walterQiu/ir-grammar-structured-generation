@@ -5,19 +5,20 @@ dataset:
   split: dev
   max_samples: 100
 model:
-  name: two_stage_baseline
+  name: two_stage_ir
   extraction_model:
     backend: gemini
     llm_name: gemini-3-pro-preview
     api_key_env: GEMINI_API_KEY
     enable_sleep: true
     enable_retry: true
-  schema_model:
+  ir_model:
     backend: vllm
     llm_name: mistralai/Mistral-7B-Instruct-v0.3
     api_base: http://140.118.155.118:8001/v1
     enable_sleep: false
     enable_retry: true
+  ir_grammar: json
 evaluation:
   metrics:
   - is_valid_json

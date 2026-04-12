@@ -5,12 +5,13 @@ dataset:
   split: dev
   max_samples: 100
 model:
-  name: one_stage_baseline
+  name: one_stage_ir
   backend: gemini
   llm_name: gemini-3-pro-preview
   api_key_env: GEMINI_API_KEY
   enable_sleep: true
   enable_retry: true
+  ir_grammar: json
 evaluation:
   metrics:
   - is_valid_json

@@ -5,19 +5,20 @@ dataset:
   split: dev
   max_samples: 100
 model:
-  name: two_stage_baseline
+  name: two_stage_ir
   extraction_model:
     backend: vllm
     llm_name: Qwen/Qwen2.5-7B-Instruct
     api_base: http://140.118.155.118:8000/v1
     enable_sleep: false
     enable_retry: true
-  schema_model:
+  ir_model:
     backend: gemini
     llm_name: gemini-2.5-flash-lite
     api_key_env: GEMINI_API_KEY
     enable_sleep: true
     enable_retry: true
+  ir_grammar: json
 evaluation:
   metrics:
   - is_valid_json
