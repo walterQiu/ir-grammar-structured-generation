@@ -14,7 +14,7 @@ from ntust_thesis.ir import (
 class DeterministicIRCompiler(Compiler):
     """Compile configured IR text into final JSON object."""
 
-    def __init__(self, ir_grammar: str = "dot_notation_ir") -> None:
+    def __init__(self, ir_grammar: str) -> None:
         """Initialize compiler with grammar validator."""
         self._ir_grammar = ir_grammar
         self._validator = get_ir_grammar_validator(ir_grammar)

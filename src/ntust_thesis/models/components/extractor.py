@@ -16,8 +16,8 @@ class Extractor:
     def extract(
         self,
         sentence: str,
-        event_type: str | None = None,
-        role_multiplicities: dict[str, int] | None = None,
+        event_type: str,
+        role_multiplicities: dict[str, int],
     ) -> str:
         """Return extraction stage output text."""
         raise NotImplementedError
@@ -34,8 +34,8 @@ class GeminiExtractor(Extractor):
     def extract(
         self,
         sentence: str,
-        event_type: str | None = None,
-        role_multiplicities: dict[str, int] | None = None,
+        event_type: str,
+        role_multiplicities: dict[str, int],
     ) -> str:
         """Ask Gemini to produce extraction notes."""
         system_prompt, user_prompt = build_two_stage_extraction_prompt(

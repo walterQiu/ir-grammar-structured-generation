@@ -16,8 +16,8 @@ class IRGenerator:
     def generate(
         self,
         extraction_text: str,
-        event_type: str | None = None,
-        role_multiplicities: dict[str, int] | None = None,
+        event_type: str,
+        role_multiplicities: dict[str, int],
     ) -> str:
         """Generate IR text from extraction text."""
         raise NotImplementedError
@@ -26,9 +26,7 @@ class IRGenerator:
 class GeminiIRGenerator(IRGenerator):
     """Gemini-based IR generation stage."""
 
-    def __init__(
-        self, llm: LLMClient, temperature: float, ir_grammar: str = "dot_notation_ir"
-    ) -> None:
+    def __init__(self, llm: LLMClient, temperature: float, ir_grammar: str) -> None:
         """Initialize IR generator with LLM backend."""
         self._llm = llm
         self._temperature = temperature
@@ -37,8 +35,8 @@ class GeminiIRGenerator(IRGenerator):
     def generate(
         self,
         extraction_text: str,
-        event_type: str | None = None,
-        role_multiplicities: dict[str, int] | None = None,
+        event_type: str,
+        role_multiplicities: dict[str, int],
     ) -> str:
         """Generate IR text for configured grammar."""
         system_prompt, user_prompt = build_two_stage_ir_prompt(

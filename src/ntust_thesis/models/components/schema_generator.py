@@ -16,7 +16,7 @@ class SchemaGenerator:
     def generate(
         self,
         extraction_text: str,
-        role_multiplicities: dict[str, int] | None = None,
+        role_multiplicities: dict[str, int],
     ) -> str:
         """Generate final JSON text from extraction notes."""
         raise NotImplementedError
@@ -33,7 +33,7 @@ class LLMSchemaGenerator(SchemaGenerator):
     def generate(
         self,
         extraction_text: str,
-        role_multiplicities: dict[str, int] | None = None,
+        role_multiplicities: dict[str, int],
     ) -> str:
         """Generate final JSON string from extraction text."""
         system_prompt, user_prompt = build_two_stage_json_prompt(

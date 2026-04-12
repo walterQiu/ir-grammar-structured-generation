@@ -43,7 +43,7 @@ class OneStageModelConfig(BaseModel):
     api_base: str | None = None
     enable_sleep: bool = False
     enable_retry: bool = True
-    ir_grammar: str = "dot_notation_ir"
+    ir_grammar: str
 
 
 class TwoStageModelConfig(BaseModel):
@@ -54,7 +54,7 @@ class TwoStageModelConfig(BaseModel):
     name: Literal["two_stage"]
     extraction_model: StageModelConfig = Field(default_factory=StageModelConfig)
     ir_model: StageModelConfig = Field(default_factory=StageModelConfig)
-    ir_grammar: str = "dot_notation_ir"
+    ir_grammar: str
 
 
 ModelConfig = Annotated[

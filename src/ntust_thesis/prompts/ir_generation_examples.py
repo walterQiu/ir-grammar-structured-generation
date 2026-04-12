@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 
-def build_one_stage_ir_in_context_examples(ir_grammar: str = "json") -> str:
+def build_one_stage_ir_in_context_examples(ir_grammar: str) -> str:
     """Return one-stage IR-generation ICL examples for the requested grammar."""
     if ir_grammar == "json":
         return _build_one_stage_json_icl_examples()
@@ -13,30 +13,15 @@ def build_one_stage_ir_in_context_examples(ir_grammar: str = "json") -> str:
 
 def _build_one_stage_json_icl_examples() -> str:
     """Return one-stage JSON in-context examples."""
-    return r"""Example 1:
-Event type (reference): life.die.n/a
-Allowed roles and multiplicities: victim=1, place=1
-Sentence: Three specific points illustrate why Americans see Trump as the problem : 1 ) Trump has trouble working with people beyond his base . In Saddam Hussein 's Iraq that might work when opponents can be thrown in jail or **exterminated** . In the United States that wo n't fly : presidents must build bridges within and beyond their core support to resolve challenges . Without alliances , a president ca n't get approval to get things done .
-Output:
-{"arguments":[{"role":"victim","span":"opponents"},{"role":"place","span":"Saddam Hussein's Iraq"}]}
+    return r"""
+Example 1:
 
-Example 2:
-Event type (reference): contact.collaborate.n/a
-Allowed roles and multiplicities: participant=2, place=1
-Sentence: Polar bears are not uncommon in the area , which is surrounded by pack ice in the winter , but the local population has more than doubled this year to around a dozen . And the stranded meteorologists have run out of the flares they use to scare off the beasts . " The bears live in the Arctic , you know — we can't ban them from hanging around , " station supervisor Vasily Shevchenko told NBC News by **telephone** from the northern city of Arkhangelsk . " Worst case , the station chief has a gun . " Some of the bears have taken to sleeping right outside the windows of the remote outpost , according to Russian news agency TASS , which spoke to some of the meteorologists via satellite phone .
-Output:
-{"arguments":[{"role":"participant","span":"station supervisor Vasily Shevchenko"},{"role":"participant","span":"NBC News"},{"role":"place","span":"the northern city of Arkhangelsk"}]}
+"extraction_text": "In the sentence, \"Protesters\" serves as the damagerdestroyer, and \"the offices of the holding company of Ukraine's richest man , Rinat Akhmetov\" is the artifact.",
 
-Example 3:
-Event type (reference): personnel.elect.winelection
-Allowed roles and multiplicities: voter=1, candidate=1, place=1
-Sentence: In addition to working alongside super - PACs , there 's the latest saga of two Democratic operatives losing their posts because of a leaked video . The Chicago Tribune explains the impact of this video in a piece titled Two local Democratic operatives lose jobs after video sting on voter fraud : Robert Creamer , husband of Rep. Jan Schakowsky , D - Ill . , and Scott Foval -- two little - known but influential Democratic political operatives -- have left their jobs after video investigations by James O'Keefe 's Project Veritas Action found them entertaining dark notions about how to **win elections** . Foval was laid off on Monday by Americans United for Change , where he had been national field director . Creamer announced Tuesday night that he was " stepping back " from the work he was doing for the unified Democratic campaign for Hillary Clinton .
-Output:
-{"arguments":[]}
 """
 
 
-def build_two_stage_ir_in_context_examples(ir_grammar: str = "dot_notation_ir") -> str:
+def build_two_stage_ir_in_context_examples(ir_grammar: str) -> str:
     """Return two-stage IR-generation ICL examples for the requested grammar."""
     if ir_grammar == "json":
         return _build_two_stage_json_icl_examples()

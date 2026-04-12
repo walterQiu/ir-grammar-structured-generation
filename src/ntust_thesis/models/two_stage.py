@@ -130,7 +130,7 @@ class TwoStageModel(Model):
         try:
             compiled = self._compiler.compile(
                 ir_text=ir_text,
-                event_type=sample.metadata.event_type or "unknown.event",
+                event_type=sample.metadata.event_type,
             )
         except Exception as exc:
             error_message = str(exc)

@@ -40,9 +40,9 @@ class SampleMetadata(BaseModel):
     model_config = ConfigDict(extra="allow")
     sentence_text: str | None = None
     marked_sentence: str | None = None
-    event_type: str | None = None
+    event_type: str
     candidate_roles: list[str] | None = None
-    role_multiplicities: dict[str, int] | None = None
+    role_multiplicities: dict[str, int]
 
 
 class PredictionMetadata(BaseModel):

@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 class IsValidIRMetric(Metric):
     """Rate of rows whose IR text conforms to target grammar."""
 
-    def __init__(self, ir_grammar: str = "dot_notation_ir") -> None:
+    def __init__(self, ir_grammar: str) -> None:
         """Initialize metric with target IR grammar."""
         self._validator = get_ir_grammar_validator(ir_grammar)
 

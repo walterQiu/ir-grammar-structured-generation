@@ -11,9 +11,9 @@ PromptPair = tuple[str, str]  # (system prompt, user_prompt)
 
 def build_one_stage_ir_prompt(
     sentence: str,
-    event_type: str | None,
-    role_multiplicities: dict[str, int] | None = None,
-    ir_grammar: str = "dot_notation_ir",
+    event_type: str,
+    ir_grammar: str,
+    role_multiplicities: dict[str, int],
 ) -> PromptPair:
     """Build one-stage structured-generation prompt by selected grammar."""
     if ir_grammar == "json":
@@ -40,8 +40,8 @@ def build_one_stage_ir_prompt(
 
 def build_one_stage_json_prompt(
     sentence: str,
-    event_type: str | None = None,
-    role_multiplicities: dict[str, int] | None = None,
+    event_type: str,
+    role_multiplicities: dict[str, int],
 ) -> PromptPair:
     """Build prompt for one-stage direct JSON generation."""
     event_line = f"Event type (reference): {event_type}\n" if event_type else ""
@@ -79,8 +79,8 @@ def build_one_stage_json_prompt(
 
 def build_one_stage_dot_notation_ir_prompt(
     sentence: str,
-    event_type: str | None = None,
-    role_multiplicities: dict[str, int] | None = None,
+    event_type: str,
+    role_multiplicities: dict[str, int],
 ) -> PromptPair:
     """Build one-stage prompt for direct dot-notation IR generation."""
     event_line = f"Event type (reference): {event_type}\n" if event_type else ""
@@ -117,8 +117,8 @@ def build_one_stage_dot_notation_ir_prompt(
 
 def build_one_stage_code4struct_ir_prompt(
     sentence: str,
-    event_type: str | None,
-    role_multiplicities: dict[str, int] | None = None,
+    event_type: str,
+    role_multiplicities: dict[str, int],
 ) -> PromptPair:
     """Build one-stage prompt for direct CODE4STRUCT-style IR generation."""
     event_class = _to_event_class_name(event_type)
@@ -163,8 +163,8 @@ def build_one_stage_code4struct_ir_prompt(
 
 def build_two_stage_extraction_prompt(
     sentence: str,
-    event_type: str | None = None,
-    role_multiplicities: dict[str, int] | None = None,
+    event_type: str,
+    role_multiplicities: dict[str, int],
 ) -> PromptPair:
     """Build prompt for two-stage extraction step."""
     event_line = f"Event type (reference): {event_type}\n" if event_type else ""
@@ -195,9 +195,9 @@ def build_two_stage_extraction_prompt(
 
 def build_two_stage_ir_prompt(
     extraction_text: str,
-    event_type: str | None,
-    role_multiplicities: dict[str, int] | None = None,
-    ir_grammar: str = "dot_notation_ir",
+    event_type: str,
+    ir_grammar: str,
+    role_multiplicities: dict[str, int],
 ) -> PromptPair:
     """Build two-stage structured-generation prompt by selected grammar."""
     if ir_grammar == "json":
@@ -222,7 +222,7 @@ def build_two_stage_ir_prompt(
 
 def build_two_stage_json_prompt(
     extraction_text: str,
-    role_multiplicities: dict[str, int] | None = None,
+    role_multiplicities: dict[str, int],
 ) -> PromptPair:
     """Build prompt for two-stage extraction->JSON generation."""
     multiplicity_line = ""
@@ -255,7 +255,7 @@ def build_two_stage_json_prompt(
 
 def build_two_stage_dot_notation_ir_prompt(
     extraction_text: str,
-    role_multiplicities: dict[str, int] | None = None,
+    role_multiplicities: dict[str, int],
 ) -> PromptPair:
     """Build two-stage prompt for dot-notation IR generation."""
     multiplicity_line = ""
@@ -289,8 +289,8 @@ def build_two_stage_dot_notation_ir_prompt(
 
 def build_two_stage_code4struct_ir_prompt(
     extraction_text: str,
-    event_type: str | None,
-    role_multiplicities: dict[str, int] | None = None,
+    event_type: str,
+    role_multiplicities: dict[str, int],
 ) -> PromptPair:
     """Build two-stage prompt for CODE4STRUCT-style IR generation."""
     event_class = _to_event_class_name(event_type)
@@ -365,7 +365,7 @@ def _build_code4struct_ontology_block(
     )
 
 
-def _to_event_class_name(event_type: str | None) -> str:
+def _to_event_class_name(event_type: str) -> str:
     """Convert full dot-delimited event_type into a Python class-like name."""
     if not event_type:
         return "TargetEvent"
