@@ -6,13 +6,15 @@ import re
 
 from ntust_thesis.ir.common import IRGrammarValidator, IRValidationResult
 
-_HEADER_RE = re.compile(r"^\s*[A-Za-z_]\w*\s*=\s*[A-Za-z_]\w*\s*\(\s*$")
+_INSTANCE_HEADER_RE = re.compile(r"^\s*[A-Za-z_]\w*\s*=\s*[A-Za-z_]\w*\s*\(\s*$")
+
 _ARG_LINE_WITH_COMMA_RE = re.compile(
     r"^\s*(?P<role>[A-Za-z_]\w*)\s*=\s*\[(?P<items>.*)\]\s*,\s*$"
 )
 _ARG_LINE_NO_COMMA_RE = re.compile(
     r"^\s*(?P<role>[A-Za-z_]\w*)\s*=\s*\[(?P<items>.*)\]\s*$"
 )
+
 _SPAN_ITEM_RE = re.compile(
     r"""
     Entity\s*\(\s*                       # required constructor Entity(
@@ -81,22 +83,22 @@ def _collect_non_empty_lines(ir_text: str) -> list[tuple[int, str]]:
 def _extract_validated_body_lines(
     non_empty_lines: list[tuple[int, str]],
 ) -> list[tuple[int, str]]:
-    """Validate full-instance or completion-only format and return body lines."""
+    """Validate completion-only format and return body lines."""
     first_line_no, first_line = non_empty_lines[0]
-    if _HEADER_RE.fullmatch(first_line) is not None:
-        body_lines = non_empty_lines[1:]
-        if not body_lines:
-            msg = (
-                f"line:{first_line_no}|Incomplete CODE4STRUCT instance: "
-                "expected at least a closing ')' after header."
-            )
-            raise ValueError(msg)
-        _validate_closing_line(body_lines[-1])
-        return body_lines
+    if _looks_like_instance_header(first_line):
+        msg = (
+            f"line:{first_line_no}|Do not output instance prefix "
+            "(e.g., '<var> = <EventClass>('). Output completion only."
+        )
+        raise ValueError(msg)
 
-    # Completion-only mode: allow outputs without "<var> = <EventClass>(" prefix.
     _validate_closing_line(non_empty_lines[-1])
     return non_empty_lines
+
+
+def _looks_like_instance_header(line: str) -> bool:
+    """Return whether line looks like '<var> = <EventClass>(' header."""
+    return _INSTANCE_HEADER_RE.fullmatch(line) is not None
 
 
 def _validate_closing_line(line_with_no: tuple[int, str]) -> None:
