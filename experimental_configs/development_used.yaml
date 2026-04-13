@@ -3,7 +3,7 @@ dataset:
   name: rams
   data_dir: datasets/RAMS/data
   split: dev
-  max_samples: 6
+  max_samples: 4
 model:
   name: two_stage
   extraction_model:
@@ -18,7 +18,7 @@ model:
     api_key_env: GEMINI_API_KEY
     enable_sleep: true
     enable_retry: true
-  ir_grammar: code4struct_ir
+  ir_grammar: json
 evaluation:
   metrics:
   - is_valid_ir

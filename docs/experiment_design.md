@@ -63,7 +63,7 @@
 - Pipeline: two-stage
 - IR：JSON / Dot-notation / CODE4STRUCT
 - 模型：Gemini 、 Mistral
-- 0-shot vs 3-shot
+- 0-shot vs 4-shot
 
 ### ICL examples 包含以下三種情境
 1. 每個 role 對應單一 span
@@ -80,7 +80,10 @@
 驗證 two-stage IR pipeline 在實務上是否具競爭力
 
 ## 比較
-1. One-stage JSON — Gemini 3.1 Pro  
+1. One-stage JSON
+    - Gemini 3.1 Pro  
+    - gpt-5.3-chat (未啟用)
+    - Claude Sonnet 4.6 (未啟用)
 2. Two-stage JSON — Gemini + Mistral  
 3. Two-stage best IR — Gemini + Mistral  
 4. Two-stage best IR — Mistral + Mistral (可選，但效果應該會很差)
