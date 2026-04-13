@@ -1,48 +1,7 @@
 experiments:
-  # one-stage-json (single model)
-  - experimental_configs/one-stage-json_mistral_rams.yaml
-  - experimental_configs/one-stage-json_qwen_rams.yaml
-  - experimental_configs/one-stage-json_gemini2_rams.yaml
-  - experimental_configs/one-stage-json_gemini3_rams.yaml
-
-  # one-stage-dot-notation (single model)
-  - experimental_configs/one-stage-dot-notation_mistral_rams.yaml
-  - experimental_configs/one-stage-dot-notation_qwen_rams.yaml
-  - experimental_configs/one-stage-dot-notation_gemini2_rams.yaml
-  - experimental_configs/one-stage-dot-notation_gemini3_rams.yaml
-
-  # two-stage-json (extraction_model + ir_model)
-  - experimental_configs/two-stage-json_mistral_mistral_rams.yaml
-  - experimental_configs/two-stage-json_mistral_qwen_rams.yaml
-  - experimental_configs/two-stage-json_mistral_gemini2_rams.yaml
-  - experimental_configs/two-stage-json_mistral_gemini3_rams.yaml
-  - experimental_configs/two-stage-json_qwen_mistral_rams.yaml
-  - experimental_configs/two-stage-json_qwen_qwen_rams.yaml
-  - experimental_configs/two-stage-json_qwen_gemini2_rams.yaml
-  - experimental_configs/two-stage-json_qwen_gemini3_rams.yaml
-  - experimental_configs/two-stage-json_gemini2_mistral_rams.yaml
-  - experimental_configs/two-stage-json_gemini2_qwen_rams.yaml
-  - experimental_configs/two-stage-json_gemini2_gemini2_rams.yaml
-  - experimental_configs/two-stage-json_gemini2_gemini3_rams.yaml
-  - experimental_configs/two-stage-json_gemini3_mistral_rams.yaml
-  - experimental_configs/two-stage-json_gemini3_qwen_rams.yaml
-  - experimental_configs/two-stage-json_gemini3_gemini2_rams.yaml
-  - experimental_configs/two-stage-json_gemini3_gemini3_rams.yaml
-
-  # two-stage-dot-notation (extraction_model + ir_model)
-  - experimental_configs/two-stage-dot-notation_mistral_mistral_rams.yaml
-  - experimental_configs/two-stage-dot-notation_mistral_qwen_rams.yaml
-  - experimental_configs/two-stage-dot-notation_mistral_gemini2_rams.yaml
-  - experimental_configs/two-stage-dot-notation_mistral_gemini3_rams.yaml
-  - experimental_configs/two-stage-dot-notation_qwen_mistral_rams.yaml
-  - experimental_configs/two-stage-dot-notation_qwen_qwen_rams.yaml
-  - experimental_configs/two-stage-dot-notation_qwen_gemini2_rams.yaml
-  - experimental_configs/two-stage-dot-notation_qwen_gemini3_rams.yaml
-  - experimental_configs/two-stage-dot-notation_gemini2_mistral_rams.yaml
-  - experimental_configs/two-stage-dot-notation_gemini2_qwen_rams.yaml
-  - experimental_configs/two-stage-dot-notation_gemini2_gemini2_rams.yaml
-  - experimental_configs/two-stage-dot-notation_gemini2_gemini3_rams.yaml
-  - experimental_configs/two-stage-dot-notation_gemini3_mistral_rams.yaml
-  - experimental_configs/two-stage-dot-notation_gemini3_qwen_rams.yaml
-  - experimental_configs/two-stage-dot-notation_gemini3_gemini2_rams.yaml
-  - experimental_configs/two-stage-dot-notation_gemini3_gemini3_rams.yaml
+  - experimental_configs/M1_json_gemini3.yaml
+  - experimental_configs/M1_json_mistral.yaml
+  - experimental_configs/M1_dot-notation_gemini3.yaml
+  - experimental_configs/M1_dot-notation_mistral.yaml
+  - experimental_configs/M1_code4struct_gemini3.yaml
+  - experimental_configs/M1_code4struct_mistral.yaml

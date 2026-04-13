@@ -1,9 +1,8 @@
-experiment_name: two-stage-dot-notation_gemini3_gemini2_rams
+experiment_name: M1_dot-notation_gemini3
 dataset:
   name: rams
   data_dir: datasets/RAMS/data
-  split: dev
-  max_samples: 100
+  split: test
 model:
   name: two_stage
   extraction_model:
@@ -14,7 +13,7 @@ model:
     enable_retry: true
   ir_model:
     backend: gemini
-    llm_name: gemini-2.5-flash-lite
+    llm_name: gemini-3-pro-preview
     api_key_env: GEMINI_API_KEY
     enable_sleep: true
     enable_retry: true

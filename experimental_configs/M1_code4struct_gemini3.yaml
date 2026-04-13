@@ -1,9 +1,8 @@
-experiment_name: two-stage-dot-notation_gemini3_gemini3_rams
+experiment_name: M1_code4struct_gemini3
 dataset:
   name: rams
   data_dir: datasets/RAMS/data
-  split: dev
-  max_samples: 100
+  split: test
 model:
   name: two_stage
   extraction_model:
@@ -18,7 +17,7 @@ model:
     api_key_env: GEMINI_API_KEY
     enable_sleep: true
     enable_retry: true
-  ir_grammar: dot_notation_ir
+  ir_grammar: code4struct_ir
 evaluation:
   metrics:
   - is_valid_ir
