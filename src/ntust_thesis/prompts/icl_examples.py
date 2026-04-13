@@ -7,6 +7,10 @@ def build_one_stage_ir_in_context_examples(ir_grammar: str) -> str:
     """Return one-stage IR-generation ICL examples for the requested grammar."""
     if ir_grammar == "json":
         return _build_one_stage_json_icl_examples()
+    if ir_grammar == "dot_notation_ir":
+        return _build_one_stage_dot_notation_icl_examples()
+    if ir_grammar == "code4struct_ir":
+        return _build_one_stage_code4struct_icl_examples()
     msg = f"Unsupported one-stage IR grammar for ICL examples: {ir_grammar}"
     raise ValueError(msg)
 
@@ -14,11 +18,294 @@ def build_one_stage_ir_in_context_examples(ir_grammar: str) -> str:
 def _build_one_stage_json_icl_examples() -> str:
     """Return one-stage JSON in-context examples."""
     return r"""
-Example 1:
+In-context Examples
 
-"extraction_text": "In the sentence, \"Protesters\" serves as the damagerdestroyer, and \"the offices of the holding company of Ukraine's richest man , Rinat Akhmetov\" is the artifact.",
+Example 1
+
+[Input]
+
+Event type (reference): artifactexistence.damagedestroy.n/a
+Allowed roles and multiplicities: damagerdestroyer=1, artifact=1, instrument=1, place=1
+Sentence: damagerdestroyer is Protesters ; artifact is the offices of the holding company of Ukraine 's richest man , Rinat Akhmetov .
+
+[Output]
+
+{"arguments":[
+  {"role":"damagerdestroyer","span":"Protesters"},
+  {"role":"artifact","span":"the offices of the holding company of Ukraine 's richest man , Rinat Akhmetov"}
+]}
+
+---
+
+Example 2
+
+[Input]
+
+Event type (reference): contact.collaborate.correspondence
+Allowed roles and multiplicities: participant=2, place=1
+Sentence: participant is campaign .
+
+[Output]
+
+{"arguments":[
+  {"role":"participant","span":"campaign"}
+]}
+
+---
+
+Example 3
+
+[Input]
+
+Event type (reference): contact.discussion.n/a
+Allowed roles and multiplicities: participant=2, place=1
+Sentence: participant is Hillary ; participant is Alinsky .
+
+[Output]
+
+{"arguments":[
+  {"role":"participant","span":"Hillary"},
+  {"role":"participant","span":"Alinsky"}
+]}
+
+---
+
+Example 4
+
+[Input]
+
+Event type (reference): conflict.demonstrate.n/a
+Allowed roles and multiplicities: demonstrator=1, place=1
+Sentence: no valid role-span pairs are present .
+
+[Output]
+
+{"arguments":[]}
 
 """
+
+
+def _build_one_stage_dot_notation_icl_examples() -> str:
+    """Return one-stage dot-notation in-context examples."""
+    return r"""
+In-context Examples
+
+Example 1
+
+[Input]
+
+Event type (reference): artifactexistence.damagedestroy.n/a
+Allowed roles and multiplicities: damagerdestroyer=1, artifact=1, instrument=1, place=1
+Sentence: damagerdestroyer is Protesters ; artifact is the offices of the holding company of Ukraine 's richest man , Rinat Akhmetov .
+
+[Output]
+
+arguments.damagerdestroyer += Protesters
+arguments.artifact += the offices of the holding company of Ukraine 's richest man , Rinat Akhmetov
+
+---
+
+Example 2
+
+[Input]
+
+Event type (reference): contact.collaborate.correspondence
+Allowed roles and multiplicities: participant=2, place=1
+Sentence: participant is campaign .
+
+[Output]
+
+arguments.participant += campaign
+
+---
+
+Example 3
+
+[Input]
+
+Event type (reference): contact.discussion.n/a
+Allowed roles and multiplicities: participant=2, place=1
+Sentence: participant is Hillary ; participant is Alinsky .
+
+[Output]
+
+arguments.participant += Hillary
+arguments.participant += Alinsky
+
+---
+
+Example 4
+
+[Input]
+
+Event type (reference): conflict.demonstrate.n/a
+Allowed roles and multiplicities: demonstrator=1, place=1
+Sentence: no valid role-span pairs are present .
+
+[Output]
+
+"""
+
+
+def _build_one_stage_code4struct_icl_examples() -> str:
+    """Return one-stage CODE4STRUCT in-context examples."""
+    return r'''
+In-context Examples
+
+Example 1
+
+[Input]
+
+from typing import List
+
+class Entity:
+    def __init__(self, name: str):
+        self.name = name
+
+class Event:
+    def __init__(self, name: str):
+        self.name = name
+
+class ArtifactexistenceDamagedestroyNa(Event):
+    def __init__(
+        self,
+        damagerdestroyer: List[Entity] = [],
+        artifact: List[Entity] = [],
+        instrument: List[Entity] = [],
+        place: List[Entity] = [],
+    ):
+        self.damagerdestroyer = damagerdestroyer
+        self.artifact = artifact
+        self.instrument = instrument
+        self.place = place
+
+"""
+Argument value limits: damagerdestroyer=1, artifact=1, instrument=1, place=1
+Convert the following sentence into an instance of ArtifactexistenceDamagedestroyNa.
+"damagerdestroyer is Protesters ; artifact is the offices of the holding company of Ukraine 's richest man , Rinat Akhmetov ."
+"""
+artifactexistencedamagedestroyna_event = ArtifactexistenceDamagedestroyNa(
+
+[Output]
+
+damagerdestroyer=[Entity("Protesters"),],
+artifact=[Entity("the offices of the holding company of Ukraine 's richest man , Rinat Akhmetov"),],
+)
+
+---
+
+Example 2
+
+[Input]
+
+from typing import List
+
+class Entity:
+    def __init__(self, name: str):
+        self.name = name
+
+class Event:
+    def __init__(self, name: str):
+        self.name = name
+
+class ContactCollaborateCorrespondence(Event):
+    def __init__(
+        self,
+        participant: List[Entity] = [],
+        place: List[Entity] = [],
+    ):
+        self.participant = participant
+        self.place = place
+
+"""
+Argument value limits: participant=2, place=1
+Convert the following sentence into an instance of ContactCollaborateCorrespondence.
+"participant is campaign ."
+"""
+contactcollaboratecorrespondence_event = ContactCollaborateCorrespondence(
+
+[Output]
+
+participant=[Entity("campaign"),],
+)
+
+---
+
+Example 3
+
+[Input]
+
+from typing import List
+
+class Entity:
+    def __init__(self, name: str):
+        self.name = name
+
+class Event:
+    def __init__(self, name: str):
+        self.name = name
+
+class ContactDiscussionNa(Event):
+    def __init__(
+        self,
+        participant: List[Entity] = [],
+        place: List[Entity] = [],
+    ):
+        self.participant = participant
+        self.place = place
+
+"""
+Argument value limits: participant=2, place=1
+Convert the following sentence into an instance of ContactDiscussionNa.
+"participant is Hillary ; participant is Alinsky ."
+"""
+contactdiscussionna_event = ContactDiscussionNa(
+
+[Output]
+
+participant=[
+    Entity("Hillary"),
+    Entity("Alinsky"),
+],
+)
+
+---
+
+Example 4
+
+[Input]
+
+from typing import List
+
+class Entity:
+    def __init__(self, name: str):
+        self.name = name
+
+class Event:
+    def __init__(self, name: str):
+        self.name = name
+
+class ConflictDemonstrateNa(Event):
+    def __init__(
+        self,
+        demonstrator: List[Entity] = [],
+        place: List[Entity] = [],
+    ):
+        self.demonstrator = demonstrator
+        self.place = place
+
+"""
+Argument value limits: demonstrator=1, place=1
+Convert the following sentence into an instance of ConflictDemonstrateNa.
+"no valid role-span pairs are present ."
+"""
+conflictdemonstratena_event = ConflictDemonstrateNa(
+
+[Output]
+
+)
+
+'''
 
 
 def build_two_stage_ir_in_context_examples(ir_grammar: str) -> str:
@@ -35,89 +322,145 @@ def build_two_stage_ir_in_context_examples(ir_grammar: str) -> str:
 
 def _build_two_stage_json_icl_examples() -> str:
     """Return two-stage JSON-generation in-context learning examples."""
-    return r"""Example 1:
-Allowed roles and multiplicities: victim=1, place=1
+    return r"""
+In-context Examples
+
+Example 1
+
+[Input]
+
+Allowed roles and multiplicities: damagerdestroyer=1, artifact=1, instrument=1, place=1
 Extraction notes:
-The trigger word is "exterminated". This event type is life.die.n/a, and the candidate roles are victim and place.
+In the sentence, "Protesters" serves as the damagerdestroyer, and "the offices of the holding company of Ukraine 's richest man , Rinat Akhmetov" is the artifact that was vandalized.
 
-The sentence states "In Saddam Hussein's Iraq that might work when opponents can be thrown in jail or exterminated." The word "exterminated" refers to the act of killing. The most likely victims of this extermination are "opponents". Therefore, "opponents" is the victim. The place where this extermination might occur is "Saddam Hussein's Iraq". Therefore, "Saddam Hussein's Iraq" is the place.
-Output:
-{"arguments":[{"role":"victim","span":"opponents"},{"role":"place","span":"Saddam Hussein's Iraq"}]}
+[Output]
 
-Example 2:
+{"arguments":[
+  {"role":"damagerdestroyer","span":"Protesters"},
+  {"role":"artifact","span":"the offices of the holding company of Ukraine 's richest man , Rinat Akhmetov"}
+]}
+
+---
+
+Example 2
+
+[Input]
+
 Allowed roles and multiplicities: participant=2, place=1
 Extraction notes:
-The trigger word is "telephone". The event type is contact.collaborate.n/a. The candidate roles are participant and place.
+The sentence indicates that the "campaign" is a participant in the correspondence.
 
-The sentence states: "station supervisor Vasily Shevchenko told NBC News by telephone from the northern city of Arkhangelsk."
+[Output]
 
-The trigger word is "telephone", which refers to a method of communication.
+{"arguments":[
+  {"role":"participant","span":"campaign"}
+]}
 
-The first participant in this communication is "station supervisor Vasily Shevchenko". This is the person initiating the communication. The second participant is "NBC News". This is the entity receiving the communication.
+---
 
-The place where the communication is originating from is "the northern city of Arkhangelsk".
-Output:
-{"arguments":[{"role":"participant","span":"station supervisor Vasily Shevchenko"},{"role":"participant","span":"NBC News"},{"role":"place","span":"the northern city of Arkhangelsk"}]}
+Example 3
 
-Example 3:
-Allowed roles and multiplicities: voter=1, candidate=1, place=1
+[Input]
+
+Allowed roles and multiplicities: participant=2, place=1
 Extraction notes:
-The trigger word is "win elections". This event is about winning elections.
+In the sentence, the participants involved in the meeting are Hillary and Alinsky.
 
-The sentence mentions "two Democratic operatives losing their posts because of a leaked video". This is background information and not directly related to the act of winning elections. The sentence then discusses "Robert Creamer" and "Scott Foval" leaving their jobs after video investigations. This is also background information about why they left their jobs, not about the act of winning elections itself. The sentence states that the video investigations "found them entertaining dark notions about how to win elections". This phrase directly describes the actions of the operatives in relation to winning elections. The sentence does not explicitly mention who the voters are in this context, nor does it specify a particular place where the elections are being won.
+[Output]
 
-Therefore, given the candidate roles (voter, candidate, place), there are no explicit mentions of a voter, a candidate, or a place in relation to the act of "win elections". No arguments can be identified for this event based on the provided sentence and candidate roles.
-Output:
+{"arguments":[
+  {"role":"participant","span":"Hillary"},
+  {"role":"participant","span":"Alinsky"}
+]}
+
+---
+
+Example 4
+
+[Input]
+
+Allowed roles and multiplicities: demonstrator=1, place=1
+Extraction notes:
+The sentence does not explicitly provide any information about the demonstrator or the place related to the protest. Therefore, there are no arguments to identify for the allowed roles.
+
+[Output]
+
 {"arguments":[]}
+
 """
 
 
 def _build_two_stage_dot_notation_icl_examples() -> str:
     """Return two-stage dot-notation IR in-context examples."""
-    return r"""# In-context Examples
-Example 1:
-Allowed roles and multiplicities: victim=1, place=1
+    return r"""
+In-context Examples
+
+Example 1
+
+[Input]
+
+Allowed roles and multiplicities: damagerdestroyer=1, artifact=1, instrument=1, place=1
 Extraction notes:
-The trigger word is "exterminated". This event type is life.die.n/a, and the candidate roles are victim and place.
+In the sentence, "Protesters" serves as the damagerdestroyer, and "the offices of the holding company of Ukraine 's richest man , Rinat Akhmetov" is the artifact that was vandalized.
 
-The sentence states "In Saddam Hussein's Iraq that might work when opponents can be thrown in jail or exterminated." The word "exterminated" refers to the act of killing. The most likely victims of this extermination are "opponents". Therefore, "opponents" is the victim. The place where this extermination might occur is "Saddam Hussein's Iraq". Therefore, "Saddam Hussein's Iraq" is the place.
-Output:
-arguments.victim += opponents
-arguments.place += Saddam Hussein's Iraq
+[Output]
 
-Example 2:
+arguments.damagerdestroyer += Protesters
+arguments.artifact += the offices of the holding company of Ukraine 's richest man , Rinat Akhmetov
+
+---
+
+Example 2
+
+[Input]
+
 Allowed roles and multiplicities: participant=2, place=1
 Extraction notes:
-The trigger word is "telephone". The event type is contact.collaborate.n/a. The candidate roles are participant and place.
+The sentence indicates that the "campaign" is a participant in the correspondence.
 
-The sentence states: "station supervisor Vasily Shevchenko told NBC News by telephone from the northern city of Arkhangelsk."
+[Output]
 
-The trigger word is "telephone", which refers to a method of communication.
+arguments.participant += campaign
 
-The first participant in this communication is "station supervisor Vasily Shevchenko". This is the person initiating the communication. The second participant is "NBC News". This is the entity receiving the communication.
+---
 
-The place where the communication is originating from is "the northern city of Arkhangelsk".
-Output:
-arguments.participant += station supervisor Vasily Shevchenko
-arguments.participant += NBC News
-arguments.place += the northern city of Arkhangelsk
+Example 3
 
-Example 3:
-Allowed roles and multiplicities: voter=1, candidate=1, place=1
+[Input]
+
+Allowed roles and multiplicities: participant=2, place=1
 Extraction notes:
-The trigger word is "win elections". This event is about winning elections.
+In the sentence, the participants involved in the meeting are Hillary and Alinsky.
 
-The sentence mentions "two Democratic operatives losing their posts because of a leaked video". This is background information and not directly related to the act of winning elections. The sentence then discusses "Robert Creamer" and "Scott Foval" leaving their jobs after video investigations. This is also background information about why they left their jobs, not about the act of winning elections itself. The sentence states that the video investigations "found them entertaining dark notions about how to win elections". This phrase directly describes the actions of the operatives in relation to winning elections. The sentence does not explicitly mention who the voters are in this context, nor does it specify a particular place where the elections are being won.
+[Output]
 
-Therefore, given the candidate roles (voter, candidate, place), there are no explicit mentions of a voter, a candidate, or a place in relation to the act of "win elections". No arguments can be identified for this event based on the provided sentence and candidate roles.
-Output:
+arguments.participant += Hillary
+arguments.participant += Alinsky
+
+---
+
+Example 4
+
+[Input]
+
+Allowed roles and multiplicities: demonstrator=1, place=1
+Extraction notes:
+The sentence does not explicitly provide any information about the demonstrator or the place related to the protest. Therefore, there are no arguments to identify for the allowed roles.
+
+[Output]
+
 """
 
 
 def _build_two_stage_code4struct_icl_examples() -> str:
     """Return two-stage CODE4STRUCT in-context learning examples."""
-    return r'''# In-context Examples
-# Example 1
+    return r'''
+In-context Examples
+
+Example 1
+
+[Input]
+
 from typing import List
 
 class Entity:
@@ -125,31 +468,41 @@ class Entity:
         self.name = name
 
 class Event:
-    def __init__(self, name: str = ""):
+    def __init__(self, name: str):
         self.name = name
 
-class LifeDieNa(Event):
+class ConflictAttackDamage(Event):
     def __init__(
         self,
-        victim: List[Entity] = [],
+        damagerdestroyer: List[Entity] = [],
+        artifact: List[Entity] = [],
+        instrument: List[Entity] = [],
         place: List[Entity] = [],
     ):
-        self.victim = victim
+        self.damagerdestroyer = damagerdestroyer
+        self.artifact = artifact
+        self.instrument = instrument
         self.place = place
 
-Allowed roles and multiplicities: victim=1, place=1
 """
-Convert the following extraction notes into an instance of LifeDieNa.
-The trigger word is "exterminated". This event type is life.die.n/a, and the candidate roles are victim and place.
+Argument value limits: damagerdestroyer=1, artifact=1, instrument=1, place=1
+Convert the following extraction notes into an instance of ConflictAttackDamage.
+"In the sentence, "Protesters" serves as the damagerdestroyer, and "the offices of the holding company of Ukraine 's richest man , Rinat Akhmetov" is the artifact that was vandalized."
+"""
+conflictattackdamage_event = ConflictAttackDamage(
 
-The sentence states "In Saddam Hussein's Iraq that might work when opponents can be thrown in jail or exterminated." The word "exterminated" refers to the act of killing. The most likely victims of this extermination are "opponents". Therefore, "opponents" is the victim. The place where this extermination might occur is "Saddam Hussein's Iraq". Therefore, "Saddam Hussein's Iraq" is the place.
-"""
-lifediena_event = LifeDieNa(
-    victim=[Entity("opponents"),],
-    place=[Entity("Saddam Hussein's Iraq"),],
+[Output]
+
+damagerdestroyer=[Entity("Protesters"),],
+artifact=[Entity("the offices of the holding company of Ukraine 's richest man , Rinat Akhmetov"),],
 )
 
-# Example 2
+---
+
+Example 2
+
+[Input]
+
 from typing import List
 
 class Entity:
@@ -157,10 +510,10 @@ class Entity:
         self.name = name
 
 class Event:
-    def __init__(self, name: str = ""):
+    def __init__(self, name: str):
         self.name = name
 
-class ContactCollaborateNa(Event):
+class ContactCorrespondence(Event):
     def __init__(
         self,
         participant: List[Entity] = [],
@@ -169,28 +522,24 @@ class ContactCollaborateNa(Event):
         self.participant = participant
         self.place = place
 
-Allowed roles and multiplicities: participant=2, place=1
 """
-Convert the following extraction notes into an instance of ContactCollaborateNa.
-The trigger word is "telephone". The event type is contact.collaborate.n/a. The candidate roles are participant and place.
-
-The sentence states: "station supervisor Vasily Shevchenko told NBC News by telephone from the northern city of Arkhangelsk."
-
-The trigger word is "telephone", which refers to a method of communication.
-
-The first participant in this communication is "station supervisor Vasily Shevchenko". This is the person initiating the communication. The second participant is "NBC News". This is the entity receiving the communication.
-
-The place where the communication is originating from is "the northern city of Arkhangelsk".
+Argument value limits: participant=2, place=1
+Convert the following extraction notes into an instance of ContactCorrespondence.
+"The sentence indicates that the "campaign" is a participant in the correspondence."
 """
-contactcollaboratena_event = ContactCollaborateNa(
-    participant=[
-        Entity("station supervisor Vasily Shevchenko"),
-        Entity("NBC News"),
-    ],
-    place=[Entity("the northern city of Arkhangelsk"),],
+contactcorrespondence_event = ContactCorrespondence(
+
+[Output]
+
+participant=[Entity("campaign"),],
 )
 
-# Example 3
+---
+
+Example 3
+
+[Input]
+
 from typing import List
 
 class Entity:
@@ -198,28 +547,68 @@ class Entity:
         self.name = name
 
 class Event:
-    def __init__(self, name: str = ""):
+    def __init__(self, name: str):
         self.name = name
 
-class PersonnelElectWinelection(Event):
+class ContactMeet(Event):
     def __init__(
         self,
-        voter: List[Entity] = [],
-        candidate: List[Entity] = [],
+        participant: List[Entity] = [],
         place: List[Entity] = [],
     ):
-        self.voter = voter
-        self.candidate = candidate
+        self.participant = participant
         self.place = place
 
-Allowed roles and multiplicities: voter=1, candidate=1, place=1
 """
-Convert the following extraction notes into an instance of PersonnelElectWinelection.
-The trigger word is "win elections". This event is about winning elections.
-
-The sentence mentions "two Democratic operatives losing their posts because of a leaked video". This is background information and not directly related to the act of winning elections. The sentence then discusses "Robert Creamer" and "Scott Foval" leaving their jobs after video investigations. This is also background information about why they left their jobs, not about the act of winning elections itself. The sentence states that the video investigations "found them entertaining dark notions about how to win elections". This phrase directly describes the actions of the operatives in relation to winning elections. The sentence does not explicitly mention who the voters are in this context, nor does it specify a particular place where the elections are being won.
-
-Therefore, given the candidate roles (voter, candidate, place), there are no explicit mentions of a voter, a candidate, or a place in relation to the act of "win elections". No arguments can be identified for this event based on the provided sentence and candidate roles.
+Argument value limits: participant=2, place=1
+Convert the following extraction notes into an instance of ContactMeet.
+"In the sentence, the participants involved in the meeting are Hillary and Alinsky."
 """
-personnelelectwinelection_event = PersonnelElectWinelection()
+contactmeet_event = ContactMeet(
+
+[Output]
+
+participant=[
+    Entity("Hillary"),
+    Entity("Alinsky"),
+],
+)
+
+---
+
+Example 4
+
+[Input]
+
+from typing import List
+
+class Entity:
+    def __init__(self, name: str):
+        self.name = name
+
+class Event:
+    def __init__(self, name: str):
+        self.name = name
+
+class ConflictDemonstrateMarchprotestpoliticalgathering(Event):
+    def __init__(
+        self,
+        demonstrator: List[Entity] = [],
+        place: List[Entity] = [],
+    ):
+        self.demonstrator = demonstrator
+        self.place = place
+
+"""
+Argument value limits: demonstrator=1, place=1
+Convert the following extraction notes into an instance of ConflictDemonstrateMarchprotestpoliticalgathering.
+"The sentence does not explicitly provide any information about the demonstrator or the place related to the protest. Therefore, there are no arguments to identify for the allowed roles."
+"""
+conflictdemonstratemarchprotestpoliticalgathering_event = ConflictDemonstrateMarchprotestpoliticalgathering(
+
+[Output]
+
+)
+
+
 '''

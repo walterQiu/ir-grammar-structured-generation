@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from ntust_thesis.prompts.icl_examples import (
+    build_one_stage_ir_in_context_examples,
     build_two_stage_ir_in_context_examples,
 )
 
@@ -52,7 +53,7 @@ def build_one_stage_json_prompt(
         )
         multiplicity_line = f"Allowed roles and multiplicities: {pairs}\n"
 
-    # in_context_examples = build_one_stage_ir_in_context_examples(ir_grammar="json")
+    in_context_examples = build_one_stage_ir_in_context_examples(ir_grammar="json")
 
     system_prompt = (
         "Generate JSON event arguments from the given sentence.\n"
@@ -61,16 +62,16 @@ def build_one_stage_json_prompt(
         '{"arguments":[{"role":"<role>","span":"<span>"}]}\n'
         "\n"
         "Requirements:\n"
-        "- Each object in arguments assigns one argument value to one role.\n"
         "- Use only roles listed in 'Allowed roles and multiplicities'.\n"
-        "- Use the event type and role multiplicities only as references for deciding validity.\n"
-        "- Use only text explicitly supported by the sentence.\n"
+        "- In 'Allowed roles and multiplicities', the number for each role indicates the maximum number of spans that can be included for that role.\n"
+        "- Do not include more spans than the allowed number for each role.\n"
+        "- Each object in arguments assigns one argument value to one role.\n"
+        "- Describe only arguments that are supported by the sentence.\n"
         "- Do not invent arguments or infer additional information beyond the sentence.\n"
         "- Copy text exactly from the sentence. Do not modify, paraphrase, or re-segment it.\n"
-        "- If a role is included, respect the allowed multiplicity for that role.\n"
         "- Output only the JSON object. Do not include explanations or extra text.\n"
         "\n"
-        # f"{in_context_examples}\n"
+        f"{in_context_examples}\n"
     )
 
     user_prompt = f"{event_line}{multiplicity_line}Sentence: {sentence}\n"
@@ -90,9 +91,9 @@ def build_one_stage_dot_notation_ir_prompt(
             f"{role}={count}" for role, count in role_multiplicities.items()
         )
         multiplicity_line = f"Allowed roles and multiplicities: {pairs}\n"
-    # in_context_examples = build_two_stage_ir_in_context_examples(
-    #     ir_grammar="dot_notation_ir"
-    # )
+    in_context_examples = build_one_stage_ir_in_context_examples(
+        ir_grammar="dot_notation_ir"
+    )
     system_prompt = (
         "Generate dot-notation IR from the given sentence.\n"
         "The trigger word(s) of the event is marked with **trigger word**.\n"
@@ -100,16 +101,16 @@ def build_one_stage_dot_notation_ir_prompt(
         "arguments.<role> += <span>\n"
         "\n"
         "Requirements:\n"
-        "- Each output line assigns one argument value to one role.\n"
         "- Use only roles listed in 'Allowed roles and multiplicities'.\n"
-        "- Use the event type and role multiplicities only as references for deciding validity.\n"
-        "- Use only text explicitly supported by the sentence.\n"
+        "- In 'Allowed roles and multiplicities', the number for each role indicates the maximum number of spans that can be included for that role.\n"
+        "- Do not include more spans than the allowed number for each role.\n"
+        "- Each output line assigns one argument value to one role.\n"
+        "- Describe only arguments that are supported by the sentence.\n"
         "- Do not invent arguments or infer additional information beyond the sentence.\n"
         "- Copy text exactly from the sentence. Do not modify, paraphrase, or re-segment it.\n"
-        "- If a role is included, respect the allowed multiplicity for that role.\n"
         "- Output only the IR lines. Do not include explanations or extra text.\n"
         "\n"
-        # f"{in_context_examples}\n"
+        f"{in_context_examples}\n"
     )
     user_prompt = f"{event_line}{multiplicity_line}Sentence: {sentence}\n"
     return system_prompt, user_prompt
@@ -135,10 +136,14 @@ def build_one_stage_code4struct_ir_prompt(
 
     task_block = (
         '"""\n'
+        f"{multiplicity_line}"
         f"Convert the following sentence into an instance of {event_class}.\n"
         f'"{sentence}"\n'
         '"""\n'
         f"{event_class.lower()}_event = {event_class}(\n"
+    )
+    in_context_examples = build_one_stage_ir_in_context_examples(
+        ir_grammar="code4struct_ir"
     )
 
     system_prompt = (
@@ -147,17 +152,16 @@ def build_one_stage_code4struct_ir_prompt(
         "\n"
         "Requirements:\n"
         "- Each argument corresponds to a field in the constructor.\n"
-        "- Use the event type and argument value limits only as references for deciding validity.\n"
-        "- Assign values to arguments using only text explicitly supported by the sentence.\n"
+        "- In 'Argument value limits', the number for each argument indicates the maximum number of values that can be included for that argument.\n"
+        "- Do not include more values than the allowed number for each argument.\n"
+        "- Describe only arguments that are supported by the sentence.\n"
         "- Do not invent arguments or infer additional information beyond the sentence.\n"
         "- Copy text exactly from the sentence. Do not modify, paraphrase, or re-segment it.\n"
-        "- If an argument is included, assign exactly the required number of values to it.\n"
         "- Output only the completion of the event instantiation. Do not repeat the prefix or include explanations.\n"
-        "\n"
-        # f"{in_context_examples}\n"
+        f"{in_context_examples}\n"
     )
 
-    user_prompt = f"{ontology_block}\n\n{multiplicity_line}{task_block}"
+    user_prompt = f"{ontology_block}\n\n{task_block}"
     return system_prompt, user_prompt
 
 
@@ -180,8 +184,9 @@ def build_two_stage_extraction_prompt(
         "The trigger word(s) of the event is marked with **trigger word**.\n\n"
         "Identify argument spans that are explicitly supported by the sentence and describe the role of each span.\n\n"
         "Requirements:\n"
-        "- Use the event type and role multiplicities only as references for deciding validity.\n"
-        "- If a role is described, include the allowed number of spans for that role.\n"
+        "- Use only roles listed in 'Allowed roles and multiplicities'.\n"
+        "- In 'Allowed roles and multiplicities', the number for each role indicates the maximum number of spans that can be included for that role.\n"
+        "- Do not include more spans than the allowed number for each role.\n"
         "- Describe only arguments that are supported by the sentence.\n"
         "- Do not invent arguments or infer additional information beyond the sentence.\n"
         "- Copy text exactly from the sentence. Do not modify, paraphrase, or re-segment it.\n"
@@ -243,9 +248,10 @@ def build_two_stage_json_prompt(
         "Requirements:\n"
         "- Each object in arguments assigns one argument value to one role.\n"
         "- Use only roles listed in 'Allowed roles and multiplicities'.\n"
+        "- In 'Allowed roles and multiplicities', the number for each role indicates the maximum number of spans that can be included for that role.\n"
+        "- Do not include more spans than the allowed number for each role.\n"
         "- Use only text explicitly supported by the extraction notes.\n"
         "- Copy text exactly from the extraction notes. Do not modify, paraphrase, or re-segment it.\n"
-        "- Preserve all argument values described in the extraction notes.\n"
         "- Output only the JSON object. Do not include explanations or extra text.\n"
         "\n"
         f"{in_context_examples}\n"
@@ -279,9 +285,10 @@ def build_two_stage_dot_notation_ir_prompt(
         "Requirements:\n"
         "- Each output line assigns one argument value to one role.\n"
         "- Use only roles listed in 'Allowed roles and multiplicities'.\n"
+        "- In 'Allowed roles and multiplicities', the number for each role indicates the maximum number of spans that can be included for that role.\n"
+        "- Do not include more spans than the allowed number for each role.\n"
         "- Use only text explicitly supported by the extraction notes.\n"
         "- Copy text exactly from the extraction notes. Do not modify, paraphrase, or re-segment it.\n"
-        "- Preserve all argument values described in the extraction notes.\n"
         "- Output only the IR lines. Do not include explanations or extra text.\n"
         "\n"
         f"{in_context_examples}\n"
@@ -312,6 +319,7 @@ def build_two_stage_code4struct_ir_prompt(
         multiplicity_line = f"Argument value limits: {pairs}\n"
     task_block = (
         '"""\n'
+        f"{multiplicity_line}"
         f"Convert the following extraction notes into an instance of {event_class}.\n"
         f'"{extraction_text}"\n'
         '"""\n'
@@ -323,14 +331,15 @@ def build_two_stage_code4struct_ir_prompt(
         "\n"
         "Requirements:\n"
         "- Each argument corresponds to a field in the constructor.\n"
+        "- In 'Argument value limits', the number for each argument indicates the maximum number of values that can be included for that argument.\n"
+        "- Do not include more values than the allowed number for each argument.\n"
         "- Use only text explicitly supported by the extraction notes.\n"
         "- Copy text exactly from the extraction notes. Do not modify, paraphrase, or re-segment it.\n"
-        "- Preserve all argument values described in the extraction notes.\n"
         "- Output only the completion of the event instantiation. Do not repeat the prefix or include explanations.\n"
         "\n"
         f"{in_context_examples}\n"
     )
-    user_prompt = f"{ontology_block}\n\n{multiplicity_line}{task_block}"
+    user_prompt = f"{ontology_block}\n\n{task_block}"
     return system_prompt, user_prompt
 
 
@@ -357,7 +366,7 @@ def _build_code4struct_ontology_block(
         "    def __init__(self, name: str):\n"
         "        self.name = name\n\n"
         "class Event:\n"
-        '    def __init__(self, name: str = ""):\n'
+        "    def __init__(self, name: str):\n"
         "        self.name = name\n\n"
         f"class {event_class}(Event):\n"
         "    def __init__(\n"
