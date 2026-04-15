@@ -2,31 +2,12 @@
 
 from __future__ import annotations
 
+import ast
 import re
 
 from ntust_thesis.ir.common import IRGrammarValidator, IRValidationResult
 
 _INSTANCE_HEADER_RE = re.compile(r"^\s*[A-Za-z_]\w*\s*=\s*[A-Za-z_]\w*\s*\(\s*$")
-
-_ARG_LINE_WITH_COMMA_RE = re.compile(
-    r"^\s*(?P<role>[A-Za-z_]\w*)\s*=\s*\[(?P<items>.*)\]\s*,\s*$"
-)
-_ARG_LINE_NO_COMMA_RE = re.compile(
-    r"^\s*(?P<role>[A-Za-z_]\w*)\s*=\s*\[(?P<items>.*)\]\s*$"
-)
-
-_SPAN_ITEM_RE = re.compile(
-    r"""
-    Entity\s*\(\s*                       # required constructor Entity(
-    "(?P<d>(?:\\.|[^"\\])*)"          # double-quoted content
-    \s*\)                               # close paren
-    |
-    Entity\s*\(\s*                       # required constructor Entity(
-    '(?P<s>(?:\\.|[^'\\])*)'          # single-quoted content
-    \s*\)                               # close paren
-    """,
-    re.VERBOSE,
-)
 
 
 class Code4StructIRValidator(IRGrammarValidator):
@@ -64,26 +45,25 @@ def parse_code4struct_ir(ir_text: str) -> list[tuple[str, str]]:
 
 def _parse_code4struct_ir_with_errors(ir_text: str) -> list[tuple[str, str]]:
     """Internal parser that raises explicit ValueError on invalid format."""
-    non_empty_lines = _collect_non_empty_lines(ir_text)
+    lines = ir_text.splitlines()
+    non_empty_lines = _collect_non_empty_lines(lines)
     if not non_empty_lines:
         return []
-    body_lines = _extract_validated_body_lines(non_empty_lines)
-    return _parse_argument_lines(body_lines)
+    _validate_completion_only_format(non_empty_lines)
+    return _parse_argument_block_with_ast(lines, non_empty_lines[-1][0])
 
 
-def _collect_non_empty_lines(ir_text: str) -> list[tuple[int, str]]:
+def _collect_non_empty_lines(lines: list[str]) -> list[tuple[int, str]]:
     """Collect non-empty source lines with original line numbers."""
     return [
         (line_no, line.rstrip())
-        for line_no, line in enumerate(ir_text.splitlines(), start=1)
+        for line_no, line in enumerate(lines, start=1)
         if line.strip()
     ]
 
 
-def _extract_validated_body_lines(
-    non_empty_lines: list[tuple[int, str]],
-) -> list[tuple[int, str]]:
-    """Validate completion-only format and return body lines."""
+def _validate_completion_only_format(non_empty_lines: list[tuple[int, str]]) -> None:
+    """Validate strict completion-only format."""
     first_line_no, first_line = non_empty_lines[0]
     if _looks_like_instance_header(first_line):
         msg = (
@@ -93,7 +73,6 @@ def _extract_validated_body_lines(
         raise ValueError(msg)
 
     _validate_closing_line(non_empty_lines[-1])
-    return non_empty_lines
 
 
 def _looks_like_instance_header(line: str) -> bool:
@@ -110,87 +89,116 @@ def _validate_closing_line(line_with_no: tuple[int, str]) -> None:
     raise ValueError(msg)
 
 
-def _parse_argument_lines(body_lines: list[tuple[int, str]]) -> list[tuple[str, str]]:
-    """Parse all argument lines (excluding final closing line)."""
+def _parse_argument_block_with_ast(
+    lines: list[str],
+    closing_line_no: int,
+) -> list[tuple[str, str]]:
+    """Parse completion argument block as Python AST."""
+    argument_block = "\n".join(lines[: closing_line_no - 1])
+    if not argument_block.strip():
+        return []
+
+    synthesized = f"__instance = __Event(\n{argument_block}\n)\n"
+    try:
+        tree = ast.parse(synthesized)
+    except SyntaxError as exc:
+        mapped_line_no = _map_synthesized_line_to_input(exc.lineno)
+        msg = f"line:{mapped_line_no}|Invalid Python syntax in argument block."
+        raise ValueError(msg) from exc
+
+    call = _extract_single_call_node(tree)
+    return _extract_role_spans_from_call(call)
+
+
+def _map_synthesized_line_to_input(synth_line_no: int | None) -> int:
+    """Map synthesized source line number back to original input line."""
+    if synth_line_no is None:
+        return 1
+    if synth_line_no <= 1:
+        return 1
+    return synth_line_no - 1
+
+
+def _extract_single_call_node(tree: ast.AST) -> ast.Call:
+    """Extract the synthesized call node from AST tree."""
+    if not isinstance(tree, ast.Module) or len(tree.body) != 1:
+        msg = "line:1|Invalid argument block structure."
+        raise ValueError(msg)
+
+    stmt = tree.body[0]
+    if not isinstance(stmt, ast.Assign) or len(stmt.targets) != 1:
+        msg = "line:1|Invalid argument block structure."
+        raise ValueError(msg)
+
+    if not isinstance(stmt.value, ast.Call):
+        msg = "line:1|Invalid argument block structure."
+        raise TypeError(msg)
+
+    return stmt.value
+
+
+def _extract_role_spans_from_call(call: ast.Call) -> list[tuple[str, str]]:
+    """Extract (role_path, span_text) pairs from call keywords."""
+    if call.args:
+        line_no = getattr(call.args[0], "lineno", 1)
+        msg = f"line:{line_no}|Positional arguments are not allowed."
+        raise ValueError(msg)
+
     role_spans: list[tuple[str, str]] = []
-    argument_lines = body_lines[:-1]
-    for arg_idx, (offset, raw_line) in enumerate(argument_lines):
-        is_last_arg_line = arg_idx == len(argument_lines) - 1
+    for keyword in call.keywords:
+        if keyword.arg is None:
+            line_no = getattr(keyword, "lineno", 1)
+            msg = f"line:{line_no}|Dictionary unpacking is not allowed."
+            raise ValueError(msg)
+        role_name = _arg_identifier_to_role_path(keyword.arg.strip())
         role_spans.extend(
-            _parse_argument_line(
-                line_no=offset,
-                raw_line=raw_line,
-                is_last_arg_line=is_last_arg_line,
-            )
+            _extract_spans_from_keyword_value(role_name=role_name, value=keyword.value)
         )
     return role_spans
 
 
-def _parse_argument_line(
-    line_no: int,
-    raw_line: str,
-    *,
-    is_last_arg_line: bool,
+def _extract_spans_from_keyword_value(
+    role_name: str,
+    value: ast.AST,
 ) -> list[tuple[str, str]]:
-    """Parse one argument assignment line into role-span pairs."""
-    line = raw_line.strip()
-    if not line:
-        return []
-    match = _ARG_LINE_WITH_COMMA_RE.fullmatch(line)
-    if match is None and is_last_arg_line:
-        match = _ARG_LINE_NO_COMMA_RE.fullmatch(line)
-    if match is None:
-        if is_last_arg_line:
-            msg = f"line:{line_no}|Invalid argument assignment format."
-        else:
-            msg = (
-                f"line:{line_no}|Invalid argument assignment format "
-                "(non-final line must end with ',')."
-            )
+    """Extract spans from one role assignment value."""
+    line_no = getattr(value, "lineno", 1)
+    if not isinstance(value, ast.List):
+        msg = f"line:{line_no}|Role value must be a list."
+        raise TypeError(msg)
+
+    role_spans: list[tuple[str, str]] = []
+    for item in value.elts:
+        span_text = _parse_entity_item(item)
+        role_spans.append((role_name, span_text))
+    return role_spans
+
+
+def _parse_entity_item(item: ast.AST) -> str:
+    """Parse one Entity('...') item into plain span text."""
+    line_no = getattr(item, "lineno", 1)
+    if not isinstance(item, ast.Call):
+        msg = f'line:{line_no}|List items must be Entity("...").'
+        raise TypeError(msg)
+
+    if not isinstance(item.func, ast.Name) or item.func.id != "Entity":
+        msg = f'line:{line_no}|List items must call Entity("...").'
         raise ValueError(msg)
 
-    role_name = _arg_identifier_to_role_path(match.group("role").strip())
-    list_body = match.group("items").strip()
-    if not list_body:
-        return []
-
-    spans = _extract_spans_from_list_body(list_body)
-    if not spans:
-        msg = f"line:{line_no}|Invalid list items format."
+    if len(item.args) != 1 or item.keywords:
+        msg = f"line:{line_no}|Entity must take exactly one string argument."
         raise ValueError(msg)
-    return [(role_name, span_text) for span_text in spans]
 
+    arg = item.args[0]
+    if not isinstance(arg, ast.Constant) or not isinstance(arg.value, str):
+        msg = f"line:{line_no}|Entity argument must be a string."
+        raise TypeError(msg)
 
-def _extract_spans_from_list_body(list_body: str) -> list[str]:
-    """Extract spans from list literal body with required Entity constructors."""
-    spans: list[str] = []
-    consumed_ranges: list[tuple[int, int]] = []
-    for match in _SPAN_ITEM_RE.finditer(list_body):
-        raw = match.group("d") if match.group("d") is not None else match.group("s")
-        if raw is None:
-            continue
-        text = _unescape(raw).strip()
-        if text:
-            spans.append(text)
-            consumed_ranges.append((match.start(), match.end()))
-    if not spans:
-        return []
-
-    # check if there aren't any content left
-    leftovers = []
-    cursor = 0
-    for start, end in consumed_ranges:
-        if cursor < start:
-            leftovers.append(list_body[cursor:start])
-        cursor = max(cursor, end)
-    if cursor < len(list_body):
-        leftovers.append(list_body[cursor:])
-
-    leftover_text = "".join(leftovers).replace(",", "").strip()
-    if leftover_text:
-        return []
-
-    return spans
+    span_text = arg.value.strip()
+    if not span_text:
+        msg = f"line:{line_no}|Entity argument must be non-empty."
+        raise ValueError(msg)
+    return span_text
 
 
 def _decode_parse_error(
@@ -204,14 +212,6 @@ def _decode_parse_error(
     lines = ir_text.splitlines()
     line_text = lines[line_no - 1] if 1 <= line_no <= len(lines) else None
     return line_no, line_text, match.group(2).strip()
-
-
-def _unescape(text: str) -> str:
-    """Unescape Python-like string content."""
-    try:
-        return bytes(text, "utf-8").decode("unicode_escape")
-    except Exception:
-        return text
 
 
 def _arg_identifier_to_role_path(arg_name: str) -> str:
