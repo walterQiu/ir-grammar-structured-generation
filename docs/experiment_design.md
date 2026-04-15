@@ -21,7 +21,9 @@
 ## 設定
 - Pipeline：Two-stage
 - Extraction model：gemini-3.1-pro-preview（固定）
-- IR model：Mistral-7B-Instruct-v0.3 (固定)
+- IR model：
+    - gemini-3.1-pro-preview
+    - Mistral-7B-Instruct-v0.3
 - IR 類型：JSON / Dot-notation / CODE4STRUCT
 
 ## 補充分析
@@ -67,8 +69,9 @@
 
 ### ICL examples 包含以下三種情境
 1. 每個 role 對應單一 span
-2. 部分 role 對應多個 span
-3. 完全沒有合法 role
+2. 部分 role 對應多個 span，但實際都只有一個 span
+3. 部分 role 對應多個 span，且實際上也有多個 spans
+4. 完全沒有合法 role
 
 ---
 
