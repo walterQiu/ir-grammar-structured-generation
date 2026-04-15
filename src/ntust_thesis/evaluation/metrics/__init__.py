@@ -9,6 +9,10 @@ from ntust_thesis.evaluation.metrics.content_similarity_sbert import (
 from ntust_thesis.evaluation.metrics.exact_match import ExactMatchMetric
 from ntust_thesis.evaluation.metrics.is_valid_ir import IsValidIRMetric
 from ntust_thesis.evaluation.metrics.json_structure_f1 import JsonStructureF1Metric
+from ntust_thesis.evaluation.metrics.non_absence_role_fallback import (
+    NonAbsenceRoleFallbackDotNotationMetric,
+    NonAbsenceRoleFallbackJsonMetric,
+)
 from ntust_thesis.evaluation.metrics.schema_exact_match import SchemaExactMatchMetric
 
 
@@ -22,3 +26,11 @@ def register() -> None:
     METRIC_REGISTRY.register("content_similarity_sbert", ContentSimilaritySBERTMetric)
     METRIC_REGISTRY.register("bemeae", BEMEAEMetric)
     METRIC_REGISTRY.register("json_structure_f1", JsonStructureF1Metric)
+    METRIC_REGISTRY.register(
+        "non_absence_role_fallback_json",
+        NonAbsenceRoleFallbackJsonMetric,
+    )
+    METRIC_REGISTRY.register(
+        "non_absence_role_fallback_dot_notation",
+        NonAbsenceRoleFallbackDotNotationMetric,
+    )

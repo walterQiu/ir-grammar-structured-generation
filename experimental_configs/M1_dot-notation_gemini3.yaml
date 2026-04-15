@@ -21,6 +21,7 @@ model:
 evaluation:
   metrics:
   - is_valid_ir
+  - non_absence_role_fallback_dot_notation
   - schema_exact_match
   - exact_match
   - arg_i_f1

@@ -47,7 +47,12 @@ class ExperimentPipeline:
         ir_grammar = self._config.model.ir_grammar
         metrics = [
             METRIC_REGISTRY.create(key, ir_grammar=ir_grammar)
-            if key == "is_valid_ir"
+            if key
+            in {
+                "is_valid_ir",
+                "non_absence_role_fallback_json",
+                "non_absence_role_fallback_dot_notation",
+            }
             else METRIC_REGISTRY.create(key)
             for key in metric_keys
         ]

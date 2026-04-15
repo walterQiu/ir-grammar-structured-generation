@@ -1,8 +1,9 @@
-experiment_name: M1_dot-notation_mistral
+experiment_name: small-M1_dot-notation_mistral
 dataset:
   name: rams
   data_dir: datasets/RAMS/data
   split: test
+  max_samples: 100
 model:
   name: two_stage
   extraction_model:

@@ -1,8 +1,9 @@
-experiment_name: M1_dot-notation_mistral
+experiment_name: small-M1_json_mistral
 dataset:
   name: rams
   data_dir: datasets/RAMS/data
   split: test
+  max_samples: 100
 model:
   name: two_stage
   extraction_model:
@@ -17,11 +18,11 @@ model:
     api_base: http://140.118.155.118:8001/v1
     enable_sleep: false
     enable_retry: true
-  ir_grammar: dot_notation_ir
+  ir_grammar: json
 evaluation:
   metrics:
   - is_valid_ir
-  - non_absence_role_fallback_dot_notation
+  - non_absence_role_fallback_json
   - schema_exact_match
   - exact_match
   - arg_i_f1
