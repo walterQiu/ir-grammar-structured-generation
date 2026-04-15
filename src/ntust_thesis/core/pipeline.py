@@ -17,6 +17,8 @@ if TYPE_CHECKING:
 
 from ntust_thesis.core.schemas import EvaluationRow
 
+_METRIC_DECIMAL_PLACES = 5
+
 
 @dataclass(slots=True)
 class PipelineResult:
@@ -95,7 +97,7 @@ class ExperimentPipeline:
 
         aggregated: dict[str, Any] = {}
         for metric in metrics:
-            aggregated.update(metric.compute(metric_rows))
+            aggregated.update(_round_metric_values(metric.compute(metric_rows)))
 
         difficulty_rows = {
             "easy": [row for row in metric_rows if _schema_difficulty(row) == "easy"],
@@ -107,7 +109,7 @@ class ExperimentPipeline:
         for level, rows_in_level in difficulty_rows.items():
             aggregated[f"{level}_sample_count"] = len(rows_in_level)
             for metric in metrics:
-                metric_result = metric.compute(rows_in_level)
+                metric_result = _round_metric_values(metric.compute(rows_in_level))
                 for key, value in metric_result.items():
                     aggregated[f"{level}_{key}"] = value
 
@@ -126,3 +128,14 @@ def _schema_difficulty(row: EvaluationRow) -> str:
     if n_roles == 3:  # noqa: PLR2004
         return "medium"
     return "hard"
+
+
+def _round_metric_values(metric_values: dict[str, object]) -> dict[str, object]:
+    """Round all float metric values to fixed decimal places."""
+    rounded: dict[str, object] = {}
+    for key, value in metric_values.items():
+        if isinstance(value, float):
+            rounded[key] = round(value, _METRIC_DECIMAL_PLACES)
+        else:
+            rounded[key] = value
+    return rounded
