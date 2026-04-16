@@ -8,13 +8,13 @@ model:
   name: two_stage
   extraction_model:
     backend: gemini
-    llm_name: gemini-3-pro-preview
+    llm_name: gemini-3.1-pro-preview
     api_key_env: GEMINI_API_KEY
     enable_sleep: true
     enable_retry: true
   ir_model:
     backend: gemini
-    llm_name: gemini-3-pro-preview
+    llm_name: gemini-3.1-pro-preview
     api_key_env: GEMINI_API_KEY
     enable_sleep: true
     enable_retry: true
@@ -22,6 +22,7 @@ model:
 evaluation:
   metrics:
   - is_valid_ir
+  - non_absence_role_fallback_json
   - schema_exact_match
   - exact_match
   - arg_i_f1

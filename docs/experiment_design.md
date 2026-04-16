@@ -23,6 +23,7 @@
 - Extraction model：gemini-3.1-pro-preview（固定）
 - IR model：
     - gemini-3.1-pro-preview
+    - gemini-2.5-flash
     - Mistral-7B-Instruct-v0.3
 - IR 類型：JSON / Dot-notation / CODE4STRUCT
 

@@ -1,4 +1,4 @@
-experiment_name: M1_dot-notation_mistral
+experiment_name: M1_dot-notation_gemini25
 dataset:
   name: rams
   data_dir: datasets/RAMS/data
@@ -12,10 +12,10 @@ model:
     enable_sleep: true
     enable_retry: true
   ir_model:
-    backend: vllm
-    llm_name: mistralai/Mistral-7B-Instruct-v0.3
-    api_base: http://140.118.155.118:8001/v1
-    enable_sleep: false
+    backend: gemini
+    llm_name: gemini-2.5-flash
+    api_key_env: GEMINI_API_KEY
+    enable_sleep: true
     enable_retry: true
   ir_grammar: dot_notation_ir
 evaluation:

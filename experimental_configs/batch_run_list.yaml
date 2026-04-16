@@ -1,7 +1,13 @@
 experiments:
-  - experimental_configs/M1_json_gemini3.yaml
+  # M1 list
+  # - experimental_configs/M1_json_gemini3.yaml
+  # - experimental_configs/M1_dot-notation_gemini3.yaml
+  # - experimental_configs/M1_code4struct_gemini3.yaml
+
+  - experimental_configs/M1_json_gemini25.yaml
+  - experimental_configs/M1_dot-notation_gemini25.yaml
+  - experimental_configs/M1_code4struct_gemini25.yaml
+
   - experimental_configs/M1_json_mistral.yaml
-  - experimental_configs/M1_dot-notation_gemini3.yaml
   - experimental_configs/M1_dot-notation_mistral.yaml
-  - experimental_configs/M1_code4struct_gemini3.yaml
   - experimental_configs/M1_code4struct_mistral.yaml
