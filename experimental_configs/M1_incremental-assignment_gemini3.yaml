@@ -1,28 +1,27 @@
-experiment_name: small-M1_dot-notation_gemini3
+experiment_name: M1_incremental-assignment_gemini3
 dataset:
   name: rams
   data_dir: datasets/RAMS/data
   split: test
-  max_samples: 100
 model:
   name: two_stage
   extraction_model:
     backend: gemini
-    llm_name: gemini-3-pro-preview
+    llm_name: gemini-3.1-pro-preview
     api_key_env: GEMINI_API_KEY
     enable_sleep: true
     enable_retry: true
   ir_model:
     backend: gemini
-    llm_name: gemini-3-pro-preview
+    llm_name: gemini-3.1-pro-preview
     api_key_env: GEMINI_API_KEY
     enable_sleep: true
     enable_retry: true
-  ir_grammar: dot_notation_ir
+  ir_grammar: incremental_assignment_ir
 evaluation:
   metrics:
   - is_valid_ir
-  - non_absence_role_fallback_dot_notation
+  - non_absence_role_fallback_incremental_assignment
   - schema_exact_match
   - exact_match
   - arg_i_f1

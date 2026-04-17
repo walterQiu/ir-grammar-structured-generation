@@ -25,7 +25,7 @@
     - gemini-3.1-pro-preview
     - gemini-2.5-flash
     - Mistral-7B-Instruct-v0.3
-- IR 類型：JSON / Dot-notation / CODE4STRUCT
+- IR 類型：JSON / Incremental-Assignment / CODE4STRUCT
 
 ## 補充分析
 抽樣 30–50 筆進行 error analysis：
@@ -64,7 +64,7 @@
 
 ### 設定
 - Pipeline: two-stage
-- IR：JSON / Dot-notation / CODE4STRUCT
+- IR：JSON / Incremental-Assignment / CODE4STRUCT
 - 模型：Gemini 、 Mistral
 - 0-shot vs 4-shot
 

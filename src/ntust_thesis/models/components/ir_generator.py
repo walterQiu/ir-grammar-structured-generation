@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 class IRGenerator:
-    """Convert extraction text into dot-notation IR."""
+    """Convert extraction text into specific IR."""
 
     def generate(
         self,

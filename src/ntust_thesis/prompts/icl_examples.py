@@ -7,8 +7,8 @@ def build_one_stage_ir_in_context_examples(ir_grammar: str) -> str:
     """Return one-stage IR-generation ICL examples for the requested grammar."""
     if ir_grammar == "json":
         return _build_one_stage_json_icl_examples()
-    if ir_grammar == "dot_notation_ir":
-        return _build_one_stage_dot_notation_icl_examples()
+    if ir_grammar == "incremental_assignment_ir":
+        return _build_one_stage_incremental_assignment_icl_examples()
     if ir_grammar == "code4struct_ir":
         return _build_one_stage_code4struct_icl_examples()
     msg = f"Unsupported one-stage IR grammar for ICL examples: {ir_grammar}"
@@ -84,8 +84,8 @@ Sentence: no valid role-span pairs are present .
 """
 
 
-def _build_one_stage_dot_notation_icl_examples() -> str:
-    """Return one-stage dot-notation in-context examples."""
+def _build_one_stage_incremental_assignment_icl_examples() -> str:
+    """Return one-stage incremental-assignment in-context examples."""
     return r"""
 In-context Examples
 
@@ -311,8 +311,8 @@ def build_two_stage_ir_in_context_examples(ir_grammar: str) -> str:
     """Return two-stage IR-generation ICL examples for the requested grammar."""
     if ir_grammar == "json":
         return _build_two_stage_json_icl_examples()
-    if ir_grammar == "dot_notation_ir":
-        return _build_two_stage_dot_notation_icl_examples()
+    if ir_grammar == "incremental_assignment_ir":
+        return _build_two_stage_incremental_assignment_icl_examples()
     if ir_grammar == "code4struct_ir":
         return _build_two_stage_code4struct_icl_examples()
     msg = f"Unsupported IR grammar for ICL examples: {ir_grammar}"
@@ -388,8 +388,8 @@ The sentence does not explicitly provide any information about the demonstrator 
 """
 
 
-def _build_two_stage_dot_notation_icl_examples() -> str:
-    """Return two-stage dot-notation IR in-context examples."""
+def _build_two_stage_incremental_assignment_icl_examples() -> str:
+    """Return two-stage incremental-assignment IR in-context examples."""
     return r"""
 In-context Examples
 

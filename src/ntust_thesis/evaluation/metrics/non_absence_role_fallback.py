@@ -36,14 +36,14 @@ class NonAbsenceRoleFallbackJsonMetric(Metric):
         return self._inner.compute(rows)
 
 
-class NonAbsenceRoleFallbackDotNotationMetric(Metric):
+class NonAbsenceRoleFallbackIncrementalAssignmentMetric(Metric):
     """Apply role-fallback cleanup before Arg-C/BEMEAE for dot IR."""
 
     def __init__(self, ir_grammar: str) -> None:
         """Initialize fallback metric with configured experiment grammar."""
         self._inner = _NonAbsenceRoleFallbackMetricBase(
-            metric_name="non_absence_role_fallback_dot_notation",
-            target_grammar="dot_notation_ir",
+            metric_name="non_absence_role_fallback_incremental_assignment",
+            target_grammar="incremental_assignment_ir",
             ir_grammar=ir_grammar,
         )
 
@@ -52,7 +52,7 @@ class NonAbsenceRoleFallbackDotNotationMetric(Metric):
         return self._inner.name()
 
     def compute(self, rows: list[EvaluationRow]) -> dict[str, float]:
-        """Compute cleaned sub-metrics for dot-notation IR."""
+        """Compute cleaned sub-metrics for incremental-assignment IR."""
         return self._inner.compute(rows)
 
 

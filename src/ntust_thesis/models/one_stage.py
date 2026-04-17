@@ -108,9 +108,13 @@ class OneStageModel(Model):
             msg = f"Unsupported backend: {config.backend}"
             raise ValueError(msg)
         self._ir_grammar = config.ir_grammar
-        if self._ir_grammar not in {"json", "dot_notation_ir", "code4struct_ir"}:
+        if self._ir_grammar not in {
+            "json",
+            "incremental_assignment_ir",
+            "code4struct_ir",
+        }:
             msg = (
-                "one_stage only supports json, dot_notation_ir, or code4struct_ir. "
+                "one_stage only supports json, incremental_assignment_ir, or code4struct_ir. "
                 f"Got: {self._ir_grammar}"
             )
             raise ValueError(msg)

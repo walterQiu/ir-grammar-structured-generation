@@ -23,8 +23,8 @@ def build_one_stage_ir_prompt(
             event_type=event_type,
             role_multiplicities=role_multiplicities,
         )
-    if ir_grammar == "dot_notation_ir":
-        return build_one_stage_dot_notation_ir_prompt(
+    if ir_grammar == "incremental_assignment_ir":
+        return build_one_stage_incremental_assignment_ir_prompt(
             sentence=sentence,
             event_type=event_type,
             role_multiplicities=role_multiplicities,
@@ -81,12 +81,12 @@ def build_one_stage_json_prompt(
     return system_prompt, user_prompt
 
 
-def build_one_stage_dot_notation_ir_prompt(
+def build_one_stage_incremental_assignment_ir_prompt(
     sentence: str,
     event_type: str,
     role_multiplicities: dict[str, int],
 ) -> PromptPair:
-    """Build one-stage prompt for direct dot-notation IR generation."""
+    """Build one-stage prompt for direct incremental-assignment IR generation."""
     event_line = f"Event type (reference): {event_type}\n" if event_type else ""
     multiplicity_line = ""
     if role_multiplicities:
@@ -95,10 +95,10 @@ def build_one_stage_dot_notation_ir_prompt(
         )
         multiplicity_line = f"Allowed roles and multiplicities: {pairs}\n"
     in_context_examples = build_one_stage_ir_in_context_examples(
-        ir_grammar="dot_notation_ir"
+        ir_grammar="incremental_assignment_ir"
     )
     system_prompt = (
-        "Generate dot-notation IR from the given sentence.\n"
+        "Generate incremental-assignment IR from the given sentence.\n"
         "The trigger word(s) of the event is marked with **trigger word**.\n"
         "Output format:\n"
         "<role> += <span>\n"
@@ -217,8 +217,8 @@ def build_two_stage_ir_prompt(
             extraction_text=extraction_text,
             role_multiplicities=role_multiplicities,
         )
-    if ir_grammar == "dot_notation_ir":
-        return build_two_stage_dot_notation_ir_prompt(
+    if ir_grammar == "incremental_assignment_ir":
+        return build_two_stage_incremental_assignment_ir_prompt(
             extraction_text=extraction_text,
             role_multiplicities=role_multiplicities,
         )
@@ -270,11 +270,11 @@ def build_two_stage_json_prompt(
     return system_prompt, user_prompt
 
 
-def build_two_stage_dot_notation_ir_prompt(
+def build_two_stage_incremental_assignment_ir_prompt(
     extraction_text: str,
     role_multiplicities: dict[str, int],
 ) -> PromptPair:
-    """Build two-stage prompt for dot-notation IR generation."""
+    """Build two-stage prompt for incremental-assignment IR generation."""
     multiplicity_line = ""
     if role_multiplicities:
         pairs = ", ".join(
@@ -283,11 +283,11 @@ def build_two_stage_dot_notation_ir_prompt(
         multiplicity_line = f"Allowed roles and multiplicities: {pairs}\n"
 
     in_context_examples = build_two_stage_ir_in_context_examples(
-        ir_grammar="dot_notation_ir"
+        ir_grammar="incremental_assignment_ir"
     )
 
     system_prompt = (
-        "Generate dot-notation IR from the given extraction notes.\n"
+        "Generate incremental-assignment IR from the given extraction notes.\n"
         "Output format:\n"
         "<role> += <span>\n"
         "\n"
