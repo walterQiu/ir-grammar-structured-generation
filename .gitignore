@@ -211,3 +211,4 @@ __marimo__/
 
 # experiment outputs
 /outputs/runs/
+/outputs/cache/

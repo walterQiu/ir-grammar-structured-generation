@@ -52,6 +52,12 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Overwrite output file if it exists.",
     )
+    parser.add_argument(
+        "--failed-output",
+        type=Path,
+        default=None,
+        help="Output JSON path for failed samples. Default: <output>.failed.json",
+    )
     return parser
 
 
@@ -60,9 +66,20 @@ def main() -> int:
     args = build_parser().parse_args()
 
     output_path: Path = args.output
+    failed_output_path: Path = (
+        args.failed_output
+        if args.failed_output is not None
+        else output_path.with_suffix(".failed.json")
+    )
     if output_path.exists() and not args.overwrite:
         print(  # noqa: T201
             f"[error] output already exists: {output_path}. Use --overwrite to replace."
+        )
+        return 1
+    if failed_output_path.exists() and not args.overwrite:
+        print(  # noqa: T201
+            f"[error] failed-output already exists: {failed_output_path}. "
+            "Use --overwrite to replace."
         )
         return 1
 
@@ -130,30 +147,59 @@ def main() -> int:
     print(f"[info] loaded {total} test samples")  # noqa: T201
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
+    failed_output_path.parent.mkdir(parents=True, exist_ok=True)
+    failed_samples: list[dict[str, object]] = []
+    success_count = 0
     with output_path.open("w", encoding="utf-8") as f:
         for idx, sample in enumerate(samples, start=1):
-            system_prompt, user_prompt = build_two_stage_extraction_prompt(
-                sentence=sample.raw_sentence,
-                event_type=sample.metadata.event_type,
-                role_multiplicities=sample.metadata.role_multiplicities,
-            )
-            extraction_text = llm.generate(
-                system_prompt=system_prompt,
-                user_prompt=user_prompt,
-                temperature=temperature,
-            )
-            row = {
-                "sample_id": sample.sample_id,
-                "event_type": sample.metadata.event_type,
-                "extraction_text": extraction_text,
-                "model_name": args.model_name,
-            }
-            f.write(f"{json.dumps(row, ensure_ascii=False)}\n")
+            try:
+                system_prompt, user_prompt = build_two_stage_extraction_prompt(
+                    sentence=sample.raw_sentence,
+                    event_type=sample.metadata.event_type,
+                    role_multiplicities=sample.metadata.role_multiplicities,
+                )
+                extraction_text = llm.generate(
+                    system_prompt=system_prompt,
+                    user_prompt=user_prompt,
+                    temperature=temperature,
+                )
+                row = {
+                    "sample_id": sample.sample_id,
+                    "event_type": sample.metadata.event_type,
+                    "extraction_text": extraction_text,
+                    "model_name": args.model_name,
+                }
+                f.write(f"{json.dumps(row, ensure_ascii=False)}\n")
+                success_count += 1
+            except Exception as exc:
+                failed_samples.append(
+                    {
+                        "sample_index": idx,
+                        "sample_id": sample.sample_id,
+                        "event_type": sample.metadata.event_type,
+                        "error": str(exc),
+                    }
+                )
 
             if idx % 20 == 0 or idx == total:
                 print(f"[progress] generated {idx}/{total}")  # noqa: T201
 
+    failed_payload = {
+        "model_name": args.model_name,
+        "split": "test",
+        "total_samples": total,
+        "success_count": success_count,
+        "failed_count": len(failed_samples),
+        "failed_samples": failed_samples,
+    }
+    failed_output_path.write_text(
+        f"{json.dumps(failed_payload, ensure_ascii=False, indent=2)}\n",
+        encoding="utf-8",
+    )
+
     print(f"[done] wrote cache to {output_path}")  # noqa: T201
+    print(f"[done] wrote failed samples to {failed_output_path}")  # noqa: T201
+    print(f"[summary] success={success_count}, failed={len(failed_samples)}")  # noqa: T201
     return 0
 
 
