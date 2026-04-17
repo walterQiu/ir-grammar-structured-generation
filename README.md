@@ -21,6 +21,9 @@ UV_CACHE_DIR=/tmp/.uv-cache PYTHONPATH=src uv run python run.py --config experim
 
 - PYTHONPATH=src .venv/bin/python tools/sbert_similarity_check.py
 
+- PYTHONPATH=src python tools/generate_extraction_notes_cache.py --overwrite
+
+
 # ICL examples
 RAMS train split
 

@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import os
+from pathlib import Path
 
 from ntust_thesis.core.config_models import StageModelConfig, TwoStageModelConfig
 from ntust_thesis.core.interfaces import Model
@@ -91,9 +93,14 @@ class TwoStageModel(Model):
         self._ir_grammar = config.ir_grammar
         self._extraction_backend = extraction_cfg.backend
         self._ir_backend = ir_cfg.backend
+        self._extraction_llm_name = extraction_cfg.llm_name
         self._extractor = self._build_extractor(extraction_cfg)
         self._ir_generator = self._build_ir_generator(ir_cfg)
         self._compiler = DeterministicIRCompiler(ir_grammar=self._ir_grammar)
+        self._extraction_cache = _load_extraction_notes_cache(
+            extraction_backend=extraction_cfg.backend,
+            extraction_llm_name=extraction_cfg.llm_name,
+        )
 
     def name(self) -> str:
         """Return model key."""
@@ -108,11 +115,16 @@ class TwoStageModel(Model):
                 role_multiplicities=sample.metadata.role_multiplicities,
             )
         )
-        extraction_text = self._extractor.extract(
-            sentence=sample.raw_sentence,
-            event_type=sample.metadata.event_type,
-            role_multiplicities=sample.metadata.role_multiplicities,
-        )
+        cached_extraction = self._extraction_cache.get(sample.sample_id)
+        extraction_cache_hit = cached_extraction is not None
+        if cached_extraction is not None:
+            extraction_text = cached_extraction
+        else:
+            extraction_text = self._extractor.extract(
+                sentence=sample.raw_sentence,
+                event_type=sample.metadata.event_type,
+                role_multiplicities=sample.metadata.role_multiplicities,
+            )
         ir_system_prompt, ir_user_prompt = build_two_stage_ir_prompt(
             extraction_text=extraction_text,
             event_type=sample.metadata.event_type,
@@ -154,6 +166,9 @@ class TwoStageModel(Model):
                 ir_text=ir_text,
                 compile_error=error_message,
                 model_input={
+                    "extraction_cache_hit": str(extraction_cache_hit),
+                    "extraction_cache_size": str(len(self._extraction_cache)),
+                    "extraction_llm_name": self._extraction_llm_name,
                     "extraction_system_prompt": extraction_system_prompt,
                     "extraction_user_prompt": extraction_user_prompt,
                     "ir_system_prompt": ir_system_prompt,
@@ -233,3 +248,64 @@ def _build_two_stage_model(config: object) -> TwoStageModel:
     """Build two-stage pipeline model from boundary input."""
     typed_config = TwoStageModelConfig.model_validate(config)
     return TwoStageModel(config=typed_config)
+
+
+def _load_extraction_notes_cache(
+    *,
+    extraction_backend: str,
+    extraction_llm_name: str,
+) -> dict[str, str]:
+    """Load extraction-note cache when configured and compatible."""
+    if not _should_enable_extraction_cache(
+        extraction_backend=extraction_backend,
+        extraction_llm_name=extraction_llm_name,
+    ):
+        return {}
+    cache_path = _resolve_extraction_cache_path()
+    if not cache_path.exists():
+        return {}
+    return _read_extraction_cache_jsonl(cache_path)
+
+
+def _should_enable_extraction_cache(
+    *,
+    extraction_backend: str,
+    extraction_llm_name: str,
+) -> bool:
+    """Return whether extraction cache should be used for this run."""
+    return (
+        extraction_backend == "gemini"
+        and extraction_llm_name == "gemini-3.1-pro-preview"
+    )
+
+
+def _resolve_extraction_cache_path() -> Path:
+    """Resolve extraction cache path from env or default."""
+    cache_path_str = os.getenv("EXTRACTION_NOTES_CACHE_PATH")
+    if cache_path_str and cache_path_str.strip():
+        return Path(cache_path_str.strip())
+    return Path("outputs/cache/extraction_notes/rams_test_gemini-3.1-pro-preview.jsonl")
+
+
+def _read_extraction_cache_jsonl(path: Path) -> dict[str, str]:
+    """Read extraction cache jsonl into sample_id->text map."""
+    cache: dict[str, str] = {}
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(row, dict):
+            continue
+        sample_id = row.get("sample_id")
+        extraction_text = row.get("extraction_text")
+        if not isinstance(sample_id, str) or not sample_id.strip():
+            continue
+        if not isinstance(extraction_text, str):
+            continue
+        cache[sample_id] = extraction_text
+
+    return cache
