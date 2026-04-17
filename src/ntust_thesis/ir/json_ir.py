@@ -32,14 +32,8 @@ class JsonIRValidator(IRGrammarValidator):
                 is_valid=False,
                 error_message="Top-level JSON must be an object.",
             )
-        arguments = payload.get("arguments")
-        if not isinstance(arguments, list):
-            return IRValidationResult(
-                is_valid=False,
-                error_message="Field 'arguments' must be a list.",
-            )
-        for idx, item in enumerate(arguments, start=1):
-            valid, error_message = _validate_argument_item(item)
+        for idx, (raw_role, raw_spans) in enumerate(payload.items(), start=1):
+            valid, error_message = _validate_role_item(raw_role, raw_spans)
             if not valid:
                 return IRValidationResult(
                     is_valid=False,
@@ -57,44 +51,30 @@ def parse_json_ir(ir_text: str) -> list[tuple[str, str]]:
         msg = "Invalid json IR: top-level JSON must be an object."
         raise TypeError(msg)
 
-    arguments = payload.get("arguments")
-    if not isinstance(arguments, list):
-        msg = "Invalid json IR: field 'arguments' must be a list."
-        raise TypeError(msg)
-
     role_spans: list[tuple[str, str]] = []
-    for idx, item in enumerate(arguments, start=1):
-        valid, error_message = _validate_argument_item(item)
+    for idx, (raw_role, raw_spans) in enumerate(payload.items(), start=1):
+        valid, error_message = _validate_role_item(raw_role, raw_spans)
         if not valid:
-            msg = f"Invalid json IR argument at index {idx}: {error_message}"
+            msg = f"Invalid json IR role entry at index {idx}: {error_message}"
             raise ValueError(msg)
-        if not isinstance(item, dict):  # type narrowing
-            msg = f"Invalid json IR argument at index {idx}: item must be an object."
-            raise TypeError(msg)
-
-        raw_role = item["role"]
-        span = item["span"].strip()
         role_path = role_to_path(raw_role)
         if role_path is None:
-            msg = f"Invalid json IR argument at index {idx}: role path is empty."
+            msg = f"Invalid json IR role entry at index {idx}: role path is empty."
             raise ValueError(msg)
-        role_spans.append((role_path, span))
+        role_spans.extend((role_path, span_item.strip()) for span_item in raw_spans)
 
     return role_spans
 
 
-def _validate_argument_item(item: object) -> tuple[bool, str]:
-    """Validate one argument item from JSON IR arguments list."""
-    if not isinstance(item, dict):
-        return False, "Each argument must be an object."
-
-    role = item.get("role")
-    span = item.get("span")
-
-    if not isinstance(role, (str, dict)):
-        return False, "Field 'role' must be a string or object."
+def _validate_role_item(role: object, spans: object) -> tuple[bool, str]:
+    """Validate one role->span-list entry from JSON IR object."""
+    if not isinstance(role, str):
+        return False, "Each JSON key must be a role string."
     if role_to_path(role) is None:
-        return False, "Field 'role' cannot be empty."
-    if not isinstance(span, str) or not span.strip():
-        return False, "Field 'span' must be a non-empty string."
+        return False, "Role key cannot be empty."
+    if not isinstance(spans, list):
+        return False, "Each role value must be a list."
+    for item in spans:
+        if not isinstance(item, str) or not item.strip():
+            return False, "Each span in role list must be a non-empty string."
     return True, ""

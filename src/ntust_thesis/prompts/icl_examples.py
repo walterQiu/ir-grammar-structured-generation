@@ -30,10 +30,10 @@ Sentence: damagerdestroyer is Protesters ; artifact is the offices of the holdin
 
 [Output]
 
-{"arguments":[
-  {"role":"damagerdestroyer","span":"Protesters"},
-  {"role":"artifact","span":"the offices of the holding company of Ukraine 's richest man , Rinat Akhmetov"}
-]}
+{
+  "damagerdestroyer": ["Protesters"],
+  "artifact": ["the offices of the holding company of Ukraine 's richest man , Rinat Akhmetov"]
+}
 
 ---
 
@@ -47,9 +47,9 @@ Sentence: participant is campaign .
 
 [Output]
 
-{"arguments":[
-  {"role":"participant","span":"campaign"}
-]}
+{
+  "participant": ["campaign"]
+}
 
 ---
 
@@ -63,10 +63,9 @@ Sentence: participant is Hillary ; participant is Alinsky .
 
 [Output]
 
-{"arguments":[
-  {"role":"participant","span":"Hillary"},
-  {"role":"participant","span":"Alinsky"}
-]}
+{
+  "participant": ["Hillary", "Alinsky"]
+}
 
 ---
 
@@ -80,7 +79,7 @@ Sentence: no valid role-span pairs are present .
 
 [Output]
 
-{"arguments":[]}
+{}
 
 """
 
@@ -335,10 +334,10 @@ In the sentence, "Protesters" serves as the damagerdestroyer, and "the offices o
 
 [Output]
 
-{"arguments":[
-  {"role":"damagerdestroyer","span":"Protesters"},
-  {"role":"artifact","span":"the offices of the holding company of Ukraine 's richest man , Rinat Akhmetov"}
-]}
+{
+  "damagerdestroyer": ["Protesters"],
+  "artifact": ["the offices of the holding company of Ukraine 's richest man , Rinat Akhmetov"]
+}
 
 ---
 
@@ -352,9 +351,9 @@ The sentence indicates that the "campaign" is a participant in the correspondenc
 
 [Output]
 
-{"arguments":[
-  {"role":"participant","span":"campaign"}
-]}
+{
+  "participant": ["campaign"]
+}
 
 ---
 
@@ -368,10 +367,9 @@ In the sentence, the participants involved in the meeting are Hillary and Alinsk
 
 [Output]
 
-{"arguments":[
-  {"role":"participant","span":"Hillary"},
-  {"role":"participant","span":"Alinsky"}
-]}
+{
+  "participant": ["Hillary", "Alinsky"]
+}
 
 ---
 
@@ -385,7 +383,7 @@ The sentence does not explicitly provide any information about the demonstrator 
 
 [Output]
 
-{"arguments":[]}
+{}
 
 """
 
