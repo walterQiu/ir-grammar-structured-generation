@@ -99,8 +99,8 @@ Sentence: damagerdestroyer is Protesters ; artifact is the offices of the holdin
 
 [Output]
 
-arguments.damagerdestroyer += Protesters
-arguments.artifact += the offices of the holding company of Ukraine 's richest man , Rinat Akhmetov
+damagerdestroyer += Protesters
+artifact += the offices of the holding company of Ukraine 's richest man , Rinat Akhmetov
 
 ---
 
@@ -114,7 +114,7 @@ Sentence: participant is campaign .
 
 [Output]
 
-arguments.participant += campaign
+participant += campaign
 
 ---
 
@@ -128,8 +128,8 @@ Sentence: participant is Hillary ; participant is Alinsky .
 
 [Output]
 
-arguments.participant += Hillary
-arguments.participant += Alinsky
+participant += Hillary
+participant += Alinsky
 
 ---
 
@@ -403,8 +403,8 @@ In the sentence, "Protesters" serves as the damagerdestroyer, and "the offices o
 
 [Output]
 
-arguments.damagerdestroyer += Protesters
-arguments.artifact += the offices of the holding company of Ukraine 's richest man , Rinat Akhmetov
+damagerdestroyer += Protesters
+artifact += the offices of the holding company of Ukraine 's richest man , Rinat Akhmetov
 
 ---
 
@@ -418,7 +418,7 @@ The sentence indicates that the "campaign" is a participant in the correspondenc
 
 [Output]
 
-arguments.participant += campaign
+participant += campaign
 
 ---
 
@@ -432,8 +432,8 @@ In the sentence, the participants involved in the meeting are Hillary and Alinsk
 
 [Output]
 
-arguments.participant += Hillary
-arguments.participant += Alinsky
+participant += Hillary
+participant += Alinsky
 
 ---
 

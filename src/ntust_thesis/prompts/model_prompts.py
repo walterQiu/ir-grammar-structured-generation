@@ -101,7 +101,7 @@ def build_one_stage_dot_notation_ir_prompt(
         "Generate dot-notation IR from the given sentence.\n"
         "The trigger word(s) of the event is marked with **trigger word**.\n"
         "Output format:\n"
-        "arguments.<role> += <span>\n"
+        "<role> += <span>\n"
         "\n"
         "Requirements:\n"
         "- Use only roles listed in 'Allowed roles and multiplicities'.\n"
@@ -289,7 +289,7 @@ def build_two_stage_dot_notation_ir_prompt(
     system_prompt = (
         "Generate dot-notation IR from the given extraction notes.\n"
         "Output format:\n"
-        "arguments.<role> += <span>\n"
+        "<role> += <span>\n"
         "\n"
         "Requirements:\n"
         "- Each output line assigns one argument value to one role.\n"

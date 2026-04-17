@@ -6,12 +6,10 @@ import re
 
 from ntust_thesis.ir.common import IRGrammarValidator, IRValidationResult
 
-_ARGUMENT_PREFIX = "arguments."
 _APPEND_OPERATOR = "+="
 _PATH_SEGMENT_PATTERN = r"[A-Za-z_][A-Za-z0-9_]*"
 _DOT_NOTATION_LINE_RE = re.compile(
-    rf"^{re.escape(_ARGUMENT_PREFIX)}"
-    rf"(?P<path>{_PATH_SEGMENT_PATTERN}(?:\.{_PATH_SEGMENT_PATTERN})*)"
+    rf"^(?P<path>{_PATH_SEGMENT_PATTERN}(?:\.{_PATH_SEGMENT_PATTERN})*)"
     rf"\s*{re.escape(_APPEND_OPERATOR)}\s*"
     r"(?P<span>\S(?:.*\S)?)$"
 )
@@ -37,13 +35,6 @@ class DotNotationIRValidator(IRGrammarValidator):
                 return IRValidationResult(
                     is_valid=False,
                     error_message=f"Missing '{_APPEND_OPERATOR}' operator.",
-                    error_line_no=idx,
-                    error_line_text=raw_line,
-                )
-            if not line.startswith(_ARGUMENT_PREFIX):
-                return IRValidationResult(
-                    is_valid=False,
-                    error_message=f"Line must start with '{_ARGUMENT_PREFIX}'.",
                     error_line_no=idx,
                     error_line_text=raw_line,
                 )
