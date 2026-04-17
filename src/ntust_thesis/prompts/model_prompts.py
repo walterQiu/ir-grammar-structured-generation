@@ -46,6 +46,7 @@ def build_one_stage_json_prompt(
 ) -> PromptPair:
     """Build prompt for one-stage direct JSON generation."""
     event_line = f"Event type (reference): {event_type}\n" if event_type else ""
+
     multiplicity_line = ""
     if role_multiplicities:
         pairs = ", ".join(
@@ -55,29 +56,49 @@ def build_one_stage_json_prompt(
 
     in_context_examples = build_one_stage_ir_in_context_examples(ir_grammar="json")
 
-    system_prompt = (
-        "Generate JSON event arguments from the given sentence.\n"
-        "The trigger word(s) of the event is marked with **trigger word**.\n"
+    # (1) Instruction block
+    instruction_block = (
+        "You are given a sentence describing an event.\n"
+        "Extract event arguments and represent them in JSON format.\n"
+    )
+
+    # (2) Output format block
+    output_format_block = (
         "Output format:\n"
-        '{"<role>":["<span1>","<span2>"]}\n'
-        "\n"
-        "Requirements:\n"
+        "{\n"
+        '  "<role1>": ["<span1>", "<span2>"],\n'
+        '  "<role2>": ["<span3>"]\n'
+        "}\n"
+    )
+
+    # (3) Output rules block
+    output_rules_block = (
+        "Rules:\n"
         "- Use only roles listed in 'Allowed roles and multiplicities'.\n"
-        "- In 'Allowed roles and multiplicities', the number for each role indicates the maximum number of spans that can be included for that role.\n"
-        "- Do not include more spans than the allowed number for each role.\n"
-        "- Each JSON key is one role, and its value is a list of spans for that role.\n"
-        "- Describe only arguments that are supported by the sentence.\n"
-        "- If a role has no supported span, do NOT include that role in the output.\n"
-        '- Do NOT output placeholders such as "none", "null", "not specified", or similar expressions.\n'
-        "- Do NOT include any explanation, justification, or commentary.\n"
-        "- Do not invent arguments or infer additional information beyond the sentence.\n"
-        "- Copy text exactly from the sentence. Do not modify, paraphrase, or re-segment it.\n"
-        "- Output only the JSON object. Do not include explanations or extra text.\n"
-        "\n"
-        f"{in_context_examples}\n"
+        "- The number for each role indicates the maximum number of spans allowed.\n"
+        "- Include a role only if at least one valid span exists.\n"
+        "- If no valid role-span pairs exist, output an empty JSON object: {}.\n"
+        "- Copy spans exactly from the sentence. Do not modify or paraphrase.\n"
+        "- Do not infer or hallucinate information not supported by the sentence.\n"
+        "- Do not output placeholders such as 'none', 'null', 'not specified', or similar.\n"
+        "- Output only the JSON object. Do not include any explanation or extra text.\n"
+    )
+
+    # (4) ICL block
+    icl_block = f"{in_context_examples}\n"
+
+    system_prompt = (
+        instruction_block
+        + "\n"
+        + output_format_block
+        + "\n"
+        + output_rules_block
+        + "\n"
+        + icl_block
     )
 
     user_prompt = f"{event_line}{multiplicity_line}Sentence: {sentence}\n"
+
     return system_prompt, user_prompt
 
 
@@ -88,37 +109,59 @@ def build_one_stage_incremental_assignment_ir_prompt(
 ) -> PromptPair:
     """Build one-stage prompt for direct incremental-assignment IR generation."""
     event_line = f"Event type (reference): {event_type}\n" if event_type else ""
+
     multiplicity_line = ""
     if role_multiplicities:
         pairs = ", ".join(
             f"{role}={count}" for role, count in role_multiplicities.items()
         )
         multiplicity_line = f"Allowed roles and multiplicities: {pairs}\n"
+
     in_context_examples = build_one_stage_ir_in_context_examples(
         ir_grammar="incremental_assignment_ir"
     )
-    system_prompt = (
-        "Generate incremental-assignment IR from the given sentence.\n"
-        "The trigger word(s) of the event is marked with **trigger word**.\n"
-        "Output format:\n"
-        "<role> += <span>\n"
-        "\n"
-        "Requirements:\n"
-        "- Use only roles listed in 'Allowed roles and multiplicities'.\n"
-        "- In 'Allowed roles and multiplicities', the number for each role indicates the maximum number of spans that can be included for that role.\n"
-        "- Do not include more spans than the allowed number for each role.\n"
-        "- Each output line assigns one argument value to one role.\n"
-        "- Describe only arguments that are supported by the sentence.\n"
-        "- If a role has no supported span, do NOT output that role.\n"
-        '- Do NOT output placeholders such as "none", "null", "not specified", or similar expressions.\n'
-        "- Do NOT include any explanation, justification, or commentary.\n"
-        "- Do not invent arguments or infer additional information beyond the sentence.\n"
-        "- Copy text exactly from the sentence. Do not modify, paraphrase, or re-segment it.\n"
-        "- Output only the IR lines. Do not include explanations or extra text.\n"
-        "\n"
-        f"{in_context_examples}\n"
+
+    # (1) Instruction block
+    instruction_block = (
+        "You are given a sentence describing an event.\n"
+        "Extract event arguments and represent them using incremental assignment.\n"
     )
+
+    # (2) Output format block
+    output_format_block = (
+        "Output format:\n<role1> += <span1>\n<role1> += <span2>\n<role2> += <span3>\n"
+    )
+
+    # (3) Output rules block
+    output_rules_block = (
+        "Rules:\n"
+        "- Use only roles listed in 'Allowed roles and multiplicities'.\n"
+        "- The number for each role indicates the maximum number of spans allowed.\n"
+        "- Output one line per span using the format '<role> += <span>'.\n"
+        "- If a role has multiple spans, output multiple lines for that role.\n"
+        "- Output a role only if at least one valid span exists.\n"
+        "- If no valid role-span pairs exist, output nothing.\n"
+        "- Copy spans exactly from the sentence. Do not modify or paraphrase.\n"
+        "- Do not infer or hallucinate information not supported by the sentence.\n"
+        "- Do not output placeholders such as 'none', 'null', 'not specified', or similar.\n"
+        "- Output only the IR lines. Do not include any explanation or extra text.\n"
+    )
+
+    # (4) ICL block
+    icl_block = f"{in_context_examples}\n"
+
+    system_prompt = (
+        instruction_block
+        + "\n"
+        + output_format_block
+        + "\n"
+        + output_rules_block
+        + "\n"
+        + icl_block
+    )
+
     user_prompt = f"{event_line}{multiplicity_line}Sentence: {sentence}\n"
+
     return system_prompt, user_prompt
 
 
@@ -129,10 +172,12 @@ def build_one_stage_code4struct_ir_prompt(
 ) -> PromptPair:
     """Build one-stage prompt for direct CODE4STRUCT-style IR generation."""
     event_class = _to_event_class_name(event_type)
+
     ontology_block = _build_code4struct_ontology_block(
         event_class=event_class,
         role_names=list(role_multiplicities.keys()) if role_multiplicities else [],
     )
+
     multiplicity_line = ""
     if role_multiplicities:
         pairs = ", ".join(
@@ -148,26 +193,53 @@ def build_one_stage_code4struct_ir_prompt(
         '"""\n'
         f"{event_class.lower()}_event = {event_class}(\n"
     )
+
     in_context_examples = build_one_stage_ir_in_context_examples(
         ir_grammar="code4struct_ir"
     )
 
+    # (1) Instruction block
+    instruction_block = (
+        "You are given a sentence describing an event.\n"
+        "Complete a Python class instantiation that represents the event arguments.\n"
+    )
+
+    # (2) Output format block
+    output_format_block = (
+        "Output format:\n"
+        '    <argument1>=[Entity("<value1>"), Entity("<value2>")],\n'
+        '    <argument2>=[Entity("<value3>")],\n'
+        ")\n"
+    )
+
+    # (3) Output rules block
+    output_rules_block = (
+        "Rules:\n"
+        "- Use only arguments defined in the class constructor.\n"
+        "- The number for each argument in 'Argument value limits' indicates the maximum number of values allowed.\n"
+        "- Include an argument only if at least one valid value exists.\n"
+        "- If no valid arguments exist, complete the empty instantiation with no fields.\n"
+        "- Copy values exactly from the sentence. Do not modify or paraphrase.\n"
+        "- Do not infer or hallucinate information not supported by the sentence.\n"
+        "- Do not output placeholders such as 'none', 'null', 'not specified', or similar.\n"
+        "- Output only the completion inside the parentheses. Do not repeat the prefix or include explanations.\n"
+    )
+
+    # (4) ICL block
+    icl_block = f"{in_context_examples}\n"
+
     system_prompt = (
-        "Complete the event instantiation shown in the prompt using the given sentence.\n"
-        "The trigger word(s) of the event is marked with **trigger word**.\n"
-        "\n"
-        "Requirements:\n"
-        "- Each argument corresponds to a field in the constructor.\n"
-        "- In 'Argument value limits', the number for each argument indicates the maximum number of values that can be included for that argument.\n"
-        "- Do not include more values than the allowed number for each argument.\n"
-        "- Describe only arguments that are supported by the sentence.\n"
-        "- Do not invent arguments or infer additional information beyond the sentence.\n"
-        "- Copy text exactly from the sentence. Do not modify, paraphrase, or re-segment it.\n"
-        "- Output only the completion of the event instantiation. Do not repeat the prefix or include explanations.\n"
-        f"{in_context_examples}\n"
+        instruction_block
+        + "\n"
+        + output_format_block
+        + "\n"
+        + output_rules_block
+        + "\n"
+        + icl_block
     )
 
     user_prompt = f"{ontology_block}\n\n{task_block}"
+
     return system_prompt, user_prompt
 
 
@@ -178,6 +250,7 @@ def build_two_stage_extraction_prompt(
 ) -> PromptPair:
     """Build prompt for two-stage extraction step."""
     event_line = f"Event type (reference): {event_type}\n" if event_type else ""
+
     multiplicity_line = ""
     if role_multiplicities:
         pairs = ", ".join(
@@ -185,23 +258,32 @@ def build_two_stage_extraction_prompt(
         )
         multiplicity_line = f"Allowed roles and multiplicities: {pairs}\n"
 
-    system_prompt = (
-        "Identify the event arguments related to the marked trigger word in the following sentence.\n"
-        "The trigger word(s) of the event is marked with **trigger word**.\n\n"
-        "Identify argument spans that are explicitly supported by the sentence and describe the role of each span.\n\n"
-        "Requirements:\n"
-        "- Use only roles listed in 'Allowed roles and multiplicities'.\n"
-        "- In 'Allowed roles and multiplicities', the number for each role indicates the maximum number of spans that can be included for that role.\n"
-        "- Do not include more spans than the allowed number for each role.\n"
-        "- Describe only arguments that are supported by the sentence.\n"
-        "- Do not invent arguments or infer additional information beyond the sentence.\n"
-        "- Copy text exactly from the sentence. Do not modify, paraphrase, or re-segment it.\n"
-        "- Do not split one text span into multiple arguments unless the sentence clearly supports that.\n"
-        "- Do not organize the answer into a table, JSON, key-value pairs, role-label lines, or any other fixed schema.\n"
-        "- Keep the response concise, in free-form natural language only, and without extended explanations.\n\n"
+    # (1) Instruction block
+    instruction_block = (
+        "You are given a sentence describing an event.\n"
+        "Identify the event arguments related to the marked trigger word and describe them in concise natural language.\n"
+        "The trigger word(s) of the event is marked with **trigger word**.\n"
     )
 
+    # (3) Output rules block
+    output_rules_block = (
+        "Rules:\n"
+        "- Use only roles listed in 'Allowed roles and multiplicities'.\n"
+        "- The number for each role indicates the maximum number of spans allowed.\n"
+        "- Describe only arguments that are explicitly supported by the sentence.\n"
+        "- Do not infer or hallucinate information beyond the sentence.\n"
+        "- Copy argument text exactly from the sentence. Do not modify, paraphrase, or re-segment it.\n"
+        "- Do not split one text span into multiple arguments unless the sentence clearly supports that.\n"
+        "- If a role has no supported argument, do not mention that role.\n"
+        "- Write the answer in concise free-form natural language.\n"
+        "- Do not output JSON, code, tables, key-value pairs, role-label lines, or any other fixed schema.\n"
+        "- Do not include extended explanations, justifications, or commentary.\n"
+    )
+
+    system_prompt = instruction_block + "\n" + output_rules_block + "\n"
+
     user_prompt = f"{event_line}{multiplicity_line}Sentence: {sentence}\n"
+
     return system_prompt, user_prompt
 
 
@@ -246,27 +328,50 @@ def build_two_stage_json_prompt(
 
     in_context_examples = build_two_stage_ir_in_context_examples(ir_grammar="json")
 
-    system_prompt = (
-        "Generate JSON event arguments from the given extraction notes.\n"
-        "Output format:\n"
-        '{"<role>":["<span1>","<span2>"]}\n'
-        "\n"
-        "Requirements:\n"
-        "- Each JSON key is one role, and its value is a list of spans for that role.\n"
-        "- Use only roles listed in 'Allowed roles and multiplicities'.\n"
-        "- In 'Allowed roles and multiplicities', the number for each role indicates the maximum number of spans that can be included for that role.\n"
-        "- Do not include more spans than the allowed number for each role.\n"
-        "- Use only text explicitly supported by the extraction notes.\n"
-        "- If a role has no supported span, do NOT include that role in the output.\n"
-        '- Do NOT output placeholders such as "none", "null", "not specified", or similar expressions.\n'
-        "- Do NOT include any explanation, justification, or commentary.\n"
-        "- Copy text exactly from the extraction notes. Do not modify, paraphrase, or re-segment it.\n"
-        "- Output only the JSON object. Do not include explanations or extra text.\n"
-        "\n"
-        f"{in_context_examples}\n"
+    # (1) Instruction block
+    instruction_block = (
+        "You are given extraction notes describing event arguments.\n"
+        "Organize the supported arguments into JSON format.\n"
     )
 
-    user_prompt = f"{multiplicity_line}Extraction notes:\n{extraction_text}"
+    # (2) Output format block
+    output_format_block = (
+        "Output format:\n"
+        "{\n"
+        '  "<role1>": ["<span1>", "<span2>"],\n'
+        '  "<role2>": ["<span3>"]\n'
+        "}\n"
+    )
+
+    # (3) Output rules block
+    output_rules_block = (
+        "Rules:\n"
+        "- Use only roles listed in 'Allowed roles and multiplicities'.\n"
+        "- The number for each role indicates the maximum number of spans allowed.\n"
+        "- Include a role only if at least one valid span is explicitly supported by the extraction notes.\n"
+        "- If no valid role-span pairs are supported by the extraction notes, output an empty JSON object: {}.\n"
+        "- Use only text explicitly supported by the extraction notes.\n"
+        "- Copy spans exactly from the extraction notes. Do not modify, paraphrase, or re-segment them.\n"
+        "- Do not infer or hallucinate information beyond the extraction notes.\n"
+        "- Do not output placeholders such as 'none', 'null', 'not specified', or similar.\n"
+        "- Output only the JSON object. Do not include any explanation or extra text.\n"
+    )
+
+    # (4) ICL block
+    icl_block = f"{in_context_examples}\n"
+
+    system_prompt = (
+        instruction_block
+        + "\n"
+        + output_format_block
+        + "\n"
+        + output_rules_block
+        + "\n"
+        + icl_block
+    )
+
+    user_prompt = f"{multiplicity_line}Extraction notes:\n{extraction_text}\n"
+
     return system_prompt, user_prompt
 
 
@@ -286,26 +391,48 @@ def build_two_stage_incremental_assignment_ir_prompt(
         ir_grammar="incremental_assignment_ir"
     )
 
-    system_prompt = (
-        "Generate incremental-assignment IR from the given extraction notes.\n"
-        "Output format:\n"
-        "<role> += <span>\n"
-        "\n"
-        "Requirements:\n"
-        "- Each output line assigns one argument value to one role.\n"
-        "- Use only roles listed in 'Allowed roles and multiplicities'.\n"
-        "- In 'Allowed roles and multiplicities', the number for each role indicates the maximum number of spans that can be included for that role.\n"
-        "- Do not include more spans than the allowed number for each role.\n"
-        "- Use only text explicitly supported by the extraction notes.\n"
-        "- If a role has no supported span, do NOT output that role.\n"
-        '- Do NOT output placeholders such as "none", "null", "not specified", or similar expressions.\n'
-        "- Do NOT include any explanation, justification, or commentary.\n"
-        "- Copy text exactly from the extraction notes. Do not modify, paraphrase, or re-segment it.\n"
-        "- Output only the IR lines. Do not include explanations or extra text.\n"
-        "\n"
-        f"{in_context_examples}\n"
+    # (1) Instruction block
+    instruction_block = (
+        "You are given extraction notes describing event arguments.\n"
+        "Organize the supported arguments using incremental assignment.\n"
     )
-    user_prompt = f"{multiplicity_line}Extraction notes:\n{extraction_text}"
+
+    # (2) Output format block
+    output_format_block = (
+        "Output format:\n<role1> += <span1>\n<role1> += <span2>\n<role2> += <span3>\n"
+    )
+
+    # (3) Output rules block
+    output_rules_block = (
+        "Rules:\n"
+        "- Use only roles listed in 'Allowed roles and multiplicities'.\n"
+        "- The number for each role indicates the maximum number of spans allowed.\n"
+        "- Output one line per span using the format '<role> += <span>'.\n"
+        "- If a role has multiple spans, output multiple lines for that role.\n"
+        "- Output a role only if at least one valid span is explicitly supported by the extraction notes.\n"
+        "- If no valid role-span pairs are supported by the extraction notes, output nothing.\n"
+        "- Use only text explicitly supported by the extraction notes.\n"
+        "- Copy spans exactly from the extraction notes. Do not modify, paraphrase, or re-segment them.\n"
+        "- Do not infer or hallucinate information beyond the extraction notes.\n"
+        "- Do not output placeholders such as 'none', 'null', 'not specified', or similar.\n"
+        "- Output only the IR lines. Do not include any explanation or extra text.\n"
+    )
+
+    # (4) ICL block
+    icl_block = f"{in_context_examples}\n"
+
+    system_prompt = (
+        instruction_block
+        + "\n"
+        + output_format_block
+        + "\n"
+        + output_rules_block
+        + "\n"
+        + icl_block
+    )
+
+    user_prompt = f"{multiplicity_line}Extraction notes:\n{extraction_text}\n"
+
     return system_prompt, user_prompt
 
 
@@ -316,19 +443,23 @@ def build_two_stage_code4struct_ir_prompt(
 ) -> PromptPair:
     """Build two-stage prompt for CODE4STRUCT-style IR generation."""
     event_class = _to_event_class_name(event_type)
+
     ontology_block = _build_code4struct_ontology_block(
         event_class=event_class,
         role_names=list(role_multiplicities.keys()) if role_multiplicities else [],
     )
+
     in_context_examples = build_two_stage_ir_in_context_examples(
         ir_grammar="code4struct_ir"
     )
+
     multiplicity_line = ""
     if role_multiplicities:
         pairs = ", ".join(
             f"{role}={count}" for role, count in role_multiplicities.items()
         )
         multiplicity_line = f"Argument value limits: {pairs}\n"
+
     task_block = (
         '"""\n'
         f"{multiplicity_line}"
@@ -338,20 +469,49 @@ def build_two_stage_code4struct_ir_prompt(
         f"{event_class.lower()}_event = {event_class}(\n"
     )
 
-    system_prompt = (
-        "Complete the event instantiation shown in the prompt using the given extraction notes.\n"
-        "\n"
-        "Requirements:\n"
-        "- Each argument corresponds to a field in the constructor.\n"
-        "- In 'Argument value limits', the number for each argument indicates the maximum number of values that can be included for that argument.\n"
-        "- Do not include more values than the allowed number for each argument.\n"
-        "- Use only text explicitly supported by the extraction notes.\n"
-        "- Copy text exactly from the extraction notes. Do not modify, paraphrase, or re-segment it.\n"
-        "- Output only the completion of the event instantiation. Do not repeat the prefix or include explanations.\n"
-        "\n"
-        f"{in_context_examples}\n"
+    # (1) Instruction block
+    instruction_block = (
+        "You are given extraction notes describing event arguments.\n"
+        "Complete a Python class instantiation that organizes the supported arguments.\n"
     )
+
+    # (2) Output format block
+    output_format_block = (
+        "Output format:\n"
+        '    <argument1>=[Entity("<value1>"), Entity("<value2>")],\n'
+        '    <argument2>=[Entity("<value3>")],\n'
+        ")\n"
+    )
+
+    # (3) Output rules block
+    output_rules_block = (
+        "Rules:\n"
+        "- Use only arguments defined in the class constructor.\n"
+        "- The number for each argument in 'Argument value limits' indicates the maximum number of values allowed.\n"
+        "- Include an argument only if at least one valid value is explicitly supported by the extraction notes.\n"
+        "- If no valid arguments are supported by the extraction notes, complete the empty instantiation with no fields.\n"
+        "- Use only text explicitly supported by the extraction notes.\n"
+        "- Copy values exactly from the extraction notes. Do not modify, paraphrase, or re-segment them.\n"
+        "- Do not infer or hallucinate information beyond the extraction notes.\n"
+        "- Do not output placeholders such as 'none', 'null', 'not specified', or similar.\n"
+        "- Output only the completion inside the parentheses. Do not repeat the prefix or include explanations.\n"
+    )
+
+    # (4) ICL block
+    icl_block = f"{in_context_examples}\n"
+
+    system_prompt = (
+        instruction_block
+        + "\n"
+        + output_format_block
+        + "\n"
+        + output_rules_block
+        + "\n"
+        + icl_block
+    )
+
     user_prompt = f"{ontology_block}\n\n{task_block}"
+
     return system_prompt, user_prompt
 
 
