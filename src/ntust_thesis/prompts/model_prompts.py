@@ -189,7 +189,7 @@ def build_one_stage_code4struct_ir_prompt(
         '"""\n'
         f"{multiplicity_line}"
         f"Convert the following sentence into an instance of {event_class}.\n"
-        f'"{sentence}"\n'
+        f"{sentence}\n"
         '"""\n'
         f"{event_class.lower()}_event = {event_class}(\n"
     )
@@ -464,7 +464,7 @@ def build_two_stage_code4struct_ir_prompt(
         '"""\n'
         f"{multiplicity_line}"
         f"Convert the following extraction notes into an instance of {event_class}.\n"
-        f'"{extraction_text}"\n'
+        f"{extraction_text}\n"
         '"""\n'
         f"{event_class.lower()}_event = {event_class}(\n"
     )

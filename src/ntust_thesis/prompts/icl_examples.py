@@ -181,7 +181,7 @@ class ArtifactexistenceDamagedestroyNa(Event):
 """
 Argument value limits: damagerdestroyer=1, artifact=1, instrument=1, place=1
 Convert the following sentence into an instance of ArtifactexistenceDamagedestroyNa.
-"damagerdestroyer is Protesters ; artifact is the offices of the holding company of Ukraine 's richest man , Rinat Akhmetov ."
+damagerdestroyer is Protesters ; artifact is the offices of the holding company of Ukraine 's richest man , Rinat Akhmetov .
 """
 artifactexistencedamagedestroyna_event = ArtifactexistenceDamagedestroyNa(
 
@@ -219,7 +219,7 @@ class ContactCollaborateCorrespondence(Event):
 """
 Argument value limits: participant=2, place=1
 Convert the following sentence into an instance of ContactCollaborateCorrespondence.
-"participant is campaign ."
+participant is campaign .
 """
 contactcollaboratecorrespondence_event = ContactCollaborateCorrespondence(
 
@@ -256,7 +256,7 @@ class ContactDiscussionNa(Event):
 """
 Argument value limits: participant=2, place=1
 Convert the following sentence into an instance of ContactDiscussionNa.
-"participant is Hillary ; participant is Alinsky ."
+participant is Hillary ; participant is Alinsky .
 """
 contactdiscussionna_event = ContactDiscussionNa(
 
@@ -296,7 +296,7 @@ class ConflictDemonstrateNa(Event):
 """
 Argument value limits: demonstrator=1, place=1
 Convert the following sentence into an instance of ConflictDemonstrateNa.
-"no valid role-span pairs are present ."
+no valid role-span pairs are present .
 """
 conflictdemonstratena_event = ConflictDemonstrateNa(
 
@@ -485,7 +485,7 @@ class ConflictAttackDamage(Event):
 """
 Argument value limits: damagerdestroyer=1, artifact=1, instrument=1, place=1
 Convert the following extraction notes into an instance of ConflictAttackDamage.
-"In the sentence, "Protesters" serves as the damagerdestroyer, and "the offices of the holding company of Ukraine 's richest man , Rinat Akhmetov" is the artifact that was vandalized."
+In the sentence, "Protesters" serves as the damagerdestroyer, and "the offices of the holding company of Ukraine 's richest man , Rinat Akhmetov" is the artifact that was vandalized.
 """
 conflictattackdamage_event = ConflictAttackDamage(
 
@@ -523,7 +523,7 @@ class ContactCorrespondence(Event):
 """
 Argument value limits: participant=2, place=1
 Convert the following extraction notes into an instance of ContactCorrespondence.
-"The sentence indicates that the "campaign" is a participant in the correspondence."
+The sentence indicates that the "campaign" is a participant in the correspondence.
 """
 contactcorrespondence_event = ContactCorrespondence(
 
@@ -560,7 +560,7 @@ class ContactMeet(Event):
 """
 Argument value limits: participant=2, place=1
 Convert the following extraction notes into an instance of ContactMeet.
-"In the sentence, the participants involved in the meeting are Hillary and Alinsky."
+In the sentence, the participants involved in the meeting are Hillary and Alinsky.
 """
 contactmeet_event = ContactMeet(
 
@@ -600,7 +600,7 @@ class ConflictDemonstrateMarchprotestpoliticalgathering(Event):
 """
 Argument value limits: demonstrator=1, place=1
 Convert the following extraction notes into an instance of ConflictDemonstrateMarchprotestpoliticalgathering.
-"The sentence does not explicitly provide any information about the demonstrator or the place related to the protest. Therefore, there are no arguments to identify for the allowed roles."
+The sentence does not explicitly provide any information about the demonstrator or the place related to the protest. Therefore, there are no arguments to identify for the allowed roles.
 """
 conflictdemonstratemarchprotestpoliticalgathering_event = ConflictDemonstrateMarchprotestpoliticalgathering(
 
