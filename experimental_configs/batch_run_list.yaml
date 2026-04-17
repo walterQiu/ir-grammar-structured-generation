@@ -4,10 +4,23 @@ experiments:
   # - experimental_configs/M1_incremental-assignment_gemini3.yaml
   # - experimental_configs/M1_code4struct_gemini3.yaml
 
-  - experimental_configs/M1_json_gemini25.yaml
-  - experimental_configs/M1_incremental-assignment_gemini25.yaml
-  - experimental_configs/M1_code4struct_gemini25.yaml
+  # - experimental_configs/M1_json_gemini25.yaml
+  # - experimental_configs/M1_incremental-assignment_gemini25.yaml
+  # - experimental_configs/M1_code4struct_gemini25.yaml
 
   # - experimental_configs/M1_json_mistral.yaml
   # - experimental_configs/M1_incremental-assignment_mistral.yaml
   # - experimental_configs/M1_code4struct_mistral.yaml
+
+  # small M1 list (max_samples=80)
+  - experimental_configs/small-M1_json_gemini3.yaml
+  - experimental_configs/small-M1_incremental-assignment_gemini3.yaml
+  - experimental_configs/small-M1_code4struct_gemini3.yaml
+
+  - experimental_configs/small-M1_json_gemini25.yaml
+  - experimental_configs/small-M1_incremental-assignment_gemini25.yaml
+  - experimental_configs/small-M1_code4struct_gemini25.yaml
+
+  - experimental_configs/small-M1_json_mistral.yaml
+  - experimental_configs/small-M1_incremental-assignment_mistral.yaml
+  - experimental_configs/small-M1_code4struct_mistral.yaml

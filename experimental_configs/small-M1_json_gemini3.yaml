@@ -3,7 +3,7 @@ dataset:
   name: rams
   data_dir: datasets/RAMS/data
   split: test
-  max_samples: 100
+  max_samples: 80
 model:
   name: two_stage
   extraction_model:
