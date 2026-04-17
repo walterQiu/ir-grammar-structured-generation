@@ -59,14 +59,17 @@ def build_one_stage_json_prompt(
         "Generate JSON event arguments from the given sentence.\n"
         "The trigger word(s) of the event is marked with **trigger word**.\n"
         "Output format:\n"
-        '{"arguments":[{"role":"<role>","span":"<span>"}]}\n'
+        '{"<role>":["<span1>","<span2>"]}\n'
         "\n"
         "Requirements:\n"
         "- Use only roles listed in 'Allowed roles and multiplicities'.\n"
         "- In 'Allowed roles and multiplicities', the number for each role indicates the maximum number of spans that can be included for that role.\n"
         "- Do not include more spans than the allowed number for each role.\n"
-        "- Each object in arguments assigns one argument value to one role.\n"
+        "- Each JSON key is one role, and its value is a list of spans for that role.\n"
         "- Describe only arguments that are supported by the sentence.\n"
+        "- If a role has no supported span, do NOT include that role in the output.\n"
+        '- Do NOT output placeholders such as "none", "null", "not specified", or similar expressions.\n'
+        "- Do NOT include any explanation, justification, or commentary.\n"
         "- Do not invent arguments or infer additional information beyond the sentence.\n"
         "- Copy text exactly from the sentence. Do not modify, paraphrase, or re-segment it.\n"
         "- Output only the JSON object. Do not include explanations or extra text.\n"
@@ -106,6 +109,9 @@ def build_one_stage_dot_notation_ir_prompt(
         "- Do not include more spans than the allowed number for each role.\n"
         "- Each output line assigns one argument value to one role.\n"
         "- Describe only arguments that are supported by the sentence.\n"
+        "- If a role has no supported span, do NOT output that role.\n"
+        '- Do NOT output placeholders such as "none", "null", "not specified", or similar expressions.\n'
+        "- Do NOT include any explanation, justification, or commentary.\n"
         "- Do not invent arguments or infer additional information beyond the sentence.\n"
         "- Copy text exactly from the sentence. Do not modify, paraphrase, or re-segment it.\n"
         "- Output only the IR lines. Do not include explanations or extra text.\n"
@@ -243,14 +249,17 @@ def build_two_stage_json_prompt(
     system_prompt = (
         "Generate JSON event arguments from the given extraction notes.\n"
         "Output format:\n"
-        '{"arguments":[{"role":"<role>","span":"<span>"}]}\n'
+        '{"<role>":["<span1>","<span2>"]}\n'
         "\n"
         "Requirements:\n"
-        "- Each object in arguments assigns one argument value to one role.\n"
+        "- Each JSON key is one role, and its value is a list of spans for that role.\n"
         "- Use only roles listed in 'Allowed roles and multiplicities'.\n"
         "- In 'Allowed roles and multiplicities', the number for each role indicates the maximum number of spans that can be included for that role.\n"
         "- Do not include more spans than the allowed number for each role.\n"
         "- Use only text explicitly supported by the extraction notes.\n"
+        "- If a role has no supported span, do NOT include that role in the output.\n"
+        '- Do NOT output placeholders such as "none", "null", "not specified", or similar expressions.\n'
+        "- Do NOT include any explanation, justification, or commentary.\n"
         "- Copy text exactly from the extraction notes. Do not modify, paraphrase, or re-segment it.\n"
         "- Output only the JSON object. Do not include explanations or extra text.\n"
         "\n"
@@ -288,6 +297,9 @@ def build_two_stage_dot_notation_ir_prompt(
         "- In 'Allowed roles and multiplicities', the number for each role indicates the maximum number of spans that can be included for that role.\n"
         "- Do not include more spans than the allowed number for each role.\n"
         "- Use only text explicitly supported by the extraction notes.\n"
+        "- If a role has no supported span, do NOT output that role.\n"
+        '- Do NOT output placeholders such as "none", "null", "not specified", or similar expressions.\n'
+        "- Do NOT include any explanation, justification, or commentary.\n"
         "- Copy text exactly from the extraction notes. Do not modify, paraphrase, or re-segment it.\n"
         "- Output only the IR lines. Do not include explanations or extra text.\n"
         "\n"
