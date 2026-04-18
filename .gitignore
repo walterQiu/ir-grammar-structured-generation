@@ -210,5 +210,4 @@ __marimo__/
 /datasets/
 
 # experiment outputs
-/outputs/runs/
-/outputs/cache/
+/outputs/
