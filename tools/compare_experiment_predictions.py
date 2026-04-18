@@ -7,8 +7,8 @@ from pathlib import Path
 from typing import Any
 
 # Edit these paths directly before running this script.
-EXPERIMENT_DIR_A = Path("outputs/runs/20260417_142855_M1_json_gemini3")
-EXPERIMENT_DIR_B = Path("outputs/runs/20260418_081505_M1_code4struct_gemini3")
+EXPERIMENT_DIR_A = Path("outputs/runs/20260418_061149_M1_json_mistral")
+EXPERIMENT_DIR_B = Path("outputs/runs/20260418_092821_M1_code4struct_mistral")
 OUTPUT_PATH = Path("outputs/analysis/diff_predictions.json")
 COMPARE_MODE = "role_only"  # one of: full, role_only
 
@@ -62,6 +62,12 @@ def _build_differences(
         gold_a = row_a.get("gold")
         gold_b = row_b.get("gold")
         gold = gold_a if gold_a == gold_b else {"exp_a": gold_a, "exp_b": gold_b}
+        extraction_notes = _merge_if_same(
+            _get_prediction_metadata_text(row_a, "extraction_text"),
+            _get_prediction_metadata_text(row_b, "extraction_text"),
+        )
+        ir_text_a = _get_prediction_metadata_text(row_a, "ir_text")
+        ir_text_b = _get_prediction_metadata_text(row_b, "ir_text")
 
         differences.append(
             {
@@ -69,10 +75,33 @@ def _build_differences(
                 "parsed_output_exp_a": parsed_a,
                 "parsed_output_exp_b": parsed_b,
                 "gold": gold,
+                "extraction_notes": extraction_notes,
+                "ir_text_exp_a": ir_text_a,
+                "ir_text_exp_b": ir_text_b,
             }
         )
 
     return differences
+
+
+def _get_prediction_metadata_text(row: dict[str, Any], key: str) -> str | None:
+    """Return text field from prediction_metadata when present."""
+    metadata = row.get("prediction_metadata")
+    if not isinstance(metadata, dict):
+        return None
+    value = metadata.get(key)
+    if isinstance(value, str):
+        return value
+    return None
+
+
+def _merge_if_same(
+    value_a: str | None, value_b: str | None
+) -> str | dict[str, str | None] | None:
+    """Return one value when equal, otherwise return exp_a/exp_b mapping."""
+    if value_a == value_b:
+        return value_a
+    return {"exp_a": value_a, "exp_b": value_b}
 
 
 def _is_same_prediction(
