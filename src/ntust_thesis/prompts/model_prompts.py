@@ -222,7 +222,8 @@ def build_one_stage_code4struct_ir_prompt(
         "- Copy values exactly from the sentence. Do not modify or paraphrase.\n"
         "- Do not infer or hallucinate information not supported by the sentence.\n"
         "- Do not output placeholders such as 'none', 'null', 'not specified', or similar.\n"
-        "- Output only the completion inside the parentheses. Do not repeat the prefix or include explanations.\n"
+        '- Output the argument assignments and include the final closing parenthesis ")". \n'
+        "- Do not repeat the class instantiation prefix or include any explanation.\n"
     )
 
     # (4) ICL block
@@ -494,7 +495,8 @@ def build_two_stage_code4struct_ir_prompt(
         "- Copy values exactly from the extraction notes. Do not modify, paraphrase, or re-segment them.\n"
         "- Do not infer or hallucinate information beyond the extraction notes.\n"
         "- Do not output placeholders such as 'none', 'null', 'not specified', or similar.\n"
-        "- Output only the completion inside the parentheses. Do not repeat the prefix or include explanations.\n"
+        '- Output the argument assignments and include the final closing parenthesis ")". \n'
+        "- Do not repeat the class instantiation prefix or include any explanation.\n"
     )
 
     # (4) ICL block
