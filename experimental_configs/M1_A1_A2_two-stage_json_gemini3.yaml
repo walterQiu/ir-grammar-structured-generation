@@ -1,4 +1,4 @@
-experiment_name: M1_json_gemini3
+experiment_name: M1_A1_A2_two-stage_json_gemini3
 dataset:
   name: rams
   data_dir: datasets/RAMS/data

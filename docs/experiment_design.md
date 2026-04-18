@@ -46,7 +46,7 @@
 2. One-stage best IR VS. Two-stage best IR  
 
 ### 設定
-- 都用 Mistral-7B-Instruct-v0.3
+- 模型：Gemini 3.1 Pro、Gemini 2.5 flash、Mistral (Two-stage的 extraction/ir model 需要相同)
 
 ## A2：JSON VS. Best IR
 
@@ -58,14 +58,14 @@
 2. Two-stage JSON VS. Two-stage best IR
 
 ### 設定
-- 都用 Mistral-7B-Instruct-v0.3
+- 模型：Gemini 3.1 Pro、Gemini 2.5 flash、Mistral
 
 ## A3：ICL(In-Context Learning) VS. Non-ICL
 
 ### 設定
 - Pipeline: two-stage
 - IR：JSON / Incremental-Assignment / CODE4STRUCT
-- 模型：Gemini 、 Mistral
+- 模型：Gemini 3.1 Pro、Gemini 2.5 flash、Mistral
 - 0-shot vs 4-shot
 
 ### ICL examples 包含以下三種情境

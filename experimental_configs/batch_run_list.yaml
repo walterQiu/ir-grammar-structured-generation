@@ -1,26 +1,59 @@
 experiments:
   # M1 list
-  # - experimental_configs/M1_json_gemini3.yaml
+  # - experimental_configs/M1_A1_A2_two-stage_json_gemini3.yaml
   # - experimental_configs/M1_incremental-assignment_gemini3.yaml
-  # - experimental_configs/M1_code4struct_gemini3.yaml
+  # - experimental_configs/M1_A1_A2_two-stage_code4struct_gemini3.yaml
 
-  # - experimental_configs/M1_json_gemini25.yaml
+  # - experimental_configs/M1_A2_two-stage_json_gemini25.yaml
   # - experimental_configs/M1_incremental-assignment_gemini25.yaml
-  # - experimental_configs/M1_code4struct_gemini25.yaml
+  # - experimental_configs/M1_A2_two-stage_code4struct_gemini25.yaml
 
-  # - experimental_configs/M1_json_mistral.yaml
+  # - experimental_configs/M1_A2_two-stage_json_mistral.yaml
   # - experimental_configs/M1_incremental-assignment_mistral.yaml
-  # - experimental_configs/M1_code4struct_mistral.yaml
+  # - experimental_configs/M1_A2_two-stage_code4struct_mistral.yaml
+
+  # A1 one-stage list (shared with A2 one-stage)
+  # gemini 3.1 pro
+  # - experimental_configs/A1_A2_one-stage_json_gemini3.yaml
+  - experimental_configs/A1_A2_one-stage_code4struct_gemini3.yaml
+  # gemini 2.5 flash
+  - experimental_configs/A1_A2_one-stage_json_gemini25.yaml
+  - experimental_configs/A1_A2_one-stage_code4struct_gemini25.yaml
+  # mistral
+  - experimental_configs/A1_A2_one-stage_json_mistral.yaml
+  - experimental_configs/A1_A2_one-stage_code4struct_mistral.yaml
+
+  # A1 two-stage list (extraction model == ir model)
+  # gemini 3.1 pro
+  # - experimental_configs/M1_A1_A2_two-stage_json_gemini3.yaml
+  # - experimental_configs/M1_A1_A2_two-stage_code4struct_gemini3.yaml
+  # gemini 2.5 flash
+  - experimental_configs/A1_two-stage_json_gemini25.yaml
+  - experimental_configs/A1_two-stage_code4struct_gemini25.yaml
+  # mistral
+  - experimental_configs/A1_two-stage_json_mistral.yaml
+  - experimental_configs/A1_two-stage_code4struct_mistral.yaml
+
+  # A2 two-stage list (JSON vs Best IR=code4struct)
+  # # gemini 3.1 pro
+  # - experimental_configs/M1_A1_A2_two-stage_json_gemini3.yaml
+  # - experimental_configs/M1_A1_A2_two-stage_code4struct_gemini3.yaml
+  # # gemini 2.5 flash
+  # - experimental_configs/M1_A2_two-stage_json_gemini25.yaml
+  # - experimental_configs/M1_A2_two-stage_code4struct_gemini25.yaml
+  # # mistral
+  # - experimental_configs/M1_A2_two-stage_json_mistral.yaml
+  # - experimental_configs/M1_A2_two-stage_code4struct_mistral.yaml
 
   # small M1 list (max_samples=80)
-  - experimental_configs/small-M1_json_gemini3.yaml
-  - experimental_configs/small-M1_incremental-assignment_gemini3.yaml
-  - experimental_configs/small-M1_code4struct_gemini3.yaml
+  # - experimental_configs/small-M1_json_gemini3.yaml
+  # - experimental_configs/small-M1_incremental-assignment_gemini3.yaml
+  # - experimental_configs/small-M1_code4struct_gemini3.yaml
 
-  - experimental_configs/small-M1_json_gemini25.yaml
-  - experimental_configs/small-M1_incremental-assignment_gemini25.yaml
-  - experimental_configs/small-M1_code4struct_gemini25.yaml
+  # - experimental_configs/small-M1_json_gemini25.yaml
+  # - experimental_configs/small-M1_incremental-assignment_gemini25.yaml
+  # - experimental_configs/small-M1_code4struct_gemini25.yaml
 
-  - experimental_configs/small-M1_json_mistral.yaml
-  - experimental_configs/small-M1_incremental-assignment_mistral.yaml
-  - experimental_configs/small-M1_code4struct_mistral.yaml
+  # - experimental_configs/small-M1_json_mistral.yaml
+  # - experimental_configs/small-M1_incremental-assignment_mistral.yaml
+  # - experimental_configs/small-M1_code4struct_mistral.yaml

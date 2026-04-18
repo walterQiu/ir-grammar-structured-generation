@@ -8,11 +8,9 @@ from typing import Any
 
 # Edit these paths directly before running this script.
 EXPERIMENT_DIR_A = Path("outputs/runs/20260417_142855_M1_json_gemini3")
-EXPERIMENT_DIR_B = Path(
-    "outputs/runs/20260417_161116_M1_incremental-assignment_gemini3"
-)
+EXPERIMENT_DIR_B = Path("outputs/runs/20260418_081505_M1_code4struct_gemini3")
 OUTPUT_PATH = Path("outputs/analysis/diff_predictions.json")
-COMPARE_MODE = "full"  # one of: full, role_only
+COMPARE_MODE = "role_only"  # one of: full, role_only
 
 
 def _read_predictions(predictions_path: Path) -> dict[str, dict[str, Any]]:
