@@ -27,7 +27,7 @@ class Code4StructIRValidator(IRGrammarValidator):
 
         try:
             _parse_code4struct_ir_with_errors(ir_text)
-        except ValueError as exc:
+        except (ValueError, TypeError) as exc:
             line_no, line_text, message = _decode_parse_error(str(exc), ir_text)
             return IRValidationResult(
                 is_valid=False,

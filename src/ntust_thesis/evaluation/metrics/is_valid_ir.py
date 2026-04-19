@@ -36,6 +36,13 @@ class IsValidIRMetric(Metric):
         valid = sum(
             1
             for row in ir_rows
-            if self._validator.validate(row.prediction_metadata.ir_text or "").is_valid
+            if self._is_row_valid(row.prediction_metadata.ir_text or "")
         )
         return {"is_valid_ir": safe_divide(valid, len(ir_rows))}
+
+    def _is_row_valid(self, ir_text: str) -> bool:
+        """Return validator result; treat unexpected validator errors as invalid."""
+        try:
+            return self._validator.validate(ir_text).is_valid
+        except Exception:
+            return False
