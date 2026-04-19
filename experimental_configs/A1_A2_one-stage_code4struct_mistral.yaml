@@ -5,12 +5,14 @@ dataset:
   split: test
 model:
   name: one_stage
-  backend: vllm
-  llm_name: mistralai/Mistral-7B-Instruct-v0.3
-  api_base: http://140.118.155.118:8001/v1
-  enable_sleep: false
-  enable_retry: true
+  stage_model:
+    backend: vllm
+    llm_name: mistralai/Mistral-7B-Instruct-v0.3
+    api_base: http://140.118.155.118:8001/v1
+    enable_sleep: false
+    enable_retry: true
   ir_grammar: code4struct_ir
+  apply_icl: true
 evaluation:
   metrics:
   - is_valid_ir

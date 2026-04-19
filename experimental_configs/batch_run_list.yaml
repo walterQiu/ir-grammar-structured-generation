@@ -2,15 +2,15 @@ experiments:
   # M1 list
   # gemini 3.1 pro
   # - experimental_configs/M1_A1_A2_two-stage_json_gemini3.yaml
-  # - experimental_configs/M1_incremental-assignment_gemini3.yaml
+  # - experimental_configs/M1_two-stage_incremental-assignment_gemini3.yaml
   # - experimental_configs/M1_A1_A2_two-stage_code4struct_gemini3.yaml
   # gemini 2.5 flash
   # - experimental_configs/M1_A2_two-stage_json_gemini25.yaml
-  # - experimental_configs/M1_incremental-assignment_gemini25.yaml
+  # - experimental_configs/M1_two-stage_incremental-assignment_gemini25.yaml
   # - experimental_configs/M1_A2_two-stage_code4struct_gemini25.yaml
   # mistral
   # - experimental_configs/M1_A2_two-stage_json_mistral.yaml
-  # - experimental_configs/M1_incremental-assignment_mistral.yaml
+  # - experimental_configs/M1_two-stage_incremental-assignment_mistral.yaml
   # - experimental_configs/M1_A2_two-stage_code4struct_mistral.yaml
 
   # A1 list

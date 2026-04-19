@@ -19,6 +19,7 @@ model:
     enable_sleep: true
     enable_retry: true
   ir_grammar: json
+  apply_icl: true
 evaluation:
   metrics:
   - is_valid_ir

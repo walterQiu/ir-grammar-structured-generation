@@ -15,6 +15,7 @@ def build_one_stage_ir_prompt(
     event_type: str,
     ir_grammar: str,
     role_multiplicities: dict[str, int],
+    apply_icl: bool = True,
 ) -> PromptPair:
     """Build one-stage structured-generation prompt by selected grammar."""
     if ir_grammar == "json":
@@ -22,18 +23,21 @@ def build_one_stage_ir_prompt(
             sentence=sentence,
             event_type=event_type,
             role_multiplicities=role_multiplicities,
+            apply_icl=apply_icl,
         )
     if ir_grammar == "incremental_assignment_ir":
         return build_one_stage_incremental_assignment_ir_prompt(
             sentence=sentence,
             event_type=event_type,
             role_multiplicities=role_multiplicities,
+            apply_icl=apply_icl,
         )
     if ir_grammar == "code4struct_ir":
         return build_one_stage_code4struct_ir_prompt(
             sentence=sentence,
             event_type=event_type,
             role_multiplicities=role_multiplicities,
+            apply_icl=apply_icl,
         )
     msg = f"Unsupported IR grammar for one-stage prompt building: {ir_grammar}"
     raise ValueError(msg)
@@ -43,6 +47,7 @@ def build_one_stage_json_prompt(
     sentence: str,
     event_type: str,
     role_multiplicities: dict[str, int],
+    apply_icl: bool = True,
 ) -> PromptPair:
     """Build prompt for one-stage direct JSON generation."""
     event_line = f"Event type (reference): {event_type}\n" if event_type else ""
@@ -54,7 +59,9 @@ def build_one_stage_json_prompt(
         )
         multiplicity_line = f"Allowed roles and multiplicities: {pairs}\n"
 
-    in_context_examples = build_one_stage_ir_in_context_examples(ir_grammar="json")
+    in_context_examples = (
+        build_one_stage_ir_in_context_examples(ir_grammar="json") if apply_icl else ""
+    )
 
     # (1) Instruction block
     instruction_block = (
@@ -106,6 +113,7 @@ def build_one_stage_incremental_assignment_ir_prompt(
     sentence: str,
     event_type: str,
     role_multiplicities: dict[str, int],
+    apply_icl: bool = True,
 ) -> PromptPair:
     """Build one-stage prompt for direct incremental-assignment IR generation."""
     event_line = f"Event type (reference): {event_type}\n" if event_type else ""
@@ -117,8 +125,10 @@ def build_one_stage_incremental_assignment_ir_prompt(
         )
         multiplicity_line = f"Allowed roles and multiplicities: {pairs}\n"
 
-    in_context_examples = build_one_stage_ir_in_context_examples(
-        ir_grammar="incremental_assignment_ir"
+    in_context_examples = (
+        build_one_stage_ir_in_context_examples(ir_grammar="incremental_assignment_ir")
+        if apply_icl
+        else ""
     )
 
     # (1) Instruction block
@@ -169,6 +179,7 @@ def build_one_stage_code4struct_ir_prompt(
     sentence: str,
     event_type: str,
     role_multiplicities: dict[str, int],
+    apply_icl: bool = True,
 ) -> PromptPair:
     """Build one-stage prompt for direct CODE4STRUCT-style IR generation."""
     event_class = _to_event_class_name(event_type)
@@ -194,8 +205,10 @@ def build_one_stage_code4struct_ir_prompt(
         f"{event_class.lower()}_event = {event_class}(\n"
     )
 
-    in_context_examples = build_one_stage_ir_in_context_examples(
-        ir_grammar="code4struct_ir"
+    in_context_examples = (
+        build_one_stage_ir_in_context_examples(ir_grammar="code4struct_ir")
+        if apply_icl
+        else ""
     )
 
     # (1) Instruction block
@@ -293,23 +306,27 @@ def build_two_stage_ir_prompt(
     event_type: str,
     ir_grammar: str,
     role_multiplicities: dict[str, int],
+    apply_icl: bool = True,
 ) -> PromptPair:
     """Build two-stage structured-generation prompt by selected grammar."""
     if ir_grammar == "json":
         return build_two_stage_json_prompt(
             extraction_text=extraction_text,
             role_multiplicities=role_multiplicities,
+            apply_icl=apply_icl,
         )
     if ir_grammar == "incremental_assignment_ir":
         return build_two_stage_incremental_assignment_ir_prompt(
             extraction_text=extraction_text,
             role_multiplicities=role_multiplicities,
+            apply_icl=apply_icl,
         )
     if ir_grammar == "code4struct_ir":
         return build_two_stage_code4struct_ir_prompt(
             extraction_text=extraction_text,
             event_type=event_type,
             role_multiplicities=role_multiplicities,
+            apply_icl=apply_icl,
         )
     msg = f"Unsupported IR grammar for two-stage prompt building: {ir_grammar}"
     raise ValueError(msg)
@@ -318,6 +335,7 @@ def build_two_stage_ir_prompt(
 def build_two_stage_json_prompt(
     extraction_text: str,
     role_multiplicities: dict[str, int],
+    apply_icl: bool = True,
 ) -> PromptPair:
     """Build prompt for two-stage extraction->JSON generation."""
     multiplicity_line = ""
@@ -327,7 +345,9 @@ def build_two_stage_json_prompt(
         )
         multiplicity_line = f"Allowed roles and multiplicities: {pairs}\n"
 
-    in_context_examples = build_two_stage_ir_in_context_examples(ir_grammar="json")
+    in_context_examples = (
+        build_two_stage_ir_in_context_examples(ir_grammar="json") if apply_icl else ""
+    )
 
     # (1) Instruction block
     instruction_block = (
@@ -379,6 +399,7 @@ def build_two_stage_json_prompt(
 def build_two_stage_incremental_assignment_ir_prompt(
     extraction_text: str,
     role_multiplicities: dict[str, int],
+    apply_icl: bool = True,
 ) -> PromptPair:
     """Build two-stage prompt for incremental-assignment IR generation."""
     multiplicity_line = ""
@@ -388,8 +409,10 @@ def build_two_stage_incremental_assignment_ir_prompt(
         )
         multiplicity_line = f"Allowed roles and multiplicities: {pairs}\n"
 
-    in_context_examples = build_two_stage_ir_in_context_examples(
-        ir_grammar="incremental_assignment_ir"
+    in_context_examples = (
+        build_two_stage_ir_in_context_examples(ir_grammar="incremental_assignment_ir")
+        if apply_icl
+        else ""
     )
 
     # (1) Instruction block
@@ -441,6 +464,7 @@ def build_two_stage_code4struct_ir_prompt(
     extraction_text: str,
     event_type: str,
     role_multiplicities: dict[str, int],
+    apply_icl: bool = True,
 ) -> PromptPair:
     """Build two-stage prompt for CODE4STRUCT-style IR generation."""
     event_class = _to_event_class_name(event_type)
@@ -450,8 +474,10 @@ def build_two_stage_code4struct_ir_prompt(
         role_names=list(role_multiplicities.keys()) if role_multiplicities else [],
     )
 
-    in_context_examples = build_two_stage_ir_in_context_examples(
-        ir_grammar="code4struct_ir"
+    in_context_examples = (
+        build_two_stage_ir_in_context_examples(ir_grammar="code4struct_ir")
+        if apply_icl
+        else ""
     )
 
     multiplicity_line = ""

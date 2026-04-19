@@ -1,4 +1,4 @@
-experiment_name: M1_incremental-assignment_gemini3
+experiment_name: M1_two-stage_incremental-assignment_gemini3
 dataset:
   name: rams
   data_dir: datasets/RAMS/data
@@ -18,6 +18,7 @@ model:
     enable_sleep: true
     enable_retry: true
   ir_grammar: incremental_assignment_ir
+  apply_icl: true
 evaluation:
   metrics:
   - is_valid_ir

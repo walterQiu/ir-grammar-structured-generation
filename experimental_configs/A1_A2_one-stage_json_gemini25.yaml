@@ -5,12 +5,14 @@ dataset:
   split: test
 model:
   name: one_stage
-  backend: gemini
-  llm_name: gemini-2.5-flash
-  api_key_env: GEMINI_API_KEY
-  enable_sleep: true
-  enable_retry: true
+  stage_model:
+    backend: gemini
+    llm_name: gemini-2.5-flash
+    api_key_env: GEMINI_API_KEY
+    enable_sleep: true
+    enable_retry: true
   ir_grammar: json
+  apply_icl: true
 evaluation:
   metrics:
   - is_valid_ir
