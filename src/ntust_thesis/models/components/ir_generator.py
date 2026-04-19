@@ -26,11 +26,18 @@ class IRGenerator:
 class GeminiIRGenerator(IRGenerator):
     """Gemini-based IR generation stage."""
 
-    def __init__(self, llm: LLMClient, temperature: float, ir_grammar: str) -> None:
+    def __init__(
+        self,
+        llm: LLMClient,
+        temperature: float,
+        ir_grammar: str,
+        apply_icl: bool,
+    ) -> None:
         """Initialize IR generator with LLM backend."""
         self._llm = llm
         self._temperature = temperature
         self._ir_grammar = ir_grammar
+        self._apply_icl = apply_icl
 
     def generate(
         self,
@@ -44,6 +51,7 @@ class GeminiIRGenerator(IRGenerator):
             event_type=event_type,
             role_multiplicities=role_multiplicities,
             ir_grammar=self._ir_grammar,
+            apply_icl=self._apply_icl,
         )
         return self._llm.generate(
             system_prompt,

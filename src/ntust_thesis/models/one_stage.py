@@ -31,7 +31,8 @@ class OneStageModel(Model):
 
     def __init__(self, config: OneStageModelConfig) -> None:
         """Initialize one-stage IR model from config."""
-        self._backend = config.backend
+        stage_cfg = config.stage_model
+        self._backend = stage_cfg.backend
         dotenv_paths = [DEFAULT_DOTENV_PATH]
         self._temperature = get_env_float(
             "llm_temperature",
@@ -73,31 +74,34 @@ class OneStageModel(Model):
             default=[429, 500, 502, 503, 504],
             fallback_paths=dotenv_paths,
         )
-        model_name = config.llm_name
-        if config.backend == "gemini":
-            api_key = get_required_env(config.api_key_env, fallback_paths=dotenv_paths)
+        model_name = stage_cfg.llm_name
+        if stage_cfg.backend == "gemini":
+            api_key = get_required_env(
+                stage_cfg.api_key_env,
+                fallback_paths=dotenv_paths,
+            )
             self._llm = GeminiClient(
                 api_key=api_key,
                 model_name=model_name,
                 timeout_seconds=timeout,
-                enable_sleep=config.enable_sleep,
+                enable_sleep=stage_cfg.enable_sleep,
                 sleep_seconds=sleep_seconds,
-                enable_retry=config.enable_retry,
+                enable_retry=stage_cfg.enable_retry,
                 max_retries=max_retries,
                 backoff_initial_seconds=backoff_initial_seconds,
                 backoff_multiplier=backoff_multiplier,
                 backoff_max_seconds=backoff_max_seconds,
                 retry_http_statuses=tuple(retry_http_statuses),
             )
-        elif config.backend == "vllm":
-            api_base = config.api_base or "http://127.0.0.1:8000/v1"
+        elif stage_cfg.backend == "vllm":
+            api_base = stage_cfg.api_base or "http://127.0.0.1:8000/v1"
             self._llm = VllmChatCompletionsClient(
                 api_base=api_base,
                 model_name=model_name,
                 timeout_seconds=timeout,
-                enable_sleep=config.enable_sleep,
+                enable_sleep=stage_cfg.enable_sleep,
                 sleep_seconds=sleep_seconds,
-                enable_retry=config.enable_retry,
+                enable_retry=stage_cfg.enable_retry,
                 max_retries=max_retries,
                 backoff_initial_seconds=backoff_initial_seconds,
                 backoff_multiplier=backoff_multiplier,
@@ -105,9 +109,10 @@ class OneStageModel(Model):
                 retry_http_statuses=tuple(retry_http_statuses),
             )
         else:
-            msg = f"Unsupported backend: {config.backend}"
+            msg = f"Unsupported backend: {stage_cfg.backend}"
             raise ValueError(msg)
         self._ir_grammar = config.ir_grammar
+        self._apply_icl = config.apply_icl
         if self._ir_grammar not in {
             "json",
             "incremental_assignment_ir",
@@ -131,6 +136,7 @@ class OneStageModel(Model):
             event_type=sample.metadata.event_type,
             role_multiplicities=sample.metadata.role_multiplicities,
             ir_grammar=self._ir_grammar,
+            apply_icl=self._apply_icl,
         )
         ir_text = self._llm.generate(
             system_prompt,
@@ -166,6 +172,7 @@ class OneStageModel(Model):
                 ir_text=ir_text,
                 compile_error=error_message,
                 model_input={
+                    "apply_icl": str(self._apply_icl),
                     "system_prompt": system_prompt,
                     "user_prompt": user_prompt,
                 },

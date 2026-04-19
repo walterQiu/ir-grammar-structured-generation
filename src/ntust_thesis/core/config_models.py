@@ -37,13 +37,9 @@ class OneStageModelConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     name: Literal["one_stage"]
-    backend: Literal["gemini", "vllm"] = "gemini"
-    llm_name: str = "gemini-2.5-flash-lite"
-    api_key_env: str = "GEMINI_API_KEY"
-    api_base: str | None = None
-    enable_sleep: bool = False
-    enable_retry: bool = True
+    stage_model: StageModelConfig = Field(default_factory=StageModelConfig)
     ir_grammar: str
+    apply_icl: bool = True
 
 
 class TwoStageModelConfig(BaseModel):
@@ -55,6 +51,7 @@ class TwoStageModelConfig(BaseModel):
     extraction_model: StageModelConfig = Field(default_factory=StageModelConfig)
     ir_model: StageModelConfig = Field(default_factory=StageModelConfig)
     ir_grammar: str
+    apply_icl: bool = True
 
 
 ModelConfig = Annotated[

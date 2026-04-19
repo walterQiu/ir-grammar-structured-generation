@@ -91,6 +91,7 @@ class TwoStageModel(Model):
         extraction_cfg = config.extraction_model
         ir_cfg = config.ir_model
         self._ir_grammar = config.ir_grammar
+        self._apply_icl = config.apply_icl
         self._extraction_backend = extraction_cfg.backend
         self._ir_backend = ir_cfg.backend
         self._extraction_llm_name = extraction_cfg.llm_name
@@ -130,6 +131,7 @@ class TwoStageModel(Model):
             event_type=sample.metadata.event_type,
             role_multiplicities=sample.metadata.role_multiplicities,
             ir_grammar=self._ir_grammar,
+            apply_icl=self._apply_icl,
         )
         ir_text = self._ir_generator.generate(
             extraction_text=extraction_text,
@@ -169,6 +171,7 @@ class TwoStageModel(Model):
                     "extraction_cache_hit": str(extraction_cache_hit),
                     "extraction_cache_size": str(len(self._extraction_cache)),
                     "extraction_llm_name": self._extraction_llm_name,
+                    "apply_icl": str(self._apply_icl),
                     "extraction_system_prompt": extraction_system_prompt,
                     "extraction_user_prompt": extraction_user_prompt,
                     "ir_system_prompt": ir_system_prompt,
@@ -197,6 +200,7 @@ class TwoStageModel(Model):
                 llm=llm,
                 temperature=temperature,
                 ir_grammar=self._ir_grammar,
+                apply_icl=self._apply_icl,
             )
         msg = f"Unsupported IR backend: {backend}"
         raise ValueError(msg)
