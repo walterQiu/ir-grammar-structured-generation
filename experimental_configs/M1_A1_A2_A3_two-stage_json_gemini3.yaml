@@ -1,4 +1,4 @@
-experiment_name: M1_A2_two-stage_code4struct_mistral
+experiment_name: M1_A1_A2_A3_two-stage_json_gemini3
 dataset:
   name: rams
   data_dir: datasets/RAMS/data
@@ -12,16 +12,17 @@ model:
     enable_sleep: true
     enable_retry: true
   ir_model:
-    backend: vllm
-    llm_name: mistralai/Mistral-7B-Instruct-v0.3
-    api_base: http://140.118.155.118:8001/v1
-    enable_sleep: false
+    backend: gemini
+    llm_name: gemini-3.1-pro-preview
+    api_key_env: GEMINI_API_KEY
+    enable_sleep: true
     enable_retry: true
-  ir_grammar: code4struct_ir
+  ir_grammar: json
   apply_icl: true
 evaluation:
   metrics:
   - is_valid_ir
+  - non_absence_role_fallback_json
   - schema_exact_match
   - exact_match
   - arg_i_f1

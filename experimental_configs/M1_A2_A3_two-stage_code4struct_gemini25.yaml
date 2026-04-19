@@ -1,0 +1,31 @@
+experiment_name: M1_A2_A3_two-stage_code4struct_gemini25
+dataset:
+  name: rams
+  data_dir: datasets/RAMS/data
+  split: test
+model:
+  name: two_stage
+  extraction_model:
+    backend: gemini
+    llm_name: gemini-3.1-pro-preview
+    api_key_env: GEMINI_API_KEY
+    enable_sleep: true
+    enable_retry: true
+  ir_model:
+    backend: gemini
+    llm_name: gemini-2.5-flash
+    api_key_env: GEMINI_API_KEY
+    enable_sleep: true
+    enable_retry: true
+  ir_grammar: code4struct_ir
+  apply_icl: true
+evaluation:
+  metrics:
+  - is_valid_ir
+  - schema_exact_match
+  - exact_match
+  - arg_i_f1
+  - arg_c_f1
+  - content_similarity_sbert
+  - bemeae
+  - json_structure_f1

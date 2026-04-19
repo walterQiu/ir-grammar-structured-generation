@@ -1,4 +1,4 @@
-experiment_name: M1_A2_two-stage_code4struct_gemini25
+experiment_name: A3_non-icl_two-stage_code4struct_gemini25
 dataset:
   name: rams
   data_dir: datasets/RAMS/data
@@ -18,7 +18,7 @@ model:
     enable_sleep: true
     enable_retry: true
   ir_grammar: code4struct_ir
-  apply_icl: true
+  apply_icl: false
 evaluation:
   metrics:
   - is_valid_ir
