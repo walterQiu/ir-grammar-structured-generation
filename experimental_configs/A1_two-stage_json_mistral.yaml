@@ -24,7 +24,6 @@ evaluation:
   - is_valid_ir
   - non_absence_role_fallback_json
   - schema_exact_match
-  - exact_match
   - arg_i_f1
   - arg_c_f1
   - content_similarity_sbert

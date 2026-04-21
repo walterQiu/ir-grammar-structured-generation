@@ -69,7 +69,6 @@ class EvaluationConfig(BaseModel):
         default_factory=lambda: [
             "is_valid_ir",
             "schema_exact_match",
-            "exact_match",
             "arg_i_f1",
             "arg_c_f1",
             "content_similarity_sbert",
