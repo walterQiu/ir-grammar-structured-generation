@@ -7,43 +7,46 @@ from typing import TYPE_CHECKING
 
 from ntust_thesis.core.interfaces import Metric
 from ntust_thesis.core.role_path import role_to_path
-from ntust_thesis.evaluation.metrics.common import safe_divide
+from ntust_thesis.evaluation.metrics.common import f1, safe_divide
 
 if TYPE_CHECKING:
-    from ntust_thesis.core.schemas import EvaluationRow, EventOutput
+    from ntust_thesis.core.schemas import EvaluationRow
 
 
 class SchemaExactMatchMetric(Metric):
-    """Rate of predictions matching expected output schema shape."""
+    """Role-only schema match metric with micro P/R/F1."""
 
     def name(self) -> str:
         """Return metric key."""
         return "schema_exact_match"
 
     def compute(self, rows: list[EvaluationRow]) -> dict[str, float]:
-        """Compute schema-match rate over rows."""
-        total = len(rows)
-        if total == 0:
-            return {"schema_exact_match": 0.0}
-        matched = sum(
-            1
-            for row in rows
-            if row.parsed_output is not None
-            and _schema_exact_match(row.parsed_output, row.gold)
-        )
-        return {"schema_exact_match": safe_divide(matched, total)}
+        """Compute micro P/R/F1 over role-only matching."""
+        tp = 0
+        pred_total = 0
+        gold_total = 0
 
+        for row in rows:
+            pred_args = (
+                row.parsed_output.arguments if row.parsed_output is not None else []
+            )
+            gold_args = row.gold.arguments
 
-def _schema_exact_match(pred: EventOutput, gold: EventOutput) -> bool:
-    """Return whether prediction matches gold JSON structure exactly.
+            pred_items = Counter(
+                (role_to_path(arg.role) or "unknown_role") for arg in pred_args
+            )
+            gold_items = Counter(
+                (role_to_path(arg.role) or "unknown_role") for arg in gold_args
+            )
 
-    Structure here ignores argument text span content, but requires:
-    identical argument-role multiset (including multiplicity)
-    """
-    pred_roles = Counter(
-        (role_to_path(arg.role) or "unknown_role") for arg in pred.arguments
-    )
-    gold_roles = Counter(
-        (role_to_path(arg.role) or "unknown_role") for arg in gold.arguments
-    )
-    return pred_roles == gold_roles
+            pred_total += sum(pred_items.values())
+            gold_total += sum(gold_items.values())
+            tp += sum((pred_items & gold_items).values())
+
+        precision = safe_divide(tp, pred_total)
+        recall = safe_divide(tp, gold_total)
+        return {
+            "schema_exact_match_precision": precision,
+            "schema_exact_match_recall": recall,
+            "schema_exact_match": f1(precision, recall),
+        }
