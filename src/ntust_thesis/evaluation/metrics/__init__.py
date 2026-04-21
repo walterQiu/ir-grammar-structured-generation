@@ -12,13 +12,11 @@ from ntust_thesis.evaluation.metrics.non_absence_role_fallback import (
     NonAbsenceRoleFallbackIncrementalAssignmentMetric,
     NonAbsenceRoleFallbackJsonMetric,
 )
-from ntust_thesis.evaluation.metrics.schema_exact_match import SchemaExactMatchMetric
 
 
 def register() -> None:
     """Register built-in metrics."""
     METRIC_REGISTRY.register("is_valid_ir", IsValidIRMetric)
-    METRIC_REGISTRY.register("schema_exact_match", SchemaExactMatchMetric)
     METRIC_REGISTRY.register("arg_i_f1", ArgIF1Metric)
     METRIC_REGISTRY.register("arg_c_f1", ArgCF1Metric)
     METRIC_REGISTRY.register("content_similarity_sbert", ContentSimilaritySBERTMetric)
