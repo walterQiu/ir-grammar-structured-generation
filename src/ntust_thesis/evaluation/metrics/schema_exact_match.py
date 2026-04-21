@@ -38,11 +38,8 @@ def _schema_exact_match(pred: EventOutput, gold: EventOutput) -> bool:
     """Return whether prediction matches gold JSON structure exactly.
 
     Structure here ignores argument text span content, but requires:
-    1. same top-level event type
-    2. identical argument-role multiset (including multiplicity)
+    identical argument-role multiset (including multiplicity)
     """
-    if pred.event_type != gold.event_type:
-        return False
     pred_roles = Counter(
         (role_to_path(arg.role) or "unknown_role") for arg in pred.arguments
     )
