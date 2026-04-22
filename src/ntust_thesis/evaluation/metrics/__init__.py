@@ -7,7 +7,6 @@ from ntust_thesis.evaluation.metrics.content_similarity_sbert import (
     ContentSimilaritySBERTMetric,
 )
 from ntust_thesis.evaluation.metrics.is_valid_ir import IsValidIRMetric
-from ntust_thesis.evaluation.metrics.json_structure_f1 import JsonStructureF1Metric
 from ntust_thesis.evaluation.metrics.non_absence_role_fallback import (
     NonAbsenceRoleFallbackIncrementalAssignmentMetric,
     NonAbsenceRoleFallbackJsonMetric,
@@ -21,7 +20,6 @@ def register() -> None:
     METRIC_REGISTRY.register("arg_c_f1", ArgCF1Metric)
     METRIC_REGISTRY.register("content_similarity_sbert", ContentSimilaritySBERTMetric)
     METRIC_REGISTRY.register("bemeae", BEMEAEMetric)
-    METRIC_REGISTRY.register("json_structure_f1", JsonStructureF1Metric)
     METRIC_REGISTRY.register(
         "non_absence_role_fallback_json",
         NonAbsenceRoleFallbackJsonMetric,
