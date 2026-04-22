@@ -52,8 +52,6 @@ class ExperimentPipeline:
             if key
             in {
                 "is_valid_ir",
-                "non_absence_role_fallback_json",
-                "non_absence_role_fallback_incremental_assignment",
             }
             else METRIC_REGISTRY.create(key)
             for key in metric_keys

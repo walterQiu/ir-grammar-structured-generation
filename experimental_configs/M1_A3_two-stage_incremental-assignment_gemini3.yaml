@@ -22,7 +22,6 @@ model:
 evaluation:
   metrics:
   - is_valid_ir
-  - non_absence_role_fallback_incremental_assignment
   - arg_i_f1
   - arg_c_f1
   - content_similarity_sbert
