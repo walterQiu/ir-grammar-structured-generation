@@ -24,21 +24,16 @@ class IsValidIRMetric(Metric):
         return "is_valid_ir"
 
     def compute(self, rows: list[EvaluationRow]) -> dict[str, float]:
-        """Compute validity rate over rows that contain IR text."""
-        ir_rows = [
-            row
-            for row in rows
-            if getattr(row.prediction_metadata, "ir_text", None) is not None
-        ]
-        if not ir_rows:
+        """Compute validity rate over all rows."""
+        if not rows:
             return {"is_valid_ir": 0.0}
 
         valid = sum(
             1
-            for row in ir_rows
+            for row in rows
             if self._is_row_valid(row.prediction_metadata.ir_text or "")
         )
-        return {"is_valid_ir": safe_divide(valid, len(ir_rows))}
+        return {"is_valid_ir": safe_divide(valid, len(rows))}
 
     def _is_row_valid(self, ir_text: str) -> bool:
         """Return validator result; treat unexpected validator errors as invalid."""

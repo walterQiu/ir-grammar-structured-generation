@@ -25,6 +25,8 @@ from ntust_thesis.utils.env import (
     get_required_env,
 )
 
+_GENERATION_FAILED_IR_TEXT = "Invalid IR Text Due to LLM Generation Failed"
+
 
 class OneStageModel(Model):
     """One-stage model that outputs IR directly."""
@@ -138,34 +140,47 @@ class OneStageModel(Model):
             ir_grammar=self._ir_grammar,
             apply_icl=self._apply_icl,
         )
-        ir_text = self._llm.generate(
-            system_prompt,
-            user_prompt,
-            self._temperature,
-            allow_empty=True,
-        )
-
+        ir_text: str | None = None
         error_message: str | None = None
-        compiled: EventOutput | None = None
         try:
-            compiled = self._compiler.compile(
-                ir_text=ir_text,
-                event_type=sample.metadata.event_type,
+            ir_text = self._llm.generate(
+                system_prompt,
+                user_prompt,
+                self._temperature,
+                allow_empty=True,
             )
         except Exception as exc:
-            error_message = str(exc)
+            error_message = f"LLM generation error: {exc}"
+            ir_text = _GENERATION_FAILED_IR_TEXT
 
-        if compiled is None:
-            raw_output = ir_text
-            parsed_output = None
+        if ir_text in {None, _GENERATION_FAILED_IR_TEXT}:
+            compiled = EventOutput(
+                event_type=sample.metadata.event_type,
+                arguments=[],
+            )
         else:
+            assert ir_text is not None
+            try:
+                compiled = self._compiler.compile(
+                    ir_text=ir_text,
+                    event_type=sample.metadata.event_type,
+                )
+            except Exception as exc:
+                error_message = str(exc)
+                compiled = EventOutput(
+                    event_type=sample.metadata.event_type,
+                    arguments=[],
+                )
+
+        if error_message is None:
             raw_output = json.dumps(compiled.model_dump(), ensure_ascii=False)
-            parsed_output = compiled
+        else:
+            raw_output = ir_text or ""
 
         return Prediction(
             sample_id=sample.sample_id,
             raw_output=raw_output,
-            parsed_output=parsed_output,
+            parsed_output=compiled,
             metadata=PredictionMetadata(
                 model=self.name(),
                 backend=self._backend,

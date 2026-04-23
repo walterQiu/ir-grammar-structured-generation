@@ -37,6 +37,11 @@ from ntust_thesis.utils.env import (
     get_required_env,
 )
 
+_EXTRACTION_GENERATION_FAILED_TEXT = (
+    "Invalid Extraction Notes Due to LLM Generation Failed"
+)
+_IR_GENERATION_FAILED_TEXT = "Invalid IR Text Due to LLM Generation Failed"
+
 
 class TwoStageModel(Model):
     """Two-stage IR pipeline with extraction and IR generation backends."""
@@ -119,49 +124,71 @@ class TwoStageModel(Model):
         )
         cached_extraction = self._extraction_cache.get(sample.sample_id)
         extraction_cache_hit = cached_extraction is not None
+        extraction_text: str | None = None
+        ir_text: str | None = None
+        error_message: str | None = None
         if cached_extraction is not None:
             extraction_text = cached_extraction
         else:
-            extraction_text = self._extractor.extract(
-                sentence=sample.raw_sentence,
+            try:
+                extraction_text = self._extractor.extract(
+                    sentence=sample.raw_sentence,
+                    event_type=sample.metadata.event_type,
+                    role_multiplicities=sample.metadata.role_multiplicities,
+                )
+                self._extraction_cache.put(sample.sample_id, extraction_text)
+            except Exception as exc:
+                error_message = f"Extraction error: {exc}"
+                extraction_text = _EXTRACTION_GENERATION_FAILED_TEXT
+                ir_text = _IR_GENERATION_FAILED_TEXT
+        ir_system_prompt = ""
+        ir_user_prompt = ""
+        if extraction_text is not None and ir_text is None:
+            ir_system_prompt, ir_user_prompt = build_two_stage_ir_prompt(
+                extraction_text=extraction_text,
                 event_type=sample.metadata.event_type,
                 role_multiplicities=sample.metadata.role_multiplicities,
+                ir_grammar=self._ir_grammar,
+                apply_icl=self._apply_icl,
             )
-            self._extraction_cache.put(sample.sample_id, extraction_text)
-        ir_system_prompt, ir_user_prompt = build_two_stage_ir_prompt(
-            extraction_text=extraction_text,
-            event_type=sample.metadata.event_type,
-            role_multiplicities=sample.metadata.role_multiplicities,
-            ir_grammar=self._ir_grammar,
-            apply_icl=self._apply_icl,
-        )
-        ir_text = self._ir_generator.generate(
-            extraction_text=extraction_text,
-            event_type=sample.metadata.event_type,
-            role_multiplicities=sample.metadata.role_multiplicities,
-        )
+            try:
+                ir_text = self._ir_generator.generate(
+                    extraction_text=extraction_text,
+                    event_type=sample.metadata.event_type,
+                    role_multiplicities=sample.metadata.role_multiplicities,
+                )
+            except Exception as exc:
+                error_message = f"IR generation error: {exc}"
+                ir_text = _IR_GENERATION_FAILED_TEXT
 
-        error_message: str | None = None
-        compiled: EventOutput | None = None
-        try:
-            compiled = self._compiler.compile(
-                ir_text=ir_text,
+        if ir_text in {None, _IR_GENERATION_FAILED_TEXT}:
+            compiled = EventOutput(
                 event_type=sample.metadata.event_type,
+                arguments=[],
             )
-        except Exception as exc:
-            error_message = str(exc)
-
-        if compiled is None:
-            raw_output = ir_text
-            parsed_output = None
         else:
+            assert ir_text is not None
+            try:
+                compiled = self._compiler.compile(
+                    ir_text=ir_text,
+                    event_type=sample.metadata.event_type,
+                )
+            except Exception as exc:
+                error_message = str(exc)
+                compiled = EventOutput(
+                    event_type=sample.metadata.event_type,
+                    arguments=[],
+                )
+
+        if error_message is None:
             raw_output = json.dumps(compiled.model_dump(), ensure_ascii=False)
-            parsed_output = compiled
+        else:
+            raw_output = ir_text or ""
 
         return Prediction(
             sample_id=sample.sample_id,
             raw_output=raw_output,
-            parsed_output=parsed_output,
+            parsed_output=compiled,
             metadata=PredictionMetadata(
                 model=self.name(),
                 extraction_backend=self._extraction_backend,
