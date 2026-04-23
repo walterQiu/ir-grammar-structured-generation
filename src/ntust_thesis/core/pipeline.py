@@ -12,8 +12,7 @@ from ntust_thesis.core.registry import (
     MODEL_REGISTRY,
 )
 from ntust_thesis.evaluation.difficulty import (
-    DIFFICULTY_LEVELS,
-    group_rows_by_schema_difficulty,
+    group_rows_by_role_multiplicity_and_gold_role,
 )
 from ntust_thesis.evaluation.formatter import (
     format_metrics_payload,
@@ -108,14 +107,21 @@ class ExperimentPipeline:
         for metric in metrics:
             aggregated.update(round_metric_values(metric.compute(metric_rows)))
 
-        rows_by_difficulty = group_rows_by_schema_difficulty(metric_rows)
-        difficulty_aggregated: dict[str, dict[str, Any]] = {}
-        for level in DIFFICULTY_LEVELS:
-            rows_in_level = rows_by_difficulty[level]
-            level_metrics: dict[str, Any] = {"sample_count": len(rows_in_level)}
-            for metric in metrics:
-                level_metrics.update(round_metric_values(metric.compute(rows_in_level)))
-            difficulty_aggregated[level] = level_metrics
+        grouped_rows = group_rows_by_role_multiplicity_and_gold_role(metric_rows)
+        difficulty_aggregated: dict[
+            int, dict[int, dict[str, Any]]
+        ] = {}  # [role_multiplicities_total, [gold_span_total, [metrics]]]
+        for multiplicity_total, grouped_by_gold in grouped_rows.items():
+            difficulty_aggregated[multiplicity_total] = {}
+            for gold_role_count, rows_in_group in grouped_by_gold.items():
+                group_metrics: dict[str, Any] = {"sample_count": len(rows_in_group)}
+                for metric in metrics:
+                    group_metrics.update(
+                        round_metric_values(metric.compute(rows_in_group))
+                    )
+                difficulty_aggregated[multiplicity_total][gold_role_count] = (
+                    group_metrics
+                )
 
         formatted_metrics = format_metrics_payload(
             aggregated,

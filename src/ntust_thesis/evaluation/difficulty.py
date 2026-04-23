@@ -7,24 +7,26 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from ntust_thesis.core.schemas import EvaluationRow
 
-DIFFICULTY_LEVELS = ("easy", "medium", "hard")
+
+def _role_multiplicity_total(row: EvaluationRow) -> int:
+    """Return sum of allowed role multiplicities for the row event schema."""
+    return sum(row.sample_metadata.role_multiplicities.values())
 
 
-def schema_difficulty(row: EvaluationRow) -> str:
-    """Return schema difficulty bucket from gold argument count."""
-    n_roles = len(row.gold.arguments)
-    if n_roles <= 2:  # noqa: PLR2004
-        return "easy"
-    if n_roles == 3:  # noqa: PLR2004
-        return "medium"
-    return "hard"
+def _gold_role_count(row: EvaluationRow) -> int:
+    """Return number of gold arguments in the sample."""
+    return len(row.gold.arguments)
 
 
-def group_rows_by_schema_difficulty(
+def group_rows_by_role_multiplicity_and_gold_role(
     rows: list[EvaluationRow],
-) -> dict[str, list[EvaluationRow]]:
-    """Group rows by schema difficulty level."""
-    grouped: dict[str, list[EvaluationRow]] = {level: [] for level in DIFFICULTY_LEVELS}
+) -> dict[int, dict[int, list[EvaluationRow]]]:
+    """Group rows by role_multiplicity_total -> gold_role_count."""
+    grouped: dict[int, dict[int, list[EvaluationRow]]] = {}
     for row in rows:
-        grouped[schema_difficulty(row)].append(row)
+        multiplicity_total = _role_multiplicity_total(row)
+        role_count = _gold_role_count(row)
+        grouped.setdefault(multiplicity_total, {})
+        grouped[multiplicity_total].setdefault(role_count, [])
+        grouped[multiplicity_total][role_count].append(row)
     return grouped

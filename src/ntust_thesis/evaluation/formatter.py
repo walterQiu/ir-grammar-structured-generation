@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from ntust_thesis.evaluation.difficulty import DIFFICULTY_LEVELS
-
 METRIC_DECIMAL_PLACES = 5
 METRIC_OUTPUT_FIELDS: dict[str, tuple[str, list[str]]] = {
     "is_valid_ir": ("is_valid_ir", []),
@@ -33,34 +31,25 @@ def round_metric_values(metric_values: dict[str, object]) -> dict[str, object]:
 
 def format_metrics_payload(
     overall_metrics: dict[str, Any],
-    difficulty_metrics: dict[str, dict[str, Any]],
+    difficulty_metrics: dict[
+        int, dict[int, dict[str, Any]]
+    ],  # [role_multiplicities_total, [gold_span_total, [metrics]]]
     main_metric_keys: list[str],
     secondary_metric_keys: list[str],
 ) -> dict[str, Any]:
     """Build grouped metric payload for overall and difficulty slices."""
     return {
-        "main": format_metric_block(overall_metrics, main_metric_keys),
-        "secondary": format_metric_block(overall_metrics, secondary_metric_keys),
-        "sample_difficulty": {
-            level: {
-                "sample_count": int(
-                    difficulty_metrics.get(level, {}).get("sample_count", 0)
-                ),
-                "main": format_metric_block(
-                    difficulty_metrics.get(level, {}),
-                    main_metric_keys,
-                ),
-                "secondary": format_metric_block(
-                    difficulty_metrics.get(level, {}),
-                    secondary_metric_keys,
-                ),
-            }
-            for level in DIFFICULTY_LEVELS
-        },
+        "main": _format_metric_block(overall_metrics, main_metric_keys),
+        "secondary": _format_metric_block(overall_metrics, secondary_metric_keys),
+        "sample_difficulty": _format_sample_difficulty_block(
+            difficulty_metrics,
+            main_metric_keys,
+            secondary_metric_keys,
+        ),
     }
 
 
-def format_metric_block(
+def _format_metric_block(
     metric_values: dict[str, Any],
     metric_keys: list[str],
 ) -> dict[str, Any]:
@@ -74,3 +63,27 @@ def format_metric_block(
             if detail_key in metric_values:
                 block[detail_key] = metric_values[detail_key]
     return block
+
+
+def _format_sample_difficulty_block(
+    difficulty_metrics: dict[int, dict[int, dict[str, Any]]],
+    main_metric_keys: list[str],
+    secondary_metric_keys: list[str],
+) -> dict[str, Any]:
+    """Format role_multiplicity_total -> gold_role_count -> metric blocks."""
+    formatted: dict[str, Any] = {}
+    for multiplicity_total in sorted(difficulty_metrics):
+        by_gold_count = difficulty_metrics[multiplicity_total]
+        formatted_by_gold_count: dict[str, Any] = {}
+        for role_count in sorted(by_gold_count):
+            metric_values = by_gold_count[role_count]
+            formatted_by_gold_count[str(role_count)] = {
+                "sample_count": int(metric_values.get("sample_count", 0)),
+                "main": _format_metric_block(metric_values, main_metric_keys),
+                "secondary": _format_metric_block(
+                    metric_values,
+                    secondary_metric_keys,
+                ),
+            }
+        formatted[str(multiplicity_total)] = formatted_by_gold_count
+    return formatted
