@@ -18,6 +18,18 @@ if TYPE_CHECKING:
 from ntust_thesis.core.schemas import EvaluationRow
 
 _METRIC_DECIMAL_PLACES = 5
+_DIFFICULTY_LEVELS = ("easy", "medium", "hard")
+_METRIC_OUTPUT_FIELDS: dict[str, tuple[str, list[str]]] = {
+    "is_valid_ir": ("is_valid_ir", []),
+    "arg_i_f1": ("arg_i_f1", ["arg_i_precision", "arg_i_recall"]),
+    "arg_c_f1": ("arg_c_f1", ["arg_c_precision", "arg_c_recall"]),
+    "content_similarity_sbert": (
+        "sbert_cossim_f1",
+        ["sbert_cossim_precision", "sbert_cossim_recall"],
+    ),
+    "bemeae": ("bemeae", ["bemeae_soft_precision", "bemeae_soft_recall"]),
+    "ecar": ("ecar", []),
+}
 
 
 @dataclass(slots=True)
@@ -42,9 +54,11 @@ class ExperimentPipeline:
         dataset_config = self._config.dataset.model_dump()
         model_key = self._config.model.name
         model_config = self._config.model.model_dump()
+        main_metric_keys = self._config.evaluation.metrics.main
+        secondary_metric_keys = self._config.evaluation.metrics.secondary
         metric_keys = _flatten_metric_keys(
-            self._config.evaluation.metrics.main,
-            self._config.evaluation.metrics.secondary,
+            main_metric_keys,
+            secondary_metric_keys,
         )
 
         dataset = DATASET_REGISTRY.create(dataset_key, config=dataset_config)
@@ -100,23 +114,28 @@ class ExperimentPipeline:
         for metric in metrics:
             aggregated.update(_round_metric_values(metric.compute(metric_rows)))
 
-        difficulty_rows = {
-            "easy": [row for row in metric_rows if _schema_difficulty(row) == "easy"],
-            "medium": [
-                row for row in metric_rows if _schema_difficulty(row) == "medium"
-            ],
-            "hard": [row for row in metric_rows if _schema_difficulty(row) == "hard"],
-        }
-        for level, rows_in_level in difficulty_rows.items():
-            aggregated[f"{level}_sample_count"] = len(rows_in_level)
+        difficulty_aggregated: dict[str, dict[str, Any]] = {}
+        for level in _DIFFICULTY_LEVELS:
+            rows_in_level = [
+                row for row in metric_rows if _schema_difficulty(row) == level
+            ]
+            level_metrics: dict[str, Any] = {"sample_count": len(rows_in_level)}
             for metric in metrics:
-                metric_result = _round_metric_values(metric.compute(rows_in_level))
-                for key, value in metric_result.items():
-                    aggregated[f"{level}_{key}"] = value
+                level_metrics.update(
+                    _round_metric_values(metric.compute(rows_in_level))
+                )
+            difficulty_aggregated[level] = level_metrics
+
+        formatted_metrics = _format_metrics_payload(
+            aggregated,
+            difficulty_aggregated,
+            main_metric_keys,
+            secondary_metric_keys,
+        )
 
         return PipelineResult(
             rows=rows,
-            metrics=aggregated,
+            metrics=formatted_metrics,
             failed_samples=failed_samples,
         )
 
@@ -152,3 +171,48 @@ def _flatten_metric_keys(main: list[str], secondary: list[str]) -> list[str]:
         seen.add(key)
         ordered_keys.append(key)
     return ordered_keys
+
+
+def _format_metrics_payload(
+    overall_metrics: dict[str, Any],
+    difficulty_metrics: dict[str, dict[str, Any]],
+    main_metric_keys: list[str],
+    secondary_metric_keys: list[str],
+) -> dict[str, Any]:
+    """Build beautified metric payload grouped by main/secondary and difficulty."""
+    return {
+        "main": _format_metric_block(overall_metrics, main_metric_keys),
+        "secondary": _format_metric_block(overall_metrics, secondary_metric_keys),
+        "sample_difficulty": {
+            level: {
+                "sample_count": int(
+                    difficulty_metrics.get(level, {}).get("sample_count", 0)
+                ),
+                "main": _format_metric_block(
+                    difficulty_metrics.get(level, {}),
+                    main_metric_keys,
+                ),
+                "secondary": _format_metric_block(
+                    difficulty_metrics.get(level, {}),
+                    secondary_metric_keys,
+                ),
+            }
+            for level in _DIFFICULTY_LEVELS
+        },
+    }
+
+
+def _format_metric_block(
+    metric_values: dict[str, Any],
+    metric_keys: list[str],
+) -> dict[str, Any]:
+    """Format one metric block with F1 first and precision/recall after."""
+    block: dict[str, Any] = {}
+    for metric_key in metric_keys:
+        primary, details = _METRIC_OUTPUT_FIELDS.get(metric_key, (metric_key, []))
+        if primary in metric_values:
+            block[primary] = metric_values[primary]
+        for detail_key in details:
+            if detail_key in metric_values:
+                block[detail_key] = metric_values[detail_key]
+    return block
