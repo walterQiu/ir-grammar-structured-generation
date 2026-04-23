@@ -42,7 +42,10 @@ class ExperimentPipeline:
         dataset_config = self._config.dataset.model_dump()
         model_key = self._config.model.name
         model_config = self._config.model.model_dump()
-        metric_keys = self._config.evaluation.metrics
+        metric_keys = _flatten_metric_keys(
+            self._config.evaluation.metrics.main,
+            self._config.evaluation.metrics.secondary,
+        )
 
         dataset = DATASET_REGISTRY.create(dataset_key, config=dataset_config)
         model = MODEL_REGISTRY.create(model_key, config=model_config)
@@ -137,3 +140,15 @@ def _round_metric_values(metric_values: dict[str, object]) -> dict[str, object]:
         else:
             rounded[key] = value
     return rounded
+
+
+def _flatten_metric_keys(main: list[str], secondary: list[str]) -> list[str]:
+    """Merge main/secondary metric keys while preserving first-seen order."""
+    ordered_keys: list[str] = []
+    seen: set[str] = set()
+    for key in [*main, *secondary]:
+        if key in seen:
+            continue
+        seen.add(key)
+        ordered_keys.append(key)
+    return ordered_keys

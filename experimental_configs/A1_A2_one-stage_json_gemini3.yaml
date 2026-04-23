@@ -15,9 +15,11 @@ model:
   apply_icl: true
 evaluation:
   metrics:
-  - is_valid_ir
-  - arg_i_f1
-  - arg_c_f1
-  - content_similarity_sbert
-  - bemeae
-  - ecar
+    main:
+    - is_valid_ir
+    - bemeae
+    secondary:
+    - arg_i_f1
+    - arg_c_f1
+    - content_similarity_sbert
+    - ecar

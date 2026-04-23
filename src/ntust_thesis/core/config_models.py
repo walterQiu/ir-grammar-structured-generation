@@ -65,16 +65,27 @@ class EvaluationConfig(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    metrics: list[str] = Field(
-        default_factory=lambda: [
-            "is_valid_ir",
-            "arg_i_f1",
-            "arg_c_f1",
-            "content_similarity_sbert",
-            "bemeae",
-            "ecar",
-        ]
-    )
+    class MetricsConfig(BaseModel):
+        """Categorized metrics configuration."""
+
+        model_config = ConfigDict(extra="forbid")
+
+        main: list[str] = Field(
+            default_factory=lambda: [
+                "is_valid_ir",
+                "bemeae",
+            ]
+        )
+        secondary: list[str] = Field(
+            default_factory=lambda: [
+                "arg_i_f1",
+                "arg_c_f1",
+                "content_similarity_sbert",
+                "ecar",
+            ]
+        )
+
+    metrics: MetricsConfig = Field(default_factory=MetricsConfig)
 
 
 class ExperimentConfig(BaseModel):
