@@ -72,6 +72,7 @@ class EvaluationConfig(BaseModel):
             "arg_c_f1",
             "content_similarity_sbert",
             "bemeae",
+            "ecar",
         ]
     )
 

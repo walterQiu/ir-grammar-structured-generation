@@ -6,6 +6,7 @@ from ntust_thesis.evaluation.metrics.bemeae import BEMEAEMetric
 from ntust_thesis.evaluation.metrics.content_similarity_sbert import (
     ContentSimilaritySBERTMetric,
 )
+from ntust_thesis.evaluation.metrics.ecar import ECARMetric
 from ntust_thesis.evaluation.metrics.is_valid_ir import IsValidIRMetric
 
 
@@ -16,3 +17,7 @@ def register() -> None:
     METRIC_REGISTRY.register("arg_c_f1", ArgCF1Metric)
     METRIC_REGISTRY.register("content_similarity_sbert", ContentSimilaritySBERTMetric)
     METRIC_REGISTRY.register("bemeae", BEMEAEMetric)
+    METRIC_REGISTRY.register(
+        "ecar",
+        ECARMetric,
+    )
