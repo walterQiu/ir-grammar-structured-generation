@@ -13,21 +13,6 @@ _MIN_QUOTE_LEN = 2
 DEFAULT_DOTENV_PATH = Path("dotenv/.env")
 
 
-def load_dotenv_file(path: Path) -> None:
-    """Load key-value pairs from a dotenv file into process environment."""
-    if not path.exists():
-        return
-
-    for raw_line in path.read_text(encoding="utf-8").splitlines():
-        line = raw_line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        key, value = line.split("=", 1)
-        key = key.strip()
-        value = _strip_quotes(value.strip())
-        os.environ.setdefault(key, value)
-
-
 def get_required_env(key: str, fallback_paths: Iterable[Path] | None = None) -> str:
     """Return required env var after trying optional dotenv files."""
     value = os.getenv(key)
@@ -35,7 +20,7 @@ def get_required_env(key: str, fallback_paths: Iterable[Path] | None = None) -> 
         return value
 
     for path in fallback_paths or []:
-        load_dotenv_file(path)
+        _load_dotenv_file(path)
 
     value = os.getenv(key)
     if value:
@@ -103,8 +88,23 @@ def _get_env_value(
     if value:
         return value
     for path in fallback_paths or []:
-        load_dotenv_file(path)
+        _load_dotenv_file(path)
     return os.getenv(key)
+
+
+def _load_dotenv_file(path: Path) -> None:
+    """Load key-value pairs from a dotenv file into process environment."""
+    if not path.exists():
+        return
+
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = _strip_quotes(value.strip())
+        os.environ.setdefault(key, value)
 
 
 def _strip_quotes(value: str) -> str:
