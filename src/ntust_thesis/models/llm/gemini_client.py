@@ -41,7 +41,7 @@ class GeminiClient(LLMClient):
         self._backoff_max_seconds = backoff_max_seconds
         self._retry_http_statuses = retry_http_statuses
 
-    def generate(
+    def generate(  # noqa: C901
         self,
         system_prompt: str,
         user_prompt: str,
@@ -86,7 +86,11 @@ class GeminiClient(LLMClient):
             try:
                 with urlopen(request, timeout=self._timeout_seconds) as response:  # noqa: S310
                     body = response.read().decode("utf-8")
-                parsed = json.loads(body)
+                try:
+                    parsed = json.loads(body)
+                except json.JSONDecodeError as exc:
+                    msg = f"Gemini returned non-JSON response body: {body}"
+                    raise RuntimeError(msg) from exc
                 return _extract_text(parsed, allow_empty=allow_empty)
             except HTTPError as exc:
                 error_body = _read_http_error_body(exc)
@@ -100,6 +104,10 @@ class GeminiClient(LLMClient):
                     raise last_error from exc
             except URLError as exc:
                 last_error = RuntimeError(f"Gemini connection error: {exc.reason}")
+                if attempt_idx >= max_attempts - 1:
+                    raise last_error from exc
+            except TimeoutError as exc:
+                last_error = RuntimeError(f"Gemini timeout error: {exc}")
                 if attempt_idx >= max_attempts - 1:
                     raise last_error from exc
 
@@ -150,14 +158,17 @@ def _extract_text(parsed: dict[str, Any], allow_empty: bool = False) -> str:
         msg = f"Gemini response missing candidates: {parsed}"
         raise RuntimeError(msg)
 
-    content = candidates[0].get("content", {})
+    first_candidate = candidates[0]
+    content = (
+        first_candidate.get("content", {}) if isinstance(first_candidate, dict) else {}
+    )
     parts = content.get("parts", [])
     texts = [part.get("text", "") for part in parts if isinstance(part, dict)]
     merged = "".join(texts).strip()
     if not merged and allow_empty:
         return ""
     if not merged:
-        msg = f"Gemini response contains empty text: {parsed}"
+        msg = f"Gemini response contains empty text. Response: {parsed}"
         raise RuntimeError(msg)
     return merged
 
