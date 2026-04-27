@@ -146,7 +146,6 @@ class TwoStageModel(Model):
         if extraction_text is not None and ir_text is None:
             ir_system_prompt, ir_user_prompt = build_two_stage_ir_prompt(
                 extraction_text=extraction_text,
-                event_type=sample.metadata.event_type,
                 role_multiplicities=sample.metadata.role_multiplicities,
                 ir_grammar=self._ir_grammar,
                 apply_icl=self._apply_icl,
@@ -154,7 +153,6 @@ class TwoStageModel(Model):
             try:
                 ir_text = self._ir_generator.generate(
                     extraction_text=extraction_text,
-                    event_type=sample.metadata.event_type,
                     role_multiplicities=sample.metadata.role_multiplicities,
                 )
             except Exception as exc:

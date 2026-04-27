@@ -8,6 +8,7 @@ from ntust_thesis.prompts.icl_examples import (
 )
 
 PromptPair = tuple[str, str]  # (system prompt, user_prompt)
+_TWO_STAGE_CODE4STRUCT_EVENT_CLASS = "Event"
 
 
 def build_one_stage_ir_prompt(
@@ -303,7 +304,6 @@ def build_two_stage_extraction_prompt(
 
 def build_two_stage_ir_prompt(
     extraction_text: str,
-    event_type: str,
     ir_grammar: str,
     role_multiplicities: dict[str, int],
     apply_icl: bool = True,
@@ -324,7 +324,6 @@ def build_two_stage_ir_prompt(
     if ir_grammar == "code4struct_ir":
         return build_two_stage_code4struct_ir_prompt(
             extraction_text=extraction_text,
-            event_type=event_type,
             role_multiplicities=role_multiplicities,
             apply_icl=apply_icl,
         )
@@ -462,12 +461,11 @@ def build_two_stage_incremental_assignment_ir_prompt(
 
 def build_two_stage_code4struct_ir_prompt(
     extraction_text: str,
-    event_type: str,
     role_multiplicities: dict[str, int],
     apply_icl: bool = True,
 ) -> PromptPair:
     """Build two-stage prompt for CODE4STRUCT-style IR generation."""
-    event_class = _to_event_class_name(event_type)
+    event_class = _TWO_STAGE_CODE4STRUCT_EVENT_CLASS
 
     ontology_block = _build_code4struct_ontology_block(
         event_class=event_class,
@@ -493,7 +491,7 @@ def build_two_stage_code4struct_ir_prompt(
         f"Convert the following extraction notes into an instance of {event_class}.\n"
         f"{extraction_text}\n"
         '"""\n'
-        f"{event_class.lower()}_event = {event_class}(\n"
+        f"event = {event_class}(\n"
     )
 
     # (1) Instruction block
@@ -548,6 +546,7 @@ def _build_code4struct_ontology_block(
     role_names: list[str],
 ) -> str:
     """Build CODE4STRUCT ontology block without entity/event docstrings."""
+    base_class = "EventBase" if event_class == "Event" else "Event"
     role_identifiers = [_role_to_identifier(role) for role in role_names]
     role_args = "\n".join(
         f"        {role}: List[Entity] = []," for role in role_identifiers
@@ -565,10 +564,10 @@ def _build_code4struct_ontology_block(
         "class Entity:\n"
         "    def __init__(self, name: str):\n"
         "        self.name = name\n\n"
-        "class Event:\n"
+        f"class {base_class}:\n"
         "    def __init__(self, name: str):\n"
         "        self.name = name\n\n"
-        f"class {event_class}(Event):\n"
+        f"class {event_class}({base_class}):\n"
         "    def __init__(\n"
         "        self,\n"
         f"{role_args}\n"

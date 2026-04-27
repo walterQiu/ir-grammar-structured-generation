@@ -16,7 +16,6 @@ class IRGenerator:
     def generate(
         self,
         extraction_text: str,
-        event_type: str,
         role_multiplicities: dict[str, int],
     ) -> str:
         """Generate IR text from extraction text."""
@@ -42,13 +41,11 @@ class GeminiIRGenerator(IRGenerator):
     def generate(
         self,
         extraction_text: str,
-        event_type: str,
         role_multiplicities: dict[str, int],
     ) -> str:
         """Generate IR text for configured grammar."""
         system_prompt, user_prompt = build_two_stage_ir_prompt(
             extraction_text=extraction_text,
-            event_type=event_type,
             role_multiplicities=role_multiplicities,
             ir_grammar=self._ir_grammar,
             apply_icl=self._apply_icl,

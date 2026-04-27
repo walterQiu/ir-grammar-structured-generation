@@ -465,11 +465,11 @@ class Entity:
     def __init__(self, name: str):
         self.name = name
 
-class Event:
+class EventBase:
     def __init__(self, name: str):
         self.name = name
 
-class ConflictAttackDamage(Event):
+class Event(EventBase):
     def __init__(
         self,
         damagerdestroyer: List[Entity] = [],
@@ -484,10 +484,10 @@ class ConflictAttackDamage(Event):
 
 """
 Argument value limits: damagerdestroyer=1, artifact=1, instrument=1, place=1
-Convert the following extraction notes into an instance of ConflictAttackDamage.
+Convert the following extraction notes into an instance of Event.
 In the sentence, "Protesters" serves as the damagerdestroyer, and "the offices of the holding company of Ukraine 's richest man , Rinat Akhmetov" is the artifact that was vandalized.
 """
-conflictattackdamage_event = ConflictAttackDamage(
+event = Event(
 
 [Output]
 
@@ -507,11 +507,11 @@ class Entity:
     def __init__(self, name: str):
         self.name = name
 
-class Event:
+class EventBase:
     def __init__(self, name: str):
         self.name = name
 
-class ContactCorrespondence(Event):
+class Event(EventBase):
     def __init__(
         self,
         participant: List[Entity] = [],
@@ -522,10 +522,10 @@ class ContactCorrespondence(Event):
 
 """
 Argument value limits: participant=2, place=1
-Convert the following extraction notes into an instance of ContactCorrespondence.
+Convert the following extraction notes into an instance of Event.
 The sentence indicates that the "campaign" is a participant in the correspondence.
 """
-contactcorrespondence_event = ContactCorrespondence(
+event = Event(
 
 [Output]
 
@@ -544,11 +544,11 @@ class Entity:
     def __init__(self, name: str):
         self.name = name
 
-class Event:
+class EventBase:
     def __init__(self, name: str):
         self.name = name
 
-class ContactMeet(Event):
+class Event(EventBase):
     def __init__(
         self,
         participant: List[Entity] = [],
@@ -559,10 +559,10 @@ class ContactMeet(Event):
 
 """
 Argument value limits: participant=2, place=1
-Convert the following extraction notes into an instance of ContactMeet.
+Convert the following extraction notes into an instance of Event.
 In the sentence, the participants involved in the meeting are Hillary and Alinsky.
 """
-contactmeet_event = ContactMeet(
+event = Event(
 
 [Output]
 
@@ -584,11 +584,11 @@ class Entity:
     def __init__(self, name: str):
         self.name = name
 
-class Event:
+class EventBase:
     def __init__(self, name: str):
         self.name = name
 
-class ConflictDemonstrateMarchprotestpoliticalgathering(Event):
+class Event(EventBase):
     def __init__(
         self,
         demonstrator: List[Entity] = [],
@@ -599,10 +599,10 @@ class ConflictDemonstrateMarchprotestpoliticalgathering(Event):
 
 """
 Argument value limits: demonstrator=1, place=1
-Convert the following extraction notes into an instance of ConflictDemonstrateMarchprotestpoliticalgathering.
+Convert the following extraction notes into an instance of Event.
 The sentence does not explicitly provide any information about the demonstrator or the place related to the protest. Therefore, there are no arguments to identify for the allowed roles.
 """
-conflictdemonstratemarchprotestpoliticalgathering_event = ConflictDemonstrateMarchprotestpoliticalgathering(
+event = Event(
 
 [Output]
 
