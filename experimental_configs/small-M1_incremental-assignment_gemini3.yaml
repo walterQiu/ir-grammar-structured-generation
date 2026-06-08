@@ -1,0 +1,32 @@
+experiment_name: small-M1_incremental-assignment_gemini3
+dataset:
+  name: rams
+  data_dir: datasets/RAMS/data
+  split: test
+  max_samples: 80
+model:
+  name: two_stage
+  extraction_model:
+    backend: gemini
+    llm_name: gemini-3.1-pro-preview
+    api_key_env: GEMINI_API_KEY
+    enable_sleep: true
+    enable_retry: true
+  ir_model:
+    backend: gemini
+    llm_name: gemini-3.1-pro-preview
+    api_key_env: GEMINI_API_KEY
+    enable_sleep: true
+    enable_retry: true
+  ir_grammar: incremental_assignment_ir
+  apply_icl: true
+evaluation:
+  metrics:
+    main:
+    - is_valid_ir
+    - bemeae
+    secondary:
+    - arg_i_f1
+    - arg_c_f1
+    - content_similarity_sbert
+    - ecar

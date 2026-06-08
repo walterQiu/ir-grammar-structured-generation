@@ -38,14 +38,6 @@ class Model(ABC):
         """Generate prediction for one sample."""
 
 
-class Validator(ABC):
-    """Interface for strict validators."""
-
-    @abstractmethod
-    def validate(self, prediction: Prediction, sample: Sample) -> dict[str, object]:
-        """Return validation flags/details for one sample."""
-
-
 class Metric(ABC):
     """Interface for aggregate metric calculators."""
 
@@ -65,7 +57,6 @@ class Compiler(ABC):
     def compile(
         self,
         ir_text: str,
-        source_sentence: str,
         event_type: str,
     ) -> EventOutput:
         """Compile IR text into JSON output."""
@@ -75,5 +66,11 @@ class LLMClient(ABC):
     """Interface for interchangeable LLM backends."""
 
     @abstractmethod
-    def generate(self, prompt: str, **kwargs: object) -> str:
-        """Generate text from prompt."""
+    def generate(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        temperature: float,
+        **kwargs: object,
+    ) -> str:
+        """Generate text from system+user prompts."""

@@ -23,40 +23,39 @@ class StageModelConfig(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    backend: Literal["gemini"] = "gemini"
+    backend: Literal["gemini", "vllm"] = "gemini"
     llm_name: str = "gemini-2.5-flash-lite"
     api_key_env: str = "GEMINI_API_KEY"
-    dotenv_path: str = "dotenv/.env"
-    temperature: float = 0.0
-    timeout_seconds: int = 60
+    api_base: str | None = None
+    enable_sleep: bool = False
+    enable_retry: bool = True
 
 
-class BaselineModelConfig(BaseModel):
-    """Baseline model configuration."""
+class OneStageModelConfig(BaseModel):
+    """One-stage model configuration."""
 
     model_config = ConfigDict(extra="forbid")
 
-    name: Literal["baseline"]
-    backend: Literal["gemini"] = "gemini"
-    llm_name: str = "gemini-2.5-flash-lite"
-    api_key_env: str = "GEMINI_API_KEY"
-    dotenv_path: str = "dotenv/.env"
-    temperature: float = 0.0
-    timeout_seconds: int = 60
+    name: Literal["one_stage"]
+    stage_model: StageModelConfig = Field(default_factory=StageModelConfig)
+    ir_grammar: str
+    apply_icl: bool = True
 
 
-class IRPipelineModelConfig(BaseModel):
-    """IR pipeline model configuration."""
+class TwoStageModelConfig(BaseModel):
+    """Two-stage model configuration."""
 
     model_config = ConfigDict(extra="forbid")
 
-    name: Literal["ir_pipeline"]
+    name: Literal["two_stage"]
     extraction_model: StageModelConfig = Field(default_factory=StageModelConfig)
     ir_model: StageModelConfig = Field(default_factory=StageModelConfig)
+    ir_grammar: str
+    apply_icl: bool = True
 
 
 ModelConfig = Annotated[
-    BaselineModelConfig | IRPipelineModelConfig,
+    OneStageModelConfig | TwoStageModelConfig,
     Field(discriminator="name"),
 ]
 
@@ -66,8 +65,27 @@ class EvaluationConfig(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    validators: list[str] = Field(default_factory=lambda: ["strict"])
-    metrics: list[str] = Field(default_factory=lambda: ["strict_rates"])
+    class MetricsConfig(BaseModel):
+        """Categorized metrics configuration."""
+
+        model_config = ConfigDict(extra="forbid")
+
+        main: list[str] = Field(
+            default_factory=lambda: [
+                "is_valid_ir",
+                "bemeae",
+            ]
+        )
+        secondary: list[str] = Field(
+            default_factory=lambda: [
+                "arg_i_f1",
+                "arg_c_f1",
+                "content_similarity_sbert",
+                "ecar",
+            ]
+        )
+
+    metrics: MetricsConfig = Field(default_factory=MetricsConfig)
 
 
 class ExperimentConfig(BaseModel):

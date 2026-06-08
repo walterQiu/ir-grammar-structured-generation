@@ -2,38 +2,20 @@
 
 from __future__ import annotations
 
-import argparse
 import json
 import os
 import sys
 from importlib import import_module
 
-
-def build_parser() -> argparse.ArgumentParser:
-    """Build CLI argument parser."""
-    parser = argparse.ArgumentParser(
-        description="Encode two sentences with Sentence-BERT and compare similarity.",
-    )
-    parser.add_argument("sentence_a", type=str, help="First sentence")
-    parser.add_argument("sentence_b", type=str, help="Second sentence")
-    parser.add_argument(
-        "--model",
-        type=str,
-        default=os.getenv("SBERT_MODEL_NAME", "all-mpnet-base-v2"),
-        help="Sentence-BERT model name",
-    )
-    parser.add_argument(
-        "--pretty",
-        action="store_true",
-        help="Pretty-print JSON output",
-    )
-    return parser
+# Edit these values directly before running this script.
+SENTENCE_A = r"\"Mrs. Clinton\""
+SENTENCE_B = r"Mrs. Clinton"
+MODEL_NAME = os.getenv("SBERT_MODEL_NAME", "all-mpnet-base-v2")
+PRETTY_PRINT = True
 
 
 def main() -> None:
     """Run SBERT encoding and similarity comparison."""
-    args = build_parser().parse_args()
-
     try:
         sentence_transformers = import_module("sentence_transformers")
     except ImportError as exc:
@@ -45,15 +27,15 @@ def main() -> None:
 
     sentence_transformer_cls = sentence_transformers.SentenceTransformer
     util_module = sentence_transformers.util
-    model = sentence_transformer_cls(args.model)
+    model = sentence_transformer_cls(MODEL_NAME)
 
     embedding_a = model.encode(
-        args.sentence_a,
+        SENTENCE_A,
         convert_to_tensor=False,
         normalize_embeddings=True,
     )
     embedding_b = model.encode(
-        args.sentence_b,
+        SENTENCE_B,
         convert_to_tensor=False,
         normalize_embeddings=True,
     )
@@ -62,13 +44,13 @@ def main() -> None:
     similarity = float(util_module.cos_sim([embedding_a], [embedding_b]).item())
 
     result = {
-        "model": args.model,
-        "sentence_a": args.sentence_a,
-        "sentence_b": args.sentence_b,
+        "model": MODEL_NAME,
+        "sentence_a": SENTENCE_A,
+        "sentence_b": SENTENCE_B,
         "cosine_similarity": similarity,
     }
 
-    if args.pretty:
+    if PRETTY_PRINT:
         sys.stdout.write(f"{json.dumps(result, ensure_ascii=False, indent=2)}\\n")
     else:
         sys.stdout.write(f"{json.dumps(result, ensure_ascii=False)}\\n")

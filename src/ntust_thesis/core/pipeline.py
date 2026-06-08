@@ -10,7 +10,13 @@ from ntust_thesis.core.registry import (
     DATASET_REGISTRY,
     METRIC_REGISTRY,
     MODEL_REGISTRY,
-    VALIDATOR_REGISTRY,
+)
+from ntust_thesis.evaluation.difficulty import (
+    group_rows_by_role_multiplicity_and_gold_role,
+)
+from ntust_thesis.evaluation.formatter import (
+    format_metrics_payload,
+    round_metric_values,
 )
 
 if TYPE_CHECKING:
@@ -25,48 +31,73 @@ class PipelineResult:
 
     rows: list[dict[str, Any]]
     metrics: dict[str, Any]
+    failed_samples: list[dict[str, Any]]
 
 
 class ExperimentPipeline:
-    """Coordinates dataset -> model -> validation -> metrics."""
+    """Coordinates dataset -> model -> metrics."""
 
     def __init__(self, config: ExperimentConfig) -> None:
         """Initialize pipeline with resolved experiment config."""
         self._config = config
 
     def run(self) -> PipelineResult:
-        """Execute dataset -> model -> validator -> metric flow."""
+        """Execute dataset -> model -> metric flow."""
         dataset_key = self._config.dataset.name
         dataset_config = self._config.dataset.model_dump()
         model_key = self._config.model.name
         model_config = self._config.model.model_dump()
-        validator_keys = self._config.evaluation.validators
-        metric_keys = self._config.evaluation.metrics
+        main_metric_keys = self._config.evaluation.metrics.main
+        secondary_metric_keys = self._config.evaluation.metrics.secondary
+        metric_keys = _flatten_metric_keys(
+            main_metric_keys,
+            secondary_metric_keys,
+        )
 
         dataset = DATASET_REGISTRY.create(dataset_key, config=dataset_config)
         model = MODEL_REGISTRY.create(model_key, config=model_config)
-        validators = [VALIDATOR_REGISTRY.create(key) for key in validator_keys]
-        metrics = [METRIC_REGISTRY.create(key) for key in metric_keys]
+        ir_grammar = self._config.model.ir_grammar
+        metrics = [
+            METRIC_REGISTRY.create(key, ir_grammar=ir_grammar)
+            if key
+            in {
+                "is_valid_ir",
+            }
+            else METRIC_REGISTRY.create(key)
+            for key in metric_keys
+        ]
         samples = dataset.load()
         total = len(samples)
 
         metric_rows: list[EvaluationRow] = []
         rows: list[dict[str, Any]] = []
+        failed_samples: list[dict[str, Any]] = []
         for idx, sample in enumerate(samples, start=1):
-            prediction = model.predict(sample)
-            row_data: dict[str, Any] = {
-                "sample_id": sample.sample_id,
-                "raw_output": prediction.raw_output,
-                "parsed_output": prediction.parsed_output,
-                "gold": sample.gold,
-                "prediction_metadata": prediction.metadata,
-                "sample_metadata": sample.metadata,
-            }
-            for validator in validators:
-                row_data.update(validator.validate(prediction, sample))
-            row_model = EvaluationRow.model_validate(row_data)
-            metric_rows.append(row_model)
-            rows.append(row_model.model_dump())
+            try:
+                prediction = model.predict(sample)
+                row_data: dict[str, Any] = {
+                    "sample_id": sample.sample_id,
+                    "raw_output": prediction.raw_output,
+                    "parsed_output": prediction.parsed_output,
+                    "gold": sample.gold,
+                    "prediction_metadata": prediction.metadata,
+                    "sample_metadata": sample.metadata,
+                }
+                row_model = EvaluationRow.model_validate(row_data)
+                metric_rows.append(row_model)
+                rows.append(row_model.model_dump())
+            except Exception as exc:
+                failed_samples.append(
+                    {
+                        "sample_index": idx,
+                        "sample_id": sample.sample_id,
+                        "error": str(exc),
+                    }
+                )
+                sys.stdout.write(
+                    f"[warning] failed sample {idx}/{total}: {sample.sample_id}\n"
+                )
+                sys.stdout.flush()
 
             if idx % 10 == 0 or idx == total:
                 sys.stdout.write(f"[progress] processed {idx}/{total} samples\n")
@@ -74,5 +105,45 @@ class ExperimentPipeline:
 
         aggregated: dict[str, Any] = {}
         for metric in metrics:
-            aggregated.update(metric.compute(metric_rows))
-        return PipelineResult(rows=rows, metrics=aggregated)
+            aggregated.update(round_metric_values(metric.compute(metric_rows)))
+
+        grouped_rows = group_rows_by_role_multiplicity_and_gold_role(metric_rows)
+        difficulty_aggregated: dict[
+            int, dict[int, dict[str, Any]]
+        ] = {}  # [role_multiplicities_total, [gold_span_total, [metrics]]]
+        for multiplicity_total, grouped_by_gold in grouped_rows.items():
+            difficulty_aggregated[multiplicity_total] = {}
+            for gold_role_count, rows_in_group in grouped_by_gold.items():
+                group_metrics: dict[str, Any] = {"sample_count": len(rows_in_group)}
+                for metric in metrics:
+                    group_metrics.update(
+                        round_metric_values(metric.compute(rows_in_group))
+                    )
+                difficulty_aggregated[multiplicity_total][gold_role_count] = (
+                    group_metrics
+                )
+
+        formatted_metrics = format_metrics_payload(
+            aggregated,
+            difficulty_aggregated,
+            main_metric_keys,
+            secondary_metric_keys,
+        )
+
+        return PipelineResult(
+            rows=rows,
+            metrics=formatted_metrics,
+            failed_samples=failed_samples,
+        )
+
+
+def _flatten_metric_keys(main: list[str], secondary: list[str]) -> list[str]:
+    """Merge main/secondary metric keys while preserving first-seen order."""
+    ordered_keys: list[str] = []
+    seen: set[str] = set()
+    for key in [*main, *secondary]:
+        if key in seen:
+            continue
+        seen.add(key)
+        ordered_keys.append(key)
+    return ordered_keys

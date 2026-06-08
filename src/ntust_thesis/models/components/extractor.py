@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from ntust_thesis.prompts import build_ir_extraction_prompt
+from ntust_thesis.prompts import build_two_stage_extraction_prompt
 
 if TYPE_CHECKING:
     from ntust_thesis.core.interfaces import LLMClient
@@ -16,9 +16,8 @@ class Extractor:
     def extract(
         self,
         sentence: str,
-        event_type: str | None = None,
-        legal_roles: list[str] | None = None,
-        role_multiplicities: dict[str, int] | None = None,
+        event_type: str,
+        role_multiplicities: dict[str, int],
     ) -> str:
         """Return extraction stage output text."""
         raise NotImplementedError
@@ -35,15 +34,17 @@ class GeminiExtractor(Extractor):
     def extract(
         self,
         sentence: str,
-        event_type: str | None = None,
-        legal_roles: list[str] | None = None,
-        role_multiplicities: dict[str, int] | None = None,
+        event_type: str,
+        role_multiplicities: dict[str, int],
     ) -> str:
         """Ask Gemini to produce extraction notes."""
-        prompt = build_ir_extraction_prompt(
+        system_prompt, user_prompt = build_two_stage_extraction_prompt(
             sentence=sentence,
             event_type=event_type,
-            legal_roles=legal_roles,
             role_multiplicities=role_multiplicities,
         )
-        return self._llm.generate(prompt, temperature=self._temperature)
+        return self._llm.generate(
+            system_prompt,
+            user_prompt,
+            self._temperature,
+        )

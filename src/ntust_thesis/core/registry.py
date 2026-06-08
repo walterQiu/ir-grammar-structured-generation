@@ -1,4 +1,4 @@
-"""Component registry for datasets/models/validators/metrics."""
+"""Component registry for datasets/models/metrics."""
 
 from __future__ import annotations
 
@@ -38,5 +38,4 @@ class Registry[T]:
 
 DATASET_REGISTRY = Registry()
 MODEL_REGISTRY = Registry()
-VALIDATOR_REGISTRY = Registry()
 METRIC_REGISTRY = Registry()

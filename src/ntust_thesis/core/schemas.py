@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -12,9 +12,8 @@ class Argument(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    role: str
-    text: str
-    span: tuple[int, int]
+    role: str | dict[str, Any]
+    span: str
 
 
 class EventOutput(BaseModel):
@@ -26,24 +25,14 @@ class EventOutput(BaseModel):
     arguments: list[Argument] = Field(default_factory=list)
 
 
-class OutputSchema(BaseModel):
-    """Schema spec used by strict validation."""
-
-    model_config = ConfigDict(extra="forbid")
-
-    type: Literal["object"] = "object"
-    required: tuple[str, ...] = ("event_type", "arguments")
-
-
 class SampleMetadata(BaseModel):
     """Metadata for one dataset sample."""
 
     model_config = ConfigDict(extra="allow")
     sentence_text: str | None = None
     marked_sentence: str | None = None
-    event_type: str | None = None
-    legal_roles: list[str] | None = None
-    role_multiplicities: dict[str, int] | None = None
+    event_type: str
+    role_multiplicities: dict[str, int]
 
 
 class PredictionMetadata(BaseModel):
@@ -68,7 +57,6 @@ class Sample(BaseModel):
 
     sample_id: str
     raw_sentence: str
-    output_schema: OutputSchema
     gold: EventOutput
     metadata: SampleMetadata
 
@@ -95,6 +83,3 @@ class EvaluationRow(BaseModel):
     gold: EventOutput
     prediction_metadata: PredictionMetadata
     sample_metadata: SampleMetadata
-    json_valid: bool
-    schema_valid: bool
-    exact_match: bool

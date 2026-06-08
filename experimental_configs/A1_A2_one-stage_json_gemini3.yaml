@@ -1,0 +1,25 @@
+experiment_name: A1_A2_one-stage_json_gemini3
+dataset:
+  name: rams
+  data_dir: datasets/RAMS/data
+  split: test
+model:
+  name: one_stage
+  stage_model:
+    backend: gemini
+    llm_name: gemini-3.1-pro-preview
+    api_key_env: GEMINI_API_KEY
+    enable_sleep: true
+    enable_retry: true
+  ir_grammar: json
+  apply_icl: true
+evaluation:
+  metrics:
+    main:
+    - is_valid_ir
+    - bemeae
+    secondary:
+    - arg_i_f1
+    - arg_c_f1
+    - content_similarity_sbert
+    - ecar

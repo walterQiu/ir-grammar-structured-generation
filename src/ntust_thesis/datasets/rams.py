@@ -10,7 +10,7 @@ from pydantic import ValidationError
 
 from ntust_thesis.core.interfaces import Dataset
 from ntust_thesis.core.registry import DATASET_REGISTRY
-from ntust_thesis.core.schemas import EventOutput, OutputSchema, Sample, SampleMetadata
+from ntust_thesis.core.schemas import EventOutput, Sample, SampleMetadata
 from ntust_thesis.datasets.rams_models import (
     OntologyEventRoles,
     RAMSDatasetConfig,
@@ -85,34 +85,29 @@ class RAMSDataset(Dataset):
         for link in row.gold_evt_links:
             arg_span = link[1]
             role = _normalize_role_name(link[2])
-            text = self._span_to_text(tokens, arg_span[0], arg_span[1])
+            span = self._span_to_text(tokens, arg_span[0], arg_span[1])
             arguments.append(
                 {
                     "role": role,
-                    "text": text,
-                    "span": (arg_span[0], arg_span[1]),
+                    "span": span,
                 }
             )
 
         gold = EventOutput.model_validate(
             {"event_type": event_type, "arguments": arguments}
         )
-        output_schema = OutputSchema()
         marked_sentence = self._mark_trigger(tokens, trigger_span[0], trigger_span[1])
-        legal_roles = list(event_roles.roles.keys())
         role_multiplicities = dict(event_roles.roles)
         raw_sentence = marked_sentence
         metadata = SampleMetadata(
             sentence_text=" ".join(tokens),
             marked_sentence=marked_sentence,
             event_type=event_type,
-            legal_roles=legal_roles,
             role_multiplicities=role_multiplicities,
         )
         return Sample(
             sample_id=row.doc_key,
             raw_sentence=raw_sentence,
-            output_schema=output_schema,
             gold=gold,
             metadata=metadata,
         )

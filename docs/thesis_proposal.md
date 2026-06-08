@@ -58,7 +58,7 @@ File: `models/baseline.py`
 
 ### Step 2: IR LM
 - Convert to intermediate representation (IR)
-- Format: dot notation
+- Format: incremental-assignment
 
 Example:
 ```

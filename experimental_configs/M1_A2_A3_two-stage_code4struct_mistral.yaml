@@ -1,0 +1,31 @@
+experiment_name: M1_A2_A3_two-stage_code4struct_mistral
+dataset:
+  name: rams
+  data_dir: datasets/RAMS/data
+  split: test
+model:
+  name: two_stage
+  extraction_model:
+    backend: gemini
+    llm_name: gemini-3.1-pro-preview
+    api_key_env: GEMINI_API_KEY
+    enable_sleep: true
+    enable_retry: true
+  ir_model:
+    backend: vllm
+    llm_name: mistralai/Mistral-7B-Instruct-v0.3
+    api_base: http://140.118.155.118:8001/v1
+    enable_sleep: false
+    enable_retry: true
+  ir_grammar: code4struct_ir
+  apply_icl: true
+evaluation:
+  metrics:
+    main:
+    - is_valid_ir
+    - bemeae
+    secondary:
+    - arg_i_f1
+    - arg_c_f1
+    - content_similarity_sbert
+    - ecar
