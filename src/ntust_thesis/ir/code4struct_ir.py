@@ -1,4 +1,26 @@
-"""CODE4STRUCT-style IR grammar parser and validator."""
+"""CODE4STRUCT-style IR grammar parser and validator.
+
+Reference:
+    @inproceedings{wang-etal-2023-code4struct,
+        title = "{C}ode4{S}truct: Code Generation for Few-Shot Event Structure Prediction",
+        author = "Wang, Xingyao  and Li, Sha  and Ji, Heng",
+        editor = "Rogers, Anna  and Boyd-Graber, Jordan  and Okazaki, Naoaki",
+        booktitle = "Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)",
+        month = jul,
+        year = "2023",
+        address = "Toronto, Canada",
+        publisher = "Association for Computational Linguistics",
+        url = "https://aclanthology.org/2023.acl-long.202/",
+        doi = "10.18653/v1/2023.acl-long.202",
+        pages = "3640--3663",
+    }
+
+Implementation note:
+    This module implements the code-style structured representation idea inspired
+    by the CODE4STRUCT methodology. The implementation was written independently
+    for this thesis project and does not copy source code from the original paper
+    or its repository.
+"""
 
 from __future__ import annotations
 
