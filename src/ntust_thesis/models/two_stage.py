@@ -30,7 +30,6 @@ from ntust_thesis.prompts import (
     build_two_stage_ir_prompt,
 )
 from ntust_thesis.utils.env import (
-    DEFAULT_DOTENV_PATH,
     get_env_float,
     get_env_int,
     get_env_int_list,
@@ -48,47 +47,38 @@ class TwoStageModel(Model):
 
     def __init__(self, config: TwoStageModelConfig) -> None:
         """Initialize two-stage IR pipeline with model config."""
-        dotenv_paths = [DEFAULT_DOTENV_PATH]
         self._llm_temperature = get_env_float(
             "llm_temperature",
             default=0.0,
-            fallback_paths=dotenv_paths,
         )
         self._llm_timeout_seconds = get_env_int(
             "llm_timeout_seconds",
             default=120,
-            fallback_paths=dotenv_paths,
         )
         self._llm_sleep_seconds = get_env_float(
             "llm_sleep_seconds",
             default=1.0,
-            fallback_paths=dotenv_paths,
         )
         self._llm_max_retries = get_env_int(
             "llm_max_retries",
             default=5,
-            fallback_paths=dotenv_paths,
         )
         self._llm_backoff_initial_seconds = get_env_float(
             "llm_backoff_initial_seconds",
             default=2.0,
-            fallback_paths=dotenv_paths,
         )
         self._llm_backoff_multiplier = get_env_float(
             "llm_backoff_multiplier",
             default=2.0,
-            fallback_paths=dotenv_paths,
         )
         self._llm_backoff_max_seconds = get_env_float(
             "llm_backoff_max_seconds",
             default=32.0,
-            fallback_paths=dotenv_paths,
         )
         self._llm_retry_http_statuses = tuple(
             get_env_int_list(
                 "llm_retry_http_statuses",
                 default=[429, 500, 502, 503, 504],
-                fallback_paths=dotenv_paths,
             )
         )
 
@@ -252,10 +242,7 @@ class TwoStageModel(Model):
         }
         if cfg.backend == "gemini":
             api_key_env = cfg.api_key_env
-            api_key = get_required_env(
-                api_key_env,
-                fallback_paths=[DEFAULT_DOTENV_PATH],
-            )
+            api_key = get_required_env(api_key_env)
             return GeminiClient(
                 api_key=api_key,
                 model_name=model_name,

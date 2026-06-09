@@ -18,7 +18,6 @@ from ntust_thesis.models.llm.gemini_client import GeminiClient
 from ntust_thesis.models.llm.vllm_client import VllmChatCompletionsClient
 from ntust_thesis.prompts import build_one_stage_ir_prompt
 from ntust_thesis.utils.env import (
-    DEFAULT_DOTENV_PATH,
     get_env_float,
     get_env_int,
     get_env_int_list,
@@ -35,53 +34,41 @@ class OneStageModel(Model):
         """Initialize one-stage IR model from config."""
         stage_cfg = config.stage_model
         self._backend = stage_cfg.backend
-        dotenv_paths = [DEFAULT_DOTENV_PATH]
         self._temperature = get_env_float(
             "llm_temperature",
             default=0.0,
-            fallback_paths=dotenv_paths,
         )
         timeout = get_env_int(
             "llm_timeout_seconds",
             default=120,
-            fallback_paths=dotenv_paths,
         )
         sleep_seconds = get_env_float(
             "llm_sleep_seconds",
             default=1.0,
-            fallback_paths=dotenv_paths,
         )
         max_retries = get_env_int(
             "llm_max_retries",
             default=5,
-            fallback_paths=dotenv_paths,
         )
         backoff_initial_seconds = get_env_float(
             "llm_backoff_initial_seconds",
             default=2.0,
-            fallback_paths=dotenv_paths,
         )
         backoff_multiplier = get_env_float(
             "llm_backoff_multiplier",
             default=2.0,
-            fallback_paths=dotenv_paths,
         )
         backoff_max_seconds = get_env_float(
             "llm_backoff_max_seconds",
             default=32.0,
-            fallback_paths=dotenv_paths,
         )
         retry_http_statuses = get_env_int_list(
             "llm_retry_http_statuses",
             default=[429, 500, 502, 503, 504],
-            fallback_paths=dotenv_paths,
         )
         model_name = stage_cfg.llm_name
         if stage_cfg.backend == "gemini":
-            api_key = get_required_env(
-                stage_cfg.api_key_env,
-                fallback_paths=dotenv_paths,
-            )
+            api_key = get_required_env(stage_cfg.api_key_env)
             self._llm = GeminiClient(
                 api_key=api_key,
                 model_name=model_name,

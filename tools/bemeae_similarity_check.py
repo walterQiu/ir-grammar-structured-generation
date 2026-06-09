@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import json
-import os
 import sys
 
 from ntust_thesis.evaluation.metrics.bemeae import BEMEAEMetric
 from ntust_thesis.evaluation.metrics.common import f1, safe_divide_float
+from ntust_thesis.utils.env import get_required_env, load_environment
 
 # Edit these values directly before running this script.
 CHECK_MODE = "grouped"  # one of: span, grouped
@@ -19,8 +19,6 @@ GROUP_A = {
 GROUP_B = {
     "participant": ["Hillary Clinton", "Saul Alinsky"],
 }
-SBERT_MODEL_NAME = os.getenv("SBERT_MODEL_NAME", "all-mpnet-base-v2")
-SPACY_MODEL_NAME = os.getenv("SPACY_MODEL_NAME", "en_core_web_sm")
 PRETTY_PRINT = True
 
 
@@ -47,8 +45,8 @@ def _run_span_check(metric: BEMEAEMetric) -> dict[str, object]:
     return {
         "mode": "span",
         "metric": metric.name(),
-        "sbert_model": SBERT_MODEL_NAME,
-        "spacy_model": SPACY_MODEL_NAME,
+        "sbert_model": get_required_env("SBERT_MODEL_NAME"),
+        "spacy_model": get_required_env("SPACY_MODEL_NAME"),
         "sentence_a": SENTENCE_A,
         "sentence_b": SENTENCE_B,
         "normalized_sentence_a": normalized_a,
@@ -71,8 +69,8 @@ def _run_grouped_check(metric: BEMEAEMetric) -> dict[str, object]:
     return {
         "mode": "grouped",
         "metric": metric.name(),
-        "sbert_model": SBERT_MODEL_NAME,
-        "spacy_model": SPACY_MODEL_NAME,
+        "sbert_model": get_required_env("SBERT_MODEL_NAME"),
+        "spacy_model": get_required_env("SPACY_MODEL_NAME"),
         "group_a": GROUP_A,
         "group_b": GROUP_B,
         "normalized_group_a": normalized_a,
@@ -88,6 +86,7 @@ def _run_grouped_check(metric: BEMEAEMetric) -> dict[str, object]:
 
 def main() -> None:
     """Run configured BEMEAE comparison."""
+    load_environment()
     metric = BEMEAEMetric()
     if CHECK_MODE == "span":
         result = _run_span_check(metric)

@@ -8,7 +8,7 @@ from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
-from ntust_thesis.utils.env import DEFAULT_DOTENV_PATH, get_required_env
+from ntust_thesis.utils.env import get_required_env, load_environment
 
 # Edit these placeholders before running.
 SYSTEM_PROMPT = "You are a helpful assistant."
@@ -56,7 +56,7 @@ def _build_gemini_request(target: TargetModel) -> Request:
     if target.api_key_env is None:
         msg = f"Missing api_key_env for target: {target.name}"
         raise ValueError(msg)
-    api_key = get_required_env(target.api_key_env, fallback_paths=[DEFAULT_DOTENV_PATH])
+    api_key = get_required_env(target.api_key_env)
     payload = {
         "contents": [{"role": "user", "parts": [{"text": USER_PROMPT}]}],
         "generationConfig": {"temperature": TEMPERATURE},
@@ -170,6 +170,7 @@ def _probe_one_target(target: TargetModel) -> dict[str, Any]:
 
 def main() -> int:
     """Run all probes and print one JSON result block."""
+    load_environment()
     outputs = [_probe_one_target(target) for target in TARGET_MODELS]
     print(json.dumps({"results": outputs}, ensure_ascii=False, indent=2))  # noqa: T201
     return 0
