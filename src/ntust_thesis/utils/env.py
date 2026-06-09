@@ -6,10 +6,11 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from dotenv import load_dotenv
+
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-_MIN_QUOTE_LEN = 2
 DEFAULT_DOTENV_PATH = Path("dotenv/.env")
 
 
@@ -20,7 +21,7 @@ def get_required_env(key: str, fallback_paths: Iterable[Path] | None = None) -> 
         return value
 
     for path in fallback_paths or []:
-        _load_dotenv_file(path)
+        load_dotenv(dotenv_path=path, override=False)
 
     value = os.getenv(key)
     if value:
@@ -88,31 +89,5 @@ def _get_env_value(
     if value:
         return value
     for path in fallback_paths or []:
-        _load_dotenv_file(path)
+        load_dotenv(dotenv_path=path, override=False)
     return os.getenv(key)
-
-
-def _load_dotenv_file(path: Path) -> None:
-    """Load key-value pairs from a dotenv file into process environment."""
-    if not path.exists():
-        return
-
-    for raw_line in path.read_text(encoding="utf-8").splitlines():
-        line = raw_line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        key, value = line.split("=", 1)
-        key = key.strip()
-        value = _strip_quotes(value.strip())
-        os.environ.setdefault(key, value)
-
-
-def _strip_quotes(value: str) -> str:
-    """Strip one layer of surrounding single/double quotes."""
-    if (
-        len(value) >= _MIN_QUOTE_LEN
-        and value[0] == value[-1]
-        and value[0] in {"'", '"'}
-    ):
-        return value[1:-1]
-    return value
