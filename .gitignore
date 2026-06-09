@@ -207,7 +207,8 @@ marimo/_lsp/
 __marimo__/
 
 # dataset dir
-/datasets/
+/datasets/*
+!/datasets/.gitkeep
 
 # experiment outputs
 /outputs/

@@ -20,6 +20,7 @@ dev = [
 [tool.ruff]
 extend-exclude = [
     ".vscode",
+    "datasets",
     "rams_analysis",
     "legacy",
 ]
