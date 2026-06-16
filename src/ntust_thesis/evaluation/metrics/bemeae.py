@@ -1,4 +1,26 @@
-"""BEMEAE metric implementation."""
+"""BEMEAE metric implementation.
+
+Reference:
+    @inproceedings{fane-etal-2025-bemeae,
+        title = "{BEMEAE}: Moving Beyond Exact Span Match for Event Argument Extraction",
+        author = "Fane, Enfa  and Uddin, Md Nayem  and Ikumariegbe, Oghenevovwe  and Kashif, Daniyal  and Blanco, Eduardo  and Corman, Steven",
+        editor = "Chiruzzo, Luis  and Ritter, Alan  and Wang, Lu",
+        booktitle = "Proceedings of the 2025 Conference of the Nations of the Americas Chapter of the Association for Computational Linguistics: Human Language Technologies (Volume 1: Long Papers)",
+        month = apr,
+        year = "2025",
+        address = "Albuquerque, New Mexico",
+        publisher = "Association for Computational Linguistics",
+        url = "https://aclanthology.org/2025.naacl-long.295/",
+        doi = "10.18653/v1/2025.naacl-long.295",
+        pages = "5734--5749",
+        ISBN = "979-8-89176-189-6",
+    }
+
+Implementation note:
+    This module implements an evaluation procedure inspired by the BEMEAE
+    methodology. The implementation was written independently for this thesis
+    project and does not copy source code from the original paper or its repository.
+"""
 
 from __future__ import annotations
 

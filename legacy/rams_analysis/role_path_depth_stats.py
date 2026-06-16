@@ -12,7 +12,7 @@ from __future__ import annotations
 import json
 from collections import Counter
 
-from common import DATA_DIR, SPLITS, normalize_role_name
+from legacy.rams_analysis.common import DATA_DIR, SPLITS, normalize_role_name
 
 
 def role_depth(role_path: str) -> int:

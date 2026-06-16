@@ -12,6 +12,7 @@ from ntust_thesis.core.bootstrap import register_builtin_components
 from ntust_thesis.core.config import load_experiment_config
 from ntust_thesis.core.pipeline import ExperimentPipeline
 from ntust_thesis.utils.artifacts import write_json, write_jsonl, write_yaml
+from ntust_thesis.utils.env import load_environment
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -31,6 +32,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main() -> None:
     """CLI entrypoint."""
+    load_environment()
     parser = build_parser()
     args = parser.parse_args()
 

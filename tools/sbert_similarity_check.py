@@ -3,19 +3,21 @@
 from __future__ import annotations
 
 import json
-import os
 import sys
 from importlib import import_module
+
+from ntust_thesis.utils.env import get_required_env, load_environment
 
 # Edit these values directly before running this script.
 SENTENCE_A = r"\"Mrs. Clinton\""
 SENTENCE_B = r"Mrs. Clinton"
-MODEL_NAME = os.getenv("SBERT_MODEL_NAME", "all-mpnet-base-v2")
 PRETTY_PRINT = True
 
 
 def main() -> None:
     """Run SBERT encoding and similarity comparison."""
+    load_environment()
+    model_name = get_required_env("SBERT_MODEL_NAME")
     try:
         sentence_transformers = import_module("sentence_transformers")
     except ImportError as exc:
@@ -27,7 +29,7 @@ def main() -> None:
 
     sentence_transformer_cls = sentence_transformers.SentenceTransformer
     util_module = sentence_transformers.util
-    model = sentence_transformer_cls(MODEL_NAME)
+    model = sentence_transformer_cls(model_name)
 
     embedding_a = model.encode(
         SENTENCE_A,
@@ -44,7 +46,7 @@ def main() -> None:
     similarity = float(util_module.cos_sim([embedding_a], [embedding_b]).item())
 
     result = {
-        "model": MODEL_NAME,
+        "model": model_name,
         "sentence_a": SENTENCE_A,
         "sentence_b": SENTENCE_B,
         "cosine_similarity": similarity,
