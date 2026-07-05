@@ -1,7 +1,7 @@
 [project]
-name = "ntust-thesis"
+name = "ir-grammar-structured-generation"
 version = "0.1.0"
-description = "Add your description here"
+description = "Empirical study of IR grammars for structured generation"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

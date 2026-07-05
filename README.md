@@ -1,4 +1,4 @@
-# NTUST Thesis Experiments
+# IR Grammar Structured Generation
 
 Paper: [Intermediate Representation Design for Structured Generation: An Empirical Study of IR Grammars](https://example.com/paper-placeholder)
 
@@ -74,7 +74,7 @@ For full experiment runs:
 ```
 
 
-# File Tree: NTUST-Thesis
+# File Tree: ir-grammar-structured-generation
 
 ```
 ├── 📁 datasets  # Local datasets
