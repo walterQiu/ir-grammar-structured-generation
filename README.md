@@ -1,4 +1,6 @@
-# NTUST Thesis Experiments
+# IR Grammar Structured Generation
+
+Paper: [Intermediate Representation Design for Structured Generation: An Empirical Study of IR Grammars](https://example.com/paper-placeholder)
 
 ## Environment Setup
 
@@ -54,8 +56,25 @@ UV_CACHE_DIR=/tmp/.uv-cache PYTHONPATH=src uv run python run.py \
 
 Run artifacts are written under `outputs/runs/`.
 
+## Inference
 
-# File Tree: NTUST-Thesis
+For full experiment runs:
+
+1. Start the local Mistral server with vLLM.
+   - The vLLM server must expose an OpenAI-compatible `/v1/chat/completions` endpoint.
+   - Make sure the `api_base` values in the Mistral experiment YAML files point to the running server.
+2. Select experiments in `experimental_configs/batch_run_list.yaml`.
+   - The current list is configured to run every experiment reported in the thesis once.
+   - Active YAML paths will be executed.
+   - Comment out entries that should not be run.
+3. Run the selected experiments:
+
+```bash
+./tools/run_selected_experiments.sh
+```
+
+
+# File Tree: ir-grammar-structured-generation
 
 ```
 ├── 📁 datasets  # Local datasets
@@ -223,4 +242,17 @@ responses. Edit `SYSTEM_PROMPT`, `USER_PROMPT`, and `TARGET_MODELS` in
 
 ```bash
 PYTHONPATH=src uv run python tools/test_llm_sensitive_words.py
+```
+
+# Citation
+
+Citation information will be added after the thesis is published.
+
+```bibtex
+@misc{ir-grammar-study-placeholder,
+  title = {Intermediate Representation Design for Structured Generation: An Empirical Study of IR Grammars},
+  author = {TBD},
+  year = {TBD},
+  url = {https://example.com/paper-placeholder}
+}
 ```
