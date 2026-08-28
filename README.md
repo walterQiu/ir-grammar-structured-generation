@@ -1,6 +1,6 @@
 # IR Grammar Structured Generation
 
-Paper: [Intermediate Representation Design for Structured Generation: An Empirical Study of IR Grammars](https://example.com/paper-placeholder)
+Paper: [Intermediate Representation Design for Structured Generation: An Empirical Study of IR Grammars](https://etheses.lib.ntust.edu.tw/detail/2767d5838e38524a4d584423862281d3/)
 
 ## Environment Setup
 
@@ -242,17 +242,4 @@ responses. Edit `SYSTEM_PROMPT`, `USER_PROMPT`, and `TARGET_MODELS` in
 
 ```bash
 PYTHONPATH=src uv run python tools/test_llm_sensitive_words.py
-```
-
-# Citation
-
-Citation information will be added after the thesis is published.
-
-```bibtex
-@misc{ir-grammar-study-placeholder,
-  title = {Intermediate Representation Design for Structured Generation: An Empirical Study of IR Grammars},
-  author = {TBD},
-  year = {TBD},
-  url = {https://example.com/paper-placeholder}
-}
 ```
